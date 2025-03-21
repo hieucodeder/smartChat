@@ -11,7 +11,7 @@ Future<String?> fetchApiResponseNumber(
   List<Map<String, dynamic>> messages,
   Function? onExtraDataReceived,
 ) async {
-  final String apiUrl = '${ApiConfig.baseUrl}chatbot-statistic-answer';
+  final String apiUrl = '${ApiConfig.baseUrl}chatbot-answer';
 
   try {
     final requestBody = json.encode(chatbotRequest.toJson());

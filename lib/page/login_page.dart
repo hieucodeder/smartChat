@@ -1,12 +1,8 @@
 import 'package:chatbotbnn/model/body_login.dart';
 import 'package:chatbotbnn/page/app_screen.dart';
-import 'package:chatbotbnn/page/chatbot_page.dart';
 import 'package:chatbotbnn/service/login_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -108,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Image.asset(
-                      'resources/logo_smart.png',
+                      'resources/Smartchat.png',
                       width: 100,
                       height: 100,
                     ),
@@ -374,29 +370,29 @@ class _LoginPageState extends State<LoginPage> {
                         //     const SizedBox(
                         //       width: 230,
                         //     ),
-                            // SizedBox(
-                            //   width: 130,
-                            //   height: 40,
-                            //   child: Row(
-                            //     mainAxisAlignment: MainAxisAlignment.start,
-                            //     children: [
-                            //       TextButton(
-                            //         onPressed: () {},
-                            //         child: Text(
-                            //           'Quên mật khẩu?',
-                            //           style: GoogleFonts.robotoCondensed(
-                            //               fontWeight: FontWeight.w400,
-                            //               color: const Color(0xFF064265),
-                            //               decoration: TextDecoration.underline,
-                            //               decorationColor:
-                            //                   const Color(0xFF064265)),
-                            //         ),
-                            //       ),
-                            //     ],
-                            //   ),
-                            // ),
-                          ],
-                        ),
+                        // SizedBox(
+                        //   width: 130,
+                        //   height: 40,
+                        //   child: Row(
+                        //     mainAxisAlignment: MainAxisAlignment.start,
+                        //     children: [
+                        //       TextButton(
+                        //         onPressed: () {},
+                        //         child: Text(
+                        //           'Quên mật khẩu?',
+                        //           style: GoogleFonts.robotoCondensed(
+                        //               fontWeight: FontWeight.w400,
+                        //               color: const Color(0xFF064265),
+                        //               decoration: TextDecoration.underline,
+                        //               decorationColor:
+                        //                   const Color(0xFF064265)),
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
+                      ],
+                    ),
                     //   ],
                     // ),
                   ),
@@ -438,7 +434,7 @@ void showLoginSnackbar(BuildContext context) {
   Future.delayed(const Duration(seconds: 1), () {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) =>  const AppScreen()),
+      MaterialPageRoute(builder: (context) => const AppScreen()),
     );
   });
 }

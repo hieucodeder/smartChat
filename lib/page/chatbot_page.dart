@@ -1,9 +1,11 @@
 import 'package:chatbotbnn/model/chatbot_info.dart';
+import 'package:chatbotbnn/page/create_chatbot_page.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/chatbotcolors_provider.dart';
 import 'package:chatbotbnn/provider/chatbotname_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
 import 'package:chatbotbnn/provider/navigation_provider.dart';
+import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/service/app_config.dart';
 import 'package:chatbotbnn/service/chatbot_service.dart';
 import 'package:chatbotbnn/service/role_service.dart';
@@ -130,6 +132,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
   @override
   Widget build(BuildContext context) {
+    final color = Provider.of<Providercolor>(context).selectedColor;
     return LayoutBuilder(builder: (context, contraints) {
       double maxWidth = contraints.maxWidth;
       return Container(
@@ -145,46 +148,43 @@ class _ChatbotPageState extends State<ChatbotPage> {
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(8.0),
-                    itemCount: chatbotList.length + 1,
+                    itemCount: chatbotList.length,
                     itemBuilder: (context, index) {
-                      if (index == 0) {
-                        // Hiển thị nút "Thêm mới"
-                        return GestureDetector(
-                          onTap: () {
-                            // Xử lý khi bấm vào nút thêm mới
-                            print("Thêm chatbot mới!");
-                          },
-                          child: Card(
-                            color: Colors.greenAccent.withOpacity(0.3),
-                            elevation: 1,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: SizedBox(
-                              height: 80, // Chiều cao tương tự item Card
-                              child: Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.add,
-                                        size: 30, color: Colors.black54),
-                                    SizedBox(width: 10),
-                                    Text(
-                                      "Thêm chatbot mới",
-                                      style: GoogleFonts.robotoCondensed(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      }
+                      // if (index == 0) {
+                      //   // Hiển thị nút "Thêm mới"
+                      //   return GestureDetector(
+                      //     onTap: () => widget.onSelected(7),
+                      //     child: Card(
+                      //       color: Colors.white,
+                      //       elevation: 1,
+                      //       shape: RoundedRectangleBorder(
+                      //         borderRadius: BorderRadius.circular(10),
+                      //       ),
+                      //       child: SizedBox(
+                      //         height: 80, // Chiều cao tương tự item Card
+                      //         child: Center(
+                      //           child: Row(
+                      //             mainAxisAlignment: MainAxisAlignment.center,
+                      //             children: [
+                      //               const Icon(Icons.add,
+                      //                   size: 30, color: Colors.black54),
+                      //               SizedBox(width: 10),
+                      //               Text(
+                      //                 "Thêm Trợ lý AI",
+                      //                 style: GoogleFonts.robotoCondensed(
+                      //                   fontSize: 16,
+                      //                   fontWeight: FontWeight.bold,
+                      //                 ),
+                      //               ),
+                      //             ],
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   );
+                      // }
 
-                      final chatbot = chatbotList[index - 1];
+                      final chatbot = chatbotList[index];
                       return GestureDetector(
                         onTap: () async {
                           final prefs = await SharedPreferences.getInstance();
@@ -236,7 +236,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                             ? NetworkImage(
                                                 "${ApiConfig.baseUrlBasic}${chatbot.picture!}")
                                             : const AssetImage(
-                                                    'resources/logo_smart.png')
+                                                    'resources/Smartchat.png')
                                                 as ImageProvider,
                                         radius: 30,
                                       ),
@@ -283,7 +283,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                                     .transparent),
                                                       ),
                                                       // Vòng tròn tiến trình (màu cam)
-                                                      const CircularProgressIndicator(
+                                                      CircularProgressIndicator(
                                                         value: 80 /
                                                             100, // Giá trị từ 0-1
                                                         strokeWidth: 4,
@@ -291,8 +291,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                             Colors.transparent,
                                                         valueColor:
                                                             AlwaysStoppedAnimation<
-                                                                    Color>(
-                                                                Colors.orange),
+                                                                Color>(color ==
+                                                                    Colors.white
+                                                                ? Colors.orange
+                                                                : color),
                                                       ),
                                                       // Hiển thị phần trăm ở giữa
                                                       const Text(
@@ -361,7 +363,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                       print(
                                                           "Trạng thái mới: $newStatus");
                                                     },
-                                                    activeColor: Colors.orange,
+                                                    activeColor:
+                                                        color == Colors.white
+                                                            ? Colors.orange
+                                                            : color,
                                                   ),
                                                 ),
                                                 const Icon(

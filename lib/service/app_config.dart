@@ -3,8 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiConfig {
   static const String domain = 'https://app.smartchat.com.vn';
 
-  static const String _defaultDomain = 'https://app.smartchat.com.vn';
-
   static String get baseUrlBasic {
     return '$domain/api/';
   }
@@ -12,9 +10,11 @@ class ApiConfig {
   static String get baseUrl {
     return '$domain/api/chatbot/';
   }
- static String get baseUrlDasboard {
+
+  static String get baseUrlDasboard {
     return '$domain/api/dashboard/';
   }
+
   static String get baseUrlHistory {
     return '$domain/api/chatbot-history/';
   }

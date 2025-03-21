@@ -290,9 +290,10 @@ class _DrawerCustomState extends State<DrawerCustom> {
               width: double.infinity,
               height: 45,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                color: const Color(0xFF3B3B3B).withOpacity(0.5),
-              ),
+                  borderRadius: BorderRadius.circular(6),
+                  color: selectedColor == Colors.white
+                      ? Colors.white
+                      : Colors.transparent),
               child: Row(
                 children: [
                   FutureBuilder<Map<String, String?>>(
@@ -306,7 +307,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           children: [
                             const CircleAvatar(
                               backgroundImage:
-                                  AssetImage('resources/logo_smart.png'),
+                                  AssetImage('resources/Smartchat.png'),
                               radius: 20,
                             ),
                             const SizedBox(width: 5),
@@ -314,7 +315,9 @@ class _DrawerCustomState extends State<DrawerCustom> {
                               'No Name',
                               style: GoogleFonts.robotoCondensed(
                                 fontSize: 15,
-                                color: Colors.white,
+                                color: selectedColor == Colors.white
+                                    ? Colors.blueGrey
+                                    : Colors.white,
                               ),
                             ),
                           ],
@@ -345,7 +348,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                       chatbotPicture.isNotEmpty
                                   ? NetworkImage(
                                       "${ApiConfig.baseUrlBasic}$chatbotPicture")
-                                  : const AssetImage('resources/logo_smart.png')
+                                  : const AssetImage('resources/Smartchat.png')
                                       as ImageProvider,
                               radius: 20,
                             ),
@@ -355,7 +358,9 @@ class _DrawerCustomState extends State<DrawerCustom> {
                             chatbotName,
                             style: GoogleFonts.robotoCondensed(
                               fontSize: 15,
-                              color: Colors.white,
+                              color: selectedColor == Colors.white
+                                  ? Colors.black
+                                  : Colors.white,
                             ),
                           ),
                         ],
@@ -413,11 +418,10 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           title: 'Gói dịch vụ',
                           onTap: () => widget.onItemSelected(5)),
                     ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    const Divider(
-                      color: Colors.white38,
+                    Divider(
+                      color: selectedColor == Colors.white
+                          ? Colors.black
+                          : Colors.grey,
                     ),
                     Column(
                       children: [
@@ -499,7 +503,11 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           Text(
                             'Lịch sử',
                             style: GoogleFonts.robotoCondensed(
-                                fontSize: 16, color: Colors.white),
+                              fontSize: 16,
+                              color: selectedColor == Colors.white
+                                  ? Colors.black
+                                  : Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -574,13 +582,10 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                   width: double.infinity,
                                   height: 50,
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(4),
-                                    color: isSelected
-                                        ? Colors.red.withOpacity(
-                                            0.7) // Giữ màu sau khi chọn
-                                        : const Color(0xFF3B3B3B)
-                                            .withOpacity(0.5),
-                                  ),
+                                      borderRadius: BorderRadius.circular(4),
+                                      color: selectedColor == Colors.white
+                                          ? Colors.white
+                                          : Colors.transparent),
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 1),
                                   child: ListTile(
@@ -596,7 +601,9 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.robotoCondensed(
                                         fontSize: 14.0,
-                                        color: Colors.white,
+                                        color: selectedColor == Colors.white
+                                            ? Colors.black
+                                            : Colors.white,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -605,9 +612,11 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                         deleteChatHistory(
                                             context, contents[index]['key']);
                                       },
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.more_horiz,
-                                        color: Colors.white,
+                                        color: selectedColor == Colors.white
+                                            ? Colors.black
+                                            : Colors.white,
                                         size: 20.0,
                                       ),
                                     ),
@@ -637,13 +646,18 @@ class _DrawerCustomState extends State<DrawerCustom> {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final selectedColor = Provider.of<Providercolor>(context).selectedColor;
     return SizedBox(
       width: double.infinity,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
+            icon: Icon(
+              Icons.menu,
+              color:
+                  selectedColor == Colors.white ? Colors.black : Colors.white,
+            ),
             iconSize: 23,
             onPressed: () => Navigator.pop(context),
           ),
@@ -651,7 +665,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
               width: 100,
               height: 50,
               child: Image.asset(
-                'resources/smartchatbot.png',
+                'resources/Smartchat-1.png',
                 fit: BoxFit.contain,
               )),
           IconButton(
@@ -660,9 +674,10 @@ class _DrawerCustomState extends State<DrawerCustom> {
                     .loadInitialMessage(context);
                 Navigator.pop(context);
               },
-              icon: const Icon(
-                Icons.drive_file_rename_outline_sharp,
-                color: Colors.white,
+              icon: Icon(
+                Icons.replay_outlined,
+                color:
+                    selectedColor == Colors.white ? Colors.black : Colors.white,
               ))
         ],
       ),
@@ -674,16 +689,19 @@ class _DrawerCustomState extends State<DrawerCustom> {
     required String title,
     required VoidCallback onTap,
   }) {
+    final selectedColor = Provider.of<Providercolor>(context).selectedColor;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(
         icon,
-        color: Colors.white,
+        color: selectedColor == Colors.white ? Colors.black : Colors.white,
         size: 22,
       ),
       title: Text(title,
-          style:
-              GoogleFonts.robotoCondensed(fontSize: 15, color: Colors.white)),
+          style: GoogleFonts.robotoCondensed(
+            fontSize: 15,
+            color: selectedColor == Colors.white ? Colors.black : Colors.white,
+          )),
       onTap: onTap,
     );
   }
@@ -709,6 +727,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
 // _buildUserAccount widget
   Widget _buildUserAccount() {
     final loginService = LoginService();
+    final selectedColor = Provider.of<Providercolor>(context).selectedColor;
     return FutureBuilder<Map<String, String>?>(
       future:
           loginService.getAccountFullNameAndUsername(), // Fetch the user data
@@ -732,20 +751,27 @@ class _DrawerCustomState extends State<DrawerCustom> {
                       Text(
                         'Loading...', // Placeholder text
                         style: GoogleFonts.robotoCondensed(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: selectedColor == Colors.white
+                              ? Colors.black
+                              : Colors.white,
+                        ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_drop_down,
-                        color: Colors.white,
+                        color: selectedColor == Colors.white
+                            ? Colors.black
+                            : Colors.white,
                       ),
                     ],
                   ),
                   Text(
                     'Loading...', // Placeholder text
                     style: GoogleFonts.robotoCondensed(
-                        color: Colors.white,
+                        color: selectedColor == Colors.white
+                            ? Colors.black
+                            : Colors.white,
                         fontSize: 16,
                         fontStyle: FontStyle.italic),
                   ),
@@ -778,16 +804,21 @@ class _DrawerCustomState extends State<DrawerCustom> {
                       Text(
                         'Error loading user info', // Display error message
                         style: GoogleFonts.robotoCondensed(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: selectedColor == Colors.white
+                              ? Colors.black
+                              : Colors.white,
+                        ),
                       ),
                     ],
                   ),
                   Text(
                     '',
                     style: GoogleFonts.robotoCondensed(
-                        color: Colors.white,
+                        color: selectedColor == Colors.white
+                            ? Colors.black
+                            : Colors.white,
                         fontSize: 16,
                         fontStyle: FontStyle.italic),
                   ),
@@ -804,7 +835,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
           return ListTile(
             leading: CircleAvatar(
               child: Image.asset(
-                'resources/logo_smart.png',
+                'resources/Smartchat.png',
                 height: 30,
                 width: 30,
                 fit: BoxFit.cover,
@@ -823,20 +854,27 @@ class _DrawerCustomState extends State<DrawerCustom> {
                       Text(
                         userName,
                         style: GoogleFonts.robotoCondensed(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: selectedColor == Colors.white
+                              ? Colors.black
+                              : Colors.white,
+                        ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_drop_down,
-                        color: Colors.white,
+                        color: selectedColor == Colors.white
+                            ? Colors.black
+                            : Colors.white,
                       ),
                     ],
                   ),
                   Text(
                     email, // Display fetched email
                     style: GoogleFonts.robotoCondensed(
-                        color: Colors.white,
+                        color: selectedColor == Colors.white
+                            ? Colors.black
+                            : Colors.white,
                         fontSize: 14,
                         fontStyle: FontStyle.italic),
                   ),

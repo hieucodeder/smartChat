@@ -1,6 +1,5 @@
 import 'package:chatbotbnn/page/login_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SlapsPage extends StatefulWidget {
@@ -58,37 +57,29 @@ class _SlapsPageState extends State<SlapsPage> with TickerProviderStateMixin {
               Positioned.fill(
                 child: Image.asset('resources/bgr2.png', fit: BoxFit.cover),
               ),
-              Center(
+              // Các logo hiển thị bên dưới
+              Positioned(
+                bottom: 10, // Điều chỉnh vị trí logo
+                left: 0,
+                right: 0,
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // SvgPicture.asset(
-                    //   'resources/logonextco.svg',
-                    //   width: 180,
-                    //   height: 50,
-                    // ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(100),
-                      child: Image.asset(
-                        'resources/logo_AI.png',
-                        width: 200,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text('Bộ nông nghiệp và Phát triển nông thôn'),
-                    const SizedBox(height: 15),
-                    Text(
-                      'Trợ lý AI Bộ nông nghiệp và Phát triển nông thôn',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.robotoCondensed(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xff064265),
-                      ),
-                    ),
+                    Image.asset('resources/login.png'),
+                    Image.asset('resources/login1.png'),
+                    Image.asset('resources/login2.png'),
                   ],
+                ),
+              ),
+              // Ảnh chính hiển thị trên cùng
+              Center(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: Image.asset(
+                    'resources/Smartchat-1.png',
+                    width: double.infinity, // Để nhỏ lại, tránh che logo
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ],

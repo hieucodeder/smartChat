@@ -1,4 +1,3 @@
-import 'package:chatbotbnn/model/answer_model_pq.dart';
 import 'package:chatbotbnn/model/body_chatbot_answer.dart';
 import 'package:chatbotbnn/model/chatbot_config.dart';
 import 'package:chatbotbnn/model/history_all_model.dart';
@@ -6,12 +5,13 @@ import 'package:chatbotbnn/provider/chat_provider.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
-import 'package:chatbotbnn/service/answer_pq_service.dart';
+import 'package:chatbotbnn/service/anwser_number.dart';
 import 'package:chatbotbnn/service/chatbot_config_service.dart';
 import 'package:chatbotbnn/service/history_all_service.dart';
 import 'package:chatbotbnn/service/history_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -165,46 +165,101 @@ class _ChatPageState extends State<ChatPage> {
       userId: userId,
       userIndustry: "",
     );
+    print('Cấu hình: $chatbotRequest');
 
-    // 📌 Gọi API
-    AnswerModelPq? responsepq = await fetchApiResponsePq(chatbotRequest);
+    String? response;
 
-    if (responsepq != null && responsepq.data != null) {
-      DataAnswer? responseData = responsepq.data;
+    List<Map<String, dynamic>>? table;
+    List<dynamic> images = [];
 
-      // 📌 Lấy tin nhắn từ chatbot
-      String botResponse =
-          responseData?.message ?? "Chatbot không có câu trả lời.";
-
-      // 📌 Tìm ảnh trong nội dung Markdown
-      RegExp markdownImageRegex = RegExp(r'!\[.*?\]\((.*?)\)');
-      List<String> imageUrls = responseData?.images ?? [];
-
-      // 📌 Trích xuất ảnh từ Markdown
-      for (RegExpMatch match in markdownImageRegex.allMatches(botResponse)) {
-        if (match.group(1) != null) {
-          imageUrls.add(match.group(1)!);
+    response = await fetchApiResponseNumber(
+      chatbotRequest,
+      setState,
+      _messages,
+      (extraData) {
+        if (extraData is List<String> && extraData.isNotEmpty) {
+          setState(() {});
         }
-      }
+      },
+    );
 
-      setState(() {
-        _messages.insert(0, {
-          'type': 'bot',
-          'text': botResponse,
-          'images': imageUrls,
-        });
-      });
-    } else {
-      setState(() {
-        _messages.insert(
-            0, {'type': 'bot', 'text': "Chatbot không thể trả lời lúc này."});
-      });
+    if (historyId.isEmpty) {
+      //gọi hàm mà không cập nhật UI
+      Future.microtask(() => _fetchHistoryAllModel(context));
     }
 
     setState(() {
       _isLoading = false;
+      final historyidProvider =
+          Provider.of<HistoryidProvider>(context, listen: false);
+      String historyId = historyidProvider.chatbotHistoryId;
+      if (response != null) {
+        if (_messages.isEmpty ||
+            (_messages[0]['type'] == 'bot' &&
+                _messages[0]['text'] == 'response')) {
+          _messages[0]['table'] = table;
+          _messages[0]['imageStatistic'] = images;
+        } else {
+          _messages.insert(0, {
+            'type': 'bot',
+            'text': '',
+            'table': table,
+            'imageStatistic': images,
+          });
+          if (historyId.isEmpty) {
+            //gọi hàm mà không cập nhật UI
+            Future.microtask(() => _fetchHistoryAllModel(context));
+          }
+          // Cuộn xuống cuối cùng sau khi danh sách tin nhắn cập nhật
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          });
+        }
+      }
     });
   }
+  // // 📌 Gọi API
+  // AnswerModelPq? responsepq = await fetchApiResponsePq(chatbotRequest);
+
+  // if (responsepq != null && responsepq.data != null) {
+  //   DataAnswer? responseData = responsepq.data;
+
+  //   // 📌 Lấy tin nhắn từ chatbot
+  //   String botResponse =
+  //       responseData?.message ?? "Chatbot không có câu trả lời.";
+
+  //   // 📌 Tìm ảnh trong nội dung Markdown
+  //   RegExp markdownImageRegex = RegExp(r'!\[.*?\]\((.*?)\)');
+  //   List<String> imageUrls = responseData?.images ?? [];
+
+  //   // 📌 Trích xuất ảnh từ Markdown
+  //   for (RegExpMatch match in markdownImageRegex.allMatches(botResponse)) {
+  //     if (match.group(1) != null) {
+  //       imageUrls.add(match.group(1)!);
+  //     }
+  //   }
+
+  //   setState(() {
+  //     _messages.insert(0, {
+  //       'type': 'bot',
+  //       'text': botResponse,
+  //       'images': imageUrls,
+  //     });
+  //   });
+  // } else {
+  //   setState(() {
+  //     _messages.insert(
+  //         0, {'type': 'bot', 'text': "Chatbot không thể trả lời lúc này."});
+  //   });
+  // }
+
+  // setState(() {
+  //   _isLoading = false;
+  // });
 
   Future<void> fetchAndUpdateChatHistory() async {
     if (!mounted) return;
@@ -394,8 +449,10 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     final selectColors = Provider.of<Providercolor>(context).selectedColor;
-    final textChatBot =
-        GoogleFonts.robotoCondensed(fontSize: 14, color: Colors.black);
+    final textChatBot = GoogleFonts.robotoCondensed(
+      fontSize: 14,
+      color: Colors.black,
+    );
     final textChatbotTable = GoogleFonts.robotoCondensed(
         fontSize: 15, fontWeight: FontWeight.bold, color: Colors.blue);
     // _messages = _chatProvider!.messages();
@@ -477,67 +534,68 @@ class _ChatPageState extends State<ChatPage> {
                                         _parseMessage(message['text'] ?? ''),
                                   ),
                                   style: GoogleFonts.robotoCondensed(
-                                    fontSize: 15,
-                                    color: isUser ? Colors.white : Colors.black,
-                                  ),
+                                      fontSize: 15,
+                                      color:
+                                          isUser ? Colors.black : Colors.black),
                                 ),
                               ),
                             ),
                             // 📌 Hiển thị danh sách ảnh nếu có
-                            if (validImageUrls.isNotEmpty)
-                              Wrap(
-                                spacing: 8.0, // Khoảng cách giữa các ảnh
-                                runSpacing: 8.0,
-                                children: validImageUrls.map((imageUrl) {
-                                  return GestureDetector(
-                                    onTap: () {
-                                      // // Mở ảnh toàn màn hình khi nhấn vào
-                                      // Navigator.push(
-                                      //   context,
-                                      //   MaterialPageRoute(
-                                      //     builder: (context) => FullScreenImage(imageUrl: imageUrl),
-                                      //   ),
-                                      // );
-                                    },
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: Image.network(
-                                        imageUrl,
-                                        width: 100,
-                                        height: 100,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-
-                            // 🖼 Kiểm tra nếu có ảnh thì hiển thị ảnh
-                            // Builder(
-                            //   builder: (context) {
-                            //     final regex = RegExp(
-                            //         r'!\[.*?\]\((https?://[^\)]+\.png)\)');
-                            //     final match =
-                            //         regex.firstMatch(message['text'] ?? '');
-
-                            //     if (match != null) {
-                            //       String imageUrl =
-                            //           match.group(1)!; // Lấy URL ảnh
-
-                            //       return Padding(
-                            //         padding: const EdgeInsets.only(top: 5),
+                            // if (validImageUrls.isNotEmpty)
+                            //   Wrap(
+                            //     spacing: 8.0, // Khoảng cách giữa các ảnh
+                            //     runSpacing: 8.0,
+                            //     children: validImageUrls.map((imageUrl) {
+                            //       return GestureDetector(
+                            //         onTap: () {
+                            //           // // Mở ảnh toàn màn hình khi nhấn vào
+                            //           // Navigator.push(
+                            //           //   context,
+                            //           //   MaterialPageRoute(
+                            //           //     builder: (context) => FullScreenImage(imageUrl: imageUrl),
+                            //           //   ),
+                            //           // );
+                            //         },
                             //         child: ClipRRect(
                             //           borderRadius: BorderRadius.circular(10),
                             //           child: Image.network(
                             //             imageUrl,
+                            //             width: 100,
+                            //             height: 100,
                             //             fit: BoxFit.cover,
                             //           ),
                             //         ),
                             //       );
-                            //     }
-                            //     return SizedBox.shrink(); // Không có ảnh thì ẩn
-                            //   },
-                            // ),
+                            //     }).toList(),
+                            //   ),
+
+                            // 🖼 Kiểm tra nếu có ảnh thì hiển thị ảnh
+                            Builder(
+                              builder: (context) {
+                                final regex = RegExp(
+                                    r'!\[.*?\]\((https?://[^\)]+\.(png|jpg|jpeg|gif|webp))\)');
+
+                                final match =
+                                    regex.firstMatch(message['text'] ?? '');
+
+                                if (match != null) {
+                                  String imageUrl =
+                                      match.group(1)!; // Lấy URL ảnh
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 5),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: Image.network(
+                                        imageUrl,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                return SizedBox.shrink(); // Không có ảnh thì ẩn
+                              },
+                            ),
 
                             // if (!isUser)
                             //   Row(
@@ -724,13 +782,11 @@ class _ChatPageState extends State<ChatPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                      strokeWidth: 2.0,
-                      color: selectColors,
-                    ),
+                        strokeWidth: 2.0, color: Colors.black),
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -796,7 +852,7 @@ class _ChatPageState extends State<ChatPage> {
                   child: IconButton(
                     icon: Icon(
                         _isLoading ? Icons.hourglass_empty : Icons.send_rounded,
-                        color: selectColors),
+                        color: Colors.black),
                     onPressed: _sendMessage,
                   ),
                 ),

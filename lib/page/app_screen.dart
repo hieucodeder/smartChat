@@ -2,6 +2,7 @@ import 'package:chatbotbnn/model/body_history.dart';
 import 'package:chatbotbnn/navigation/drawer.dart';
 import 'package:chatbotbnn/page/chat_page.dart';
 import 'package:chatbotbnn/page/chatbot_page.dart';
+import 'package:chatbotbnn/page/create_chatbot_page.dart';
 import 'package:chatbotbnn/page/dasboard_page.dart';
 import 'package:chatbotbnn/page/information_page.dart';
 import 'package:chatbotbnn/page/potential_customers.dart';
@@ -35,9 +36,11 @@ class _AppScreenState extends State<AppScreen> {
       case 1:
         return ChatbotPage(
           onSelected: (int selectedIndex) {
-            // Handle the selection logic here
-            // You can pass the selected index to the parent or handle it locally
-            print('Selected index: $selectedIndex');
+            setState(() {
+              final navigationProvider =
+                  Provider.of<NavigationProvider>(context, listen: false);
+              navigationProvider.setCurrentIndex(selectedIndex);
+            });
           },
         );
       case 2:
@@ -50,6 +53,8 @@ class _AppScreenState extends State<AppScreen> {
         return const ServicePackagePage();
       case 6:
         return const PotentialCustomers();
+      case 7:
+        return const CreateChatbotPage();
       default:
         return const Center(
           child: Text(
@@ -83,6 +88,8 @@ class _AppScreenState extends State<AppScreen> {
         return 'GÓI DỊCH VỤ';
       case 6:
         return 'KHÁCH HÀNG TIỀM NĂNG';
+      case 7:
+        return 'TẠO TRỢ LÝ AI';
       default:
         return 'activity_report';
     }
@@ -125,7 +132,9 @@ class _AppScreenState extends State<AppScreen> {
                       .toUpperCase(), // ép kiểu thành chứ hoa
                   style: GoogleFonts.robotoCondensed(
                     fontSize: 17,
-                    color: Colors.white,
+                    color: selectedColor == Colors.white
+                        ? Colors.black
+                        : Colors.white,
                     fontWeight: FontWeight.bold,
                   ));
             }
@@ -139,11 +148,11 @@ class _AppScreenState extends State<AppScreen> {
                   Provider.of<ChatProvider>(context, listen: false)
                       .loadInitialMessage(context);
                 },
-                icon: const Icon(Icons.drive_file_rename_outline_sharp)),
+                icon: const Icon(Icons.replay_outlined)),
           )
         ],
-        iconTheme: const IconThemeData(
-          color: Colors.white,
+        iconTheme: IconThemeData(
+          color: selectedColor == Colors.white ? Colors.black : Colors.white,
         ),
         centerTitle: true,
         backgroundColor: selectedColor,

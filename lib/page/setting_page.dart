@@ -34,7 +34,7 @@ class _SettingPageState extends State<SettingPage> {
     final colors = [
       const Color(0xFF284973),
       const Color(0xff48433d),
-      const Color(0xff6b240c),
+      Colors.white, // Màu trắng
     ];
 
     return Consumer<Providercolor>(
@@ -54,7 +54,7 @@ class _SettingPageState extends State<SettingPage> {
                   color: color,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected ? Colors.white : Colors.transparent,
+                    color: Colors.grey,
                     width: 2,
                   ),
                   boxShadow: isSelected
@@ -66,7 +66,7 @@ class _SettingPageState extends State<SettingPage> {
                 ),
                 child: Center(
                   child: isSelected
-                      ? const Icon(Icons.check, color: Colors.white, size: 18)
+                      ? const Icon(Icons.check, color: Colors.black, size: 18)
                       : const SizedBox(height: 23),
                 ),
               ),
@@ -376,19 +376,23 @@ class _SettingPageState extends State<SettingPage> {
     showDialog(
         context: context,
         builder: (BuildContext context) {
+          final selectedColor =
+              Provider.of<Providercolor>(context).selectedColor;
           return AlertDialog(
             title: Container(
                 // margin: const EdgeInssets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
                     color: Provider.of<Providercolor>(context).selectedColor),
-                child: const Center(
+                child: Center(
                   child: Text(
                     'Thông báo!',
                     style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 24,
-                        color: Colors.white),
+                        color: selectedColor == Colors.white
+                            ? Colors.black
+                            : selectedColor),
                   ),
                 )),
             content: const Text('Bạn có muốn đăng xuất tài khoản không?'),
