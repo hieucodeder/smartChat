@@ -6,7 +6,7 @@ import 'package:chatbotbnn/page/create_chatbot_page.dart';
 import 'package:chatbotbnn/page/dasboard_page.dart';
 import 'package:chatbotbnn/page/information_page.dart';
 import 'package:chatbotbnn/page/potential_customers.dart';
-import 'package:chatbotbnn/page/service_package_page.dart';
+import 'package:chatbotbnn/page/package_product_page.dart';
 import 'package:chatbotbnn/page/setting_page.dart';
 import 'package:chatbotbnn/provider/chat_provider.dart';
 import 'package:chatbotbnn/provider/navigation_provider.dart';
@@ -50,7 +50,7 @@ class _AppScreenState extends State<AppScreen> {
       case 4:
         return const DasboardPage();
       case 5:
-        return const ServicePackagePage();
+        return const PackageProductPage();
       case 6:
         return const PotentialCustomers();
       case 7:
