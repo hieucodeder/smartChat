@@ -1,9 +1,11 @@
 import 'dart:ui';
 
+import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:flutter/material.dart';
 import 'package:chatbotbnn/model/package_product_response.dart';
 import 'package:chatbotbnn/service/package_product_service.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 class PackageProductPage extends StatefulWidget {
   const PackageProductPage({super.key});
@@ -113,8 +115,26 @@ class _PackageProductPageState extends State<PackageProductPage> {
     }
   }
 
+  String getIconForPlan(String title) {
+    switch (title.toLowerCase()) {
+      // Chuyển về chữ thường để tránh lỗi
+      case "trải nghiệm":
+        return 'resources/iconfree.png';
+      case "cơ bản":
+        return 'resources/iconbasic.png';
+      case "nâng cao":
+        return 'resources/diamond.png';
+      case "tùy biến":
+        return 'resources/package.png';
+      default:
+        return 'resources/iconfree.png'; // Icon mặc định nếu không khớp
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final selectedColor = Provider.of<Providercolor>(context).selectedColor;
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: isLoading
@@ -141,7 +161,11 @@ class _PackageProductPageState extends State<PackageProductPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 4,
-                      child: Padding(
+                      child: Container(
+                        decoration: BoxDecoration(
+                            border: Border.all(
+                                width: 2, color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(6)),
                         padding: const EdgeInsets.all(15),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,14 +173,20 @@ class _PackageProductPageState extends State<PackageProductPage> {
                             /// Tiêu đề gói
                             ListTile(
                               leading: Image.asset(
-                                'resources/iconfree.png',
+                                getIconForPlan(plan["title"] ??
+                                    ""), // Gọi hàm để lấy icon tương ứng
+                                fit: BoxFit.contain,
+                                width: 30,
+                                height: 30,
                               ),
                               title: Text(
                                 plan["title"] ?? "",
-                                style: TextStyle(
-                                  fontSize: 18,
+                                style: GoogleFonts.robotoCondensed(
+                                  fontSize: 22,
                                   fontWeight: FontWeight.bold,
-                                  color: isActive ? Colors.green : Colors.black,
+                                  color: selectedColor == Colors.white
+                                      ? Colors.orange
+                                      : selectedColor,
                                 ),
                               ),
                             ),
@@ -175,9 +205,9 @@ class _PackageProductPageState extends State<PackageProductPage> {
                                 child: Column(
                                   children: [
                                     Text(
-                                      plan["title"] == "Doanh nghiệp"
+                                      plan["title"] == "Tùy biến"
                                           ? "Liên hệ"
-                                          : (plan["title"] == "Free"
+                                          : (plan["title"] == "Trải nghiệm"
                                               ? (plan["price"] ??
                                                   "Miễn phí") // Nếu là "Free", giữ nguyên giá hoặc "Miễn phí"
                                               : (selectedPriceMap[
@@ -185,7 +215,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                                                       null
                                                   ? "${selectedPriceMap[plan["title"]]} VND / Tháng"
                                                   : "Miễn phí")), // Nếu không phải "Free", hiển thị giá hoặc "Miễn phí"
-                                      style: TextStyle(
+                                      style: GoogleFonts.robotoCondensed(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                         color: isActive
@@ -197,8 +227,8 @@ class _PackageProductPageState extends State<PackageProductPage> {
                                 ),
                               ),
                             ),
-                            if (plan["title"] != "Free" &&
-                                plan["title"] != "Doanh nghiệp")
+                            if (plan["title"] != "Trải nghiệm" &&
+                                plan["title"] != "Tùy biến")
                               Column(
                                 children: [
                                   Row(
@@ -211,38 +241,41 @@ class _PackageProductPageState extends State<PackageProductPage> {
                                           plan["list_months"] ?? []),
                                       _buildRadioButton(plan["title"], 6,
                                           "6 tháng", plan["list_months"] ?? []),
-                                      _buildRadioButton(plan["title"], 1,
-                                          "1 tháng", plan["list_months"] ?? []),
+                                      _buildRadioButton(plan["title"], 3,
+                                          "3 tháng", plan["list_months"] ?? []),
                                     ],
                                   ),
                                 ],
                               ),
-
-                            const SizedBox(height: 15),
+                            const Divider(
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(height: 10),
 
                             /// Hiển thị thông tin chi tiết
                             _buildInfoRow(
-                              Icons.check,
+                              Icons.check_circle_outline,
                               plan["numbers_of_bot"]!,
-                              "Số lượng bot",
+                              "Số lượng BOT",
                             ),
 
                             _buildInfoRow(
-                              Icons.check, queries[0], "Số lượng ký tự/bot",
+                              Icons.check_circle_outline, queries[0],
+                              "Số lượng ký tự/bot",
                               // Lấy giá trị đầu tiên
                             ),
                             _buildInfoRow(
-                              Icons.check, queries[1],
+                              Icons.check_circle_outline, queries[1],
                               "Số lượng hỏi thông điệp/tháng",
 
                               // Lấy giá trị thứ hai
                             ),
 
                             ListTile(
-                              leading:
-                                  const Icon(Icons.check, color: Colors.blue),
+                              leading: const Icon(Icons.check_circle_outline,
+                                  color: Colors.black),
                               title: Text(
-                                "${plan["title"] == "Cơ bản" ? 32 : plan["title"] == "Nâng cao" ? 40 : plan["title"] == "Doanh nghiệp" ? 41 : 24} Tính năng thêm",
+                                "${plan["title"] == "Cơ bản" ? 32 : plan["title"] == "Nâng cao" ? 40 : plan["title"] == "Tùy biến" ? 41 : 24} Tính năng thêm",
                                 style: GoogleFonts.robotoCondensed(
                                     fontSize: 16, fontWeight: FontWeight.bold),
                               ),
@@ -264,32 +297,28 @@ class _PackageProductPageState extends State<PackageProductPage> {
     );
   }
 
-  /// Widget tạo dòng thông tin
-  Widget _buildInfoRow(
-    IconData icon,
-    String title,
-    String? value,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.blue),
-          const SizedBox(width: 8),
-          Text(
-            title,
-            style: GoogleFonts.robotoCondensed(
-                fontSize: 16, fontWeight: FontWeight.bold),
+  Widget _buildInfoRow(IconData icon, dynamic value, String label) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.black), // Icon màu xanh
+        SizedBox(width: 8), // Khoảng cách giữa icon và text
+        Text(
+          "$value",
+          style: GoogleFonts.robotoCondensed(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
-          const SizedBox(width: 5),
-          Text(
-            value ?? "Không có",
-            style: TextStyle(
-              fontSize: 16,
-            ),
+        ),
+        SizedBox(width: 8), // Khoảng cách giữa icon và text
+
+        Text(
+          "$label",
+          style: GoogleFonts.robotoCondensed(
+            fontWeight: FontWeight.bold, // Chữ đậm
+            fontSize: 16,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -325,24 +354,37 @@ class _PackageProductPageState extends State<PackageProductPage> {
 
   Widget _buildRadioButton(
       String planTitle, int months, String label, List<dynamic> listMonths) {
+    final selectedColor = Provider.of<Providercolor>(context).selectedColor;
     return Row(
       children: [
         Radio<int>(
           value: months,
-          groupValue:
-              selectedMonthsMap[planTitle], // Trạng thái riêng theo plan
+          groupValue: selectedMonthsMap[planTitle],
           onChanged: (int? value) {
             setState(() {
               selectedMonthsMap[planTitle] = value;
-              // Lấy giá tương ứng với số tháng đã chọn
               selectedPriceMap[planTitle] = listMonths.firstWhere(
                 (item) => item["count_month"] == value,
                 orElse: () => {"unit_price": null},
               )["unit_price"];
             });
           },
+          fillColor: MaterialStateProperty.resolveWith<Color>(
+            (Set<MaterialState> states) {
+              if (states.contains(MaterialState.selected)) {
+                return selectedColor == Colors.white
+                    ? Colors.orange
+                    : selectedColor; // Màu khi được chọn
+              }
+              return Colors.grey; // Màu mặc định
+            },
+          ),
         ),
-        Text(label),
+        Text(
+          label,
+          style: GoogleFonts.robotoCondensed(
+              fontSize: 14, fontWeight: FontWeight.bold),
+        ),
       ],
     );
   }

@@ -1,5 +1,6 @@
 import 'package:chatbotbnn/page/login_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SlapsPage extends StatefulWidget {
@@ -52,34 +53,54 @@ class _SlapsPageState extends State<SlapsPage> with TickerProviderStateMixin {
             fit: StackFit.expand,
             children: [
               Positioned.fill(
-                child: Image.asset('resources/bgr1.png', fit: BoxFit.cover),
+                child: SvgPicture.asset('resources/bg.svg', fit: BoxFit.cover),
               ),
-              Positioned.fill(
-                child: Image.asset('resources/bgr2.png', fit: BoxFit.cover),
-              ),
-              // Các logo hiển thị bên dưới
+
+              // Logo ở góc trên bên phải
               Positioned(
-                bottom: 10, // Điều chỉnh vị trí logo
-                left: 0,
-                right: 0,
-                child: Column(
-                  children: [
-                    Image.asset('resources/login.png'),
-                    Image.asset('resources/login1.png'),
-                    Image.asset('resources/login2.png'),
-                  ],
-                ),
-              ),
-              // Ảnh chính hiển thị trên cùng
-              Center(
+                top: 30, // Khoảng cách từ trên xuống
+                left: 20, // Khoảng cách từ phải vào
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(100),
-                  child: Image.asset(
-                    'resources/Smartchat-1.png',
-                    width: double.infinity, // Để nhỏ lại, tránh che logo
-                    height: 100,
+                  child: SvgPicture.asset(
+                    'resources/logo_1.svg',
+                    width: 50, // Kích thước logo
+                    height: 42,
                     fit: BoxFit.cover,
                   ),
+                ),
+              ),
+              // Logo ở góc trên bên phải
+              Positioned(
+                bottom: 20, // Khoảng cách từ dưới lên
+                left: 20, // Khoảng cách từ trái vào
+                child: Column(
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start, // Căn chỉnh văn bản về bên trái
+                  children: [
+                    Text(
+                      'SmartChat:',
+                      style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Text('Kinh doanh chủ động',
+                        style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold)),
+                    Text('24/7 với trợ lý AI',
+                        style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold)),
+                    Text('Cao cấp, thực tế, thông minh, đơn giản',
+                        style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold)),
+                  ],
                 ),
               ),
             ],

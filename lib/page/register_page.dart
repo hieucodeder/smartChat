@@ -1,60 +1,20 @@
-import 'package:chatbotbnn/model/body_login.dart';
-import 'package:chatbotbnn/page/app_screen.dart';
-import 'package:chatbotbnn/page/forgot_password_page.dart';
-import 'package:chatbotbnn/page/register_page.dart';
-import 'package:chatbotbnn/service/login_service.dart';
+import 'package:chatbotbnn/page/login_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  final _loginService = LoginService();
-
-  bool _isLoading = false; // Trạng thái đang tải
-
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đang xử lý dữ liệu...')),
-      );
-
-      final String username = _usernameController.text.trim();
-      final String password = _passwordController.text.trim();
-
-      // Create BodyLogin object from username and password
-      final BodyLogin loginData =
-          BodyLogin(username: username, password: password);
-
-      try {
-        Map<String, dynamic>? response = await _loginService.login(loginData);
-
-        if (response != null) {
-          // Successful login
-          showLoginSnackbar(context);
-        } else {
-          setState(() {});
-          showLoginErrorSnackbar(context); // Show error if login fails
-        }
-      } catch (error) {
-        setState(() {});
-        showLoginErrorSnackbar(context); // Show error if there's an exception
-      }
-    } else {
-      // If form validation fails
-      showValidationErrorSnackbar(context, 'Vui lòng điền đầy đủ thông tin.');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
                             end: Alignment.bottomRight,
                           ).createShader(bounds),
                           child: Text(
-                            'Đăng nhập',
+                            'Tạo tài khoản',
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.w700,
                               fontSize: 28,
@@ -162,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                                       end: Alignment.bottomRight,
                                     ).createShader(bounds),
                                     child: Text(
-                                      'Tài khoản',
+                                      'Họ tên',
                                       style: GoogleFonts.inter(
                                           fontSize: 16,
                                           color: const Color(0xFF064265),
@@ -186,12 +146,12 @@ class _LoginPageState extends State<LoginPage> {
                                   TextFormField(
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
-                                        return 'Vui lòng nhập tài khoản';
+                                        return 'Vui lòng nhập Họ tên';
                                       }
                                       return null;
                                     },
                                     style: const TextStyle(color: Colors.black),
-                                    controller: _usernameController,
+                                    // controller: _usernameController,
                                     decoration: InputDecoration(
                                       filled: true,
                                       fillColor: const Color.fromARGB(
@@ -199,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      hintText: 'Tài khoản',
+                                      hintText: 'Họ tên',
                                       hintStyle: GoogleFonts.inter(
                                           fontSize: 16,
                                           color: const Color(0xFF064265)),
@@ -252,7 +212,7 @@ class _LoginPageState extends State<LoginPage> {
                                               end: Alignment.bottomRight,
                                             ).createShader(bounds),
                                             child: Text(
-                                              'Mật khẩu',
+                                              'Email',
                                               style: GoogleFonts.inter(
                                                   fontSize: 16,
                                                   color:
@@ -276,7 +236,7 @@ class _LoginPageState extends State<LoginPage> {
                                             validator: (value) {
                                               if (value == null ||
                                                   value.isEmpty) {
-                                                return 'Vui lòng nhập mật khẩu';
+                                                return 'Vui lòng nhập email';
                                               }
                                               return null;
                                             },
@@ -285,9 +245,9 @@ class _LoginPageState extends State<LoginPage> {
                                             controller: _passwordController,
                                             obscureText: !_isPasswordVisible,
                                             decoration: InputDecoration(
-                                              hintText: 'Mật khẩu',
+                                              hintText: 'Email',
                                               hintStyle: GoogleFonts.inter(
-                                                fontSize: 14,
+                                                fontSize: 16,
                                                 color: const Color(0xFF064265),
                                               ),
                                               filled: true,
@@ -302,24 +262,24 @@ class _LoginPageState extends State<LoginPage> {
                                                 size: 24,
                                                 color: Color(0xFF064265),
                                               ),
-                                              suffixIcon: IconButton(
-                                                icon: Icon(
-                                                  _isPasswordVisible
-                                                      ? Icons
-                                                          .visibility_outlined
-                                                      : Icons
-                                                          .visibility_off_outlined,
-                                                  color: const Color.fromARGB(
-                                                      236, 85, 80, 80),
-                                                  size: 18,
-                                                ),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _isPasswordVisible =
-                                                        !_isPasswordVisible;
-                                                  });
-                                                },
-                                              ),
+                                              // suffixIcon: IconButton(
+                                              //   icon: Icon(
+                                              //     _isPasswordVisible
+                                              //         ? Icons
+                                              //             .visibility_outlined
+                                              //         : Icons
+                                              //             .visibility_off_outlined,
+                                              //     color: const Color.fromARGB(
+                                              //         236, 85, 80, 80),
+                                              //     size: 18,
+                                              //   ),
+                                              //   onPressed: () {
+                                              //     setState(() {
+                                              //       _isPasswordVisible =
+                                              //           !_isPasswordVisible;
+                                              //     });
+                                              //   },
+                                              // ),
                                               contentPadding:
                                                   const EdgeInsets.symmetric(
                                                       horizontal: 12),
@@ -343,6 +303,61 @@ class _LoginPageState extends State<LoginPage> {
                                             ),
                                           ),
                                         ],
+                                      ),
+                                      SizedBox(
+                                        height: 20,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Expanded(
+                                            child: Container(
+                                              height: 46,
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  color: Colors.white),
+                                              child: Center(
+                                                child: TextField(
+                                                  decoration: InputDecoration(
+                                                      hintText: 'Mật khẩu',
+                                                      hintStyle:
+                                                          GoogleFonts.inter(
+                                                        fontSize: 16,
+                                                        color: Colors.black,
+                                                      ),
+                                                      border: InputBorder.none),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 20,
+                                          ),
+                                          Expanded(
+                                            child: Container(
+                                              height: 46,
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  color: Colors.white),
+                                              child: Center(
+                                                child: TextField(
+                                                  decoration: InputDecoration(
+                                                      hintText:
+                                                          'Xác nhận mật khẩu',
+                                                      hintStyle:
+                                                          GoogleFonts.inter(
+                                                        fontSize: 16,
+                                                        color: Colors.black,
+                                                      ),
+                                                      border: InputBorder.none),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       )
                                     ],
                                   ),
@@ -355,7 +370,7 @@ class _LoginPageState extends State<LoginPage> {
                           height: 20,
                         ),
                         GestureDetector(
-                          onTap: _login,
+                          // onTap: _login,
                           child: Container(
                             decoration: BoxDecoration(
                                 gradient: const RadialGradient(
@@ -372,7 +387,7 @@ class _LoginPageState extends State<LoginPage> {
                             width: double.infinity,
                             child: Center(
                               child: Text(
-                                'Đăng nhập',
+                                'Đăng ký',
                                 style: GoogleFonts.inter(
                                     fontSize: 18,
                                     color: Colors.white,
@@ -387,7 +402,7 @@ class _LoginPageState extends State<LoginPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('Quên mật khẩu?',
+                            Text('Đã có tài khoản?',
                                 style: GoogleFonts.inter(
                                     fontSize: 18,
                                     color: const Color(0xFF565656),
@@ -396,39 +411,18 @@ class _LoginPageState extends State<LoginPage> {
                             GestureDetector(
                               onTap: () {
                                 Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const ForgotPasswordPage()));
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const LoginPage()),
+                                );
                               },
                               child: Text(
-                                ' Bấm vào đây',
+                                ' Đăng nhập',
                                 style: GoogleFonts.inter(
                                     fontSize: 18,
                                     color: Colors.black,
                                     fontWeight: FontWeight.w400),
                               ),
-                            ),
-                            Container(
-                              height: 20, // Chiều cao của Divider
-                              width: 1, // Độ dày của Divider
-                              color: Colors.black,
-                              margin: const EdgeInsets.symmetric(horizontal: 8),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const RegisterPage()),
-                                );
-                              },
-                              child: Text('Đăng ký',
-                                  style: GoogleFonts.inter(
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w400)),
                             ),
                           ],
                         ),
@@ -442,7 +436,7 @@ class _LoginPageState extends State<LoginPage> {
                           height: 25,
                         ),
                         GestureDetector(
-                          onTap: _login,
+                          // onTap: _login,
                           child: Container(
                             decoration: BoxDecoration(
                                 color: Colors.white,
@@ -485,7 +479,7 @@ void showLoginErrorSnackbar(BuildContext context) {
   final snackBar = SnackBar(
     backgroundColor: Colors.white,
     content: Text(
-      'Sai tài khoản hoặc mật khẩu.',
+      'Sai Họ tên hoặc mật khẩu.',
       style: GoogleFonts.inter(color: Colors.black),
     ),
     duration: const Duration(seconds: 3),
@@ -511,28 +505,9 @@ void showLoginSnackbar(BuildContext context) {
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
   Future.delayed(const Duration(seconds: 1), () {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const AppScreen()),
-    );
+    // Navigator.pushReplacement(
+    //   context,
+    //   MaterialPageRoute(builder: (context) => const AppScreen()),
+    // );
   });
-}
-
-// Thông báo check thông tin tài khoản, mật khẩu
-void showValidationErrorSnackbar(BuildContext context, String message) {
-  final snackBar = SnackBar(
-    backgroundColor: Colors.white,
-    content: Text(
-      message,
-      style: GoogleFonts.inter(color: Colors.black),
-    ),
-    duration: const Duration(seconds: 3),
-    action: SnackBarAction(
-      label: 'Đóng',
-      textColor: Colors.black,
-      onPressed: () {},
-    ),
-  );
-
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
