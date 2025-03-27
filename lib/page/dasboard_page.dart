@@ -1,13 +1,29 @@
+import 'package:chatbotbnn/model/char/response_interaction_char.dart';
+import 'package:chatbotbnn/model/char/response_interactionpie.dart';
+import 'package:chatbotbnn/model/char/response_potential_customer.dart';
+import 'package:chatbotbnn/model/char/response_potential_customerpie.dart';
 import 'package:chatbotbnn/model/chatbot_info.dart';
 import 'package:chatbotbnn/model/response_total_count.dart';
 import 'package:chatbotbnn/model/response_total_interaction.dart';
+import 'package:chatbotbnn/model/response_total_potential_customers.dart';
 import 'package:chatbotbnn/model/response_total_question.dart';
+import 'package:chatbotbnn/page/char_page/interaction_char_page.dart';
+import 'package:chatbotbnn/page/char_page/interaction_pie_page.dart';
+import 'package:chatbotbnn/page/char_page/potential_customer_char.dart';
+import 'package:chatbotbnn/page/char_page/potential_customer_piechar.dart';
 import 'package:chatbotbnn/provider/chatbotname_provider.dart';
+import 'package:chatbotbnn/service/service_char/interaction_char.dart';
+import 'package:chatbotbnn/service/service_char/interaction_pie_service.dart';
+import 'package:chatbotbnn/service/service_char/piechar_potential_customer_service.dart';
+import 'package:chatbotbnn/service/service_char/potential_customer_service.dart';
 import 'package:chatbotbnn/service/total_count_service.dart';
+import 'package:chatbotbnn/service/total_potential_customers_service.dart';
 import 'package:chatbotbnn/service/total_question_service.dart';
 import 'package:chatbotbnn/service/total_sessions_service.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -28,46 +44,194 @@ class _DasboardPageState extends State<DasboardPage> {
   int totalQuestions = 0; // Biến để hiển thị số lượng câu hỏi
   int totalInteraction = 0;
   int totalCount = 0;
+  int totalPotentialCustomer = 0;
+  // List<ResponseInteractionChar> interactionCharList = [];
+  List<ResponseInteractionChar> chartData = [];
+  List<ResponsePotentialCustomer> charDataPotential = [];
+  List<ResponsePotentialCustomerpie> charDataPotentialPieChar = [];
+  List<ResponseInteractionpie> charDataInteractionPieChar = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDataTotal("");
+    // Gọi hàm fetch dữ liệu khi khởi tạo widget
+    // logFetchAllInteractionChar("", "", "", (data) {
+    //   setState(() {
+    //     chartData = data;
+    //   });
+    // });
+    // logFetchAllPotential("", "", "", (data1) {
+    //   setState(() {
+    //     charDataPotential = data1;
+    //   });
+    // });
+    // fetchAllPotentialPieChar("", "", "", (data2) {
+    //   setState(() {
+    //     charDataPotentialPieChar = data2;
+    //   });
+    // });
+    // fetchAllInteractionPieChar("", "", "", (data3) {
+    //   setState(() {
+    //     charDataInteractionPieChar = data3;
+    //   });
+    // });
+  }
+
+  // Future<void> logFetchAllInteractionChar(
+  //     String? chatbotCode,
+  //     String? startDate,
+  //     String? endDate,
+  //     Function(List<ResponseInteractionChar>) onDataFetched) async {
+  //   print("Fetching interaction char data...");
+
+  //   List<ResponseInteractionChar> result =
+  //       await fetchAllInteractionChar(chatbotCode, startDate, endDate);
+
+  //   if (result.isNotEmpty) {
+  //     print("Fetch successful! Number of items: ${result.length}");
+  //     onDataFetched(result);
+  //   } else {
+  //     print("No data found or API error.");
+  //     onDataFetched([]);
+  //   }
+  // }
+
+  // Future<void> logFetchAllPotential(
+  //     String? chatbotCode,
+  //     String? startDate,
+  //     String? endDate,
+  //     Function(List<ResponsePotentialCustomer>) onDataFetched) async {
+  //   print("Fetching interaction char data...");
+
+  //   List<ResponsePotentialCustomer> result =
+  //       await fetchAllPotentialCustomerChar(chatbotCode, startDate, endDate);
+
+  //   if (result.isNotEmpty) {
+  //     print("Fetch successful! Number of items: ${result.length}");
+  //     onDataFetched(result);
+  //   } else {
+  //     print("No data found or API error.");
+  //     onDataFetched([]);
+  //   }
+  // }
+
+  // Future<void> fetchAllPotentialPieChar(
+  //     String? chatbotCode,
+  //     String? startDate,
+  //     String? endDate,
+  //     Function(List<ResponsePotentialCustomerpie>) onDataFetched) async {
+  //   List<ResponsePotentialCustomerpie> result =
+  //       await fetchAllTotalPotentialCustomerPieChar(
+  //           chatbotCode, startDate, endDate);
+
+  //   if (result.isNotEmpty) {
+  //     print("Fetch successful! Number of items: ${result.length}");
+  //     onDataFetched(result);
+  //   } else {
+  //     print("No data found or API error.");
+  //     onDataFetched([]);
+  //   }
+  // }
+
+  // Future<void> fetchAllInteractionPieChar(
+  //     String? chatbotCode,
+  //     String? startDate,
+  //     String? endDate,
+  //     Function(List<ResponseInteractionpie>) onDataFetched) async {
+  //   List<ResponseInteractionpie> result =
+  //       await fetchAllInteractionpie(chatbotCode, startDate, endDate);
+
+  //   if (result.isNotEmpty) {
+  //     print("Fetch successful! Number of items: ${result.length}");
+  //     onDataFetched(result);
+  //   } else {
+  //     print("No data found or API error.");
+  //     onDataFetched([]);
+  //   }
+  // }
 
   Future<void> _fetchDataTotal(String? chatbotCode) async {
     try {
-      // Gọi cả hai API song song để giảm thời gian chờ
       final results = await Future.wait([
         fetchAllTotalQuestion(
-          chatbotCode == "" ? null : chatbotCode,
-          null, // Hoặc thay bằng startDate nếu có
-          null, // Hoặc thay bằng endDate nếu có
-        ),
+                chatbotCode == "" ? null : chatbotCode, null, null)
+            .catchError((e) {
+          print("Error in fetchAllTotalQuestion: $e");
+          return ResponseTotalQuestion();
+        }),
         fetchAllTotalInteraction(
-          chatbotCode == "" ? null : chatbotCode,
-          null, // Hoặc thay bằng startDate nếu có
-          null, // Hoặc thay bằng endDate nếu có
-        ),
-        fetchAllTotalCount(
-          chatbotCode == "" ? null : chatbotCode,
-          null, // Hoặc thay bằng startDate nếu có
-          null, // Hoặc thay bằng endDate nếu có
-        ),
+                chatbotCode == "" ? null : chatbotCode, null, null)
+            .catchError((e) {
+          print("Error in fetchAllTotalInteraction: $e");
+          return ResponseTotalInteraction();
+        }),
+        fetchAllTotalCount(chatbotCode == "" ? null : chatbotCode, null, null)
+            .catchError((e) {
+          print("Error in fetchAllTotalCount: $e");
+          return ResponseTotalCount();
+        }),
+        fetchAllTotalPotentialCustomer(
+                chatbotCode == "" ? null : chatbotCode, null, null)
+            .catchError((e) {
+          print("Error in fetchAllTotalPotentialCustomer: $e");
+          return ResponseTotalPotentialCustomers();
+        }),
+
+        /// Gộp các hàm fetch dữ liệu của bạn vào đây
+        fetchAllInteractionChar(chatbotCode, null, null).catchError((e) {
+          print("Error in fetchAllInteractionChar: $e");
+          return <ResponseInteractionChar>[];
+        }),
+        fetchAllPotentialCustomerChar(chatbotCode, null, null).catchError((e) {
+          print("Error in fetchAllPotentialCustomerChar: $e");
+          return <ResponsePotentialCustomer>[];
+        }),
+        fetchAllTotalPotentialCustomerPieChar(chatbotCode, null, null)
+            .catchError((e) {
+          print("Error in fetchAllTotalPotentialCustomerPieChar: $e");
+          return <ResponsePotentialCustomerpie>[];
+        }),
+        fetchAllInteractionpie(chatbotCode, null, null).catchError((e) {
+          print("Error in fetchAllInteractionpie: $e");
+          return <ResponseInteractionpie>[];
+        }),
       ]);
 
-      // Lấy kết quả từ danh sách results
+      // Gán kết quả từ danh sách results
       ResponseTotalQuestion responseQuestion =
           results[0] as ResponseTotalQuestion;
       ResponseTotalInteraction responseInteraction =
           results[1] as ResponseTotalInteraction;
       ResponseTotalCount responseCount = results[2] as ResponseTotalCount;
+      ResponseTotalPotentialCustomers responsePotentialCustomers =
+          results[3] as ResponseTotalPotentialCustomers;
+
+      List<ResponseInteractionChar> interactionCharData =
+          results[4] as List<ResponseInteractionChar>;
+      List<ResponsePotentialCustomer> potentialCharData =
+          results[5] as List<ResponsePotentialCustomer>;
+      List<ResponsePotentialCustomerpie> potentialPieData =
+          results[6] as List<ResponsePotentialCustomerpie>;
+      List<ResponseInteractionpie> interactionPieData =
+          results[7] as List<ResponseInteractionpie>;
+
       // Cập nhật UI chỉ một lần
       setState(() {
         totalQuestions = responseQuestion.totalQuestions ?? 0;
         totalInteraction = responseInteraction.totalInteraction ?? 0;
         totalCount = responseCount.totalChatbots ?? 0;
-      });
+        totalPotentialCustomer =
+            responsePotentialCustomers.totalPotentialCustomer ?? 0;
 
-      print("Total Questions: $totalQuestions");
-      print("Total Interactions: $totalInteraction");
-      print("Total Count: $totalCount");
-    } catch (e) {
-      print("Error fetching data: $e");
+        chartData = interactionCharData;
+        charDataPotential = potentialCharData;
+        charDataPotentialPieChar = potentialPieData;
+        charDataInteractionPieChar = interactionPieData;
+      });
+    } catch (e, stacktrace) {
+      print("❌ Error fetching data: $e");
+      print("🛠 Stacktrace: $stacktrace");
     }
   }
 
@@ -177,7 +341,7 @@ class _DasboardPageState extends State<DasboardPage> {
             Expanded(
               child: Text(
                 selectedItem ?? hint,
-                style: GoogleFonts.robotoCondensed(
+                style: GoogleFonts.inter(
                     fontSize: 15,
                     color: Colors.black,
                     fontWeight: FontWeight.w500),
@@ -195,9 +359,9 @@ class _DasboardPageState extends State<DasboardPage> {
   @override
   Widget build(BuildContext context) {
     final styleText =
-        GoogleFonts.robotoCondensed(fontSize: 14, fontWeight: FontWeight.w400);
+        GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500);
     final styleNumber =
-        GoogleFonts.robotoCondensed(fontSize: 18, fontWeight: FontWeight.bold);
+        GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold);
     return SingleChildScrollView(
       child: LayoutBuilder(builder: (context, constraints) {
         double maxWidth = constraints.maxWidth;
@@ -213,11 +377,11 @@ class _DasboardPageState extends State<DasboardPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        width: maxWidth * 0.45,
+                        width: maxWidth * 0.47,
                         child: renderCustomerDropdown(),
                       ),
                       SizedBox(
-                        width: maxWidth * 0.45,
+                        width: maxWidth * 0.47,
                         child: renderDateDropdown(),
                       ),
                     ],
@@ -234,7 +398,7 @@ class _DasboardPageState extends State<DasboardPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
-                              width: maxWidth * 0.46,
+                              width: maxWidth * 0.47,
                               height: 64,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
@@ -253,7 +417,7 @@ class _DasboardPageState extends State<DasboardPage> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.link),
+                                      const Icon(Icons.favorite_border),
                                       const SizedBox(
                                         width: 10,
                                       ),
@@ -273,7 +437,7 @@ class _DasboardPageState extends State<DasboardPage> {
                               ),
                             ),
                             Container(
-                              width: maxWidth * 0.46,
+                              width: maxWidth * 0.47,
                               height: 64,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
@@ -304,7 +468,7 @@ class _DasboardPageState extends State<DasboardPage> {
                                     ],
                                   ),
                                   Text(
-                                    '0',
+                                    '$totalPotentialCustomer',
                                     style: styleNumber,
                                   )
                                 ],
@@ -323,7 +487,7 @@ class _DasboardPageState extends State<DasboardPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
-                              width: maxWidth * 0.46,
+                              width: maxWidth * 0.47,
                               height: 64,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
@@ -360,7 +524,7 @@ class _DasboardPageState extends State<DasboardPage> {
                               ),
                             ),
                             Container(
-                              width: maxWidth * 0.46,
+                              width: maxWidth * 0.47,
                               height: 64,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
@@ -405,7 +569,7 @@ class _DasboardPageState extends State<DasboardPage> {
                 ),
                 Container(
                   width: maxWidth,
-                  height: 300,
+                  height: 350,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
@@ -435,6 +599,14 @@ class _DasboardPageState extends State<DasboardPage> {
                         ),
                       ),
                       const Divider(color: Colors.grey),
+                      Container(
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.only(right: 30, top: 30),
+                        width: double.infinity,
+                        child: chartData.isNotEmpty
+                            ? InteractionCharPage(data: chartData)
+                            : Center(child: CircularProgressIndicator()),
+                      ),
                     ],
                   ),
                 ),
@@ -443,7 +615,7 @@ class _DasboardPageState extends State<DasboardPage> {
                 ),
                 Container(
                   width: maxWidth,
-                  height: 300,
+                  height: 350,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
@@ -473,6 +645,14 @@ class _DasboardPageState extends State<DasboardPage> {
                         ),
                       ),
                       const Divider(color: Colors.grey),
+                      Container(
+                        margin: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.only(right: 30, top: 30),
+                        width: double.infinity,
+                        child: charDataPotential.isNotEmpty
+                            ? PotentialCustomerChar(data: charDataPotential)
+                            : Center(child: CircularProgressIndicator()),
+                      ),
                     ],
                   ),
                 ),
@@ -481,7 +661,7 @@ class _DasboardPageState extends State<DasboardPage> {
                 ),
                 Container(
                   width: maxWidth,
-                  height: 300,
+                  height: 400,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
@@ -511,6 +691,32 @@ class _DasboardPageState extends State<DasboardPage> {
                         ),
                       ),
                       const Divider(color: Colors.grey),
+                      Container(
+                        margin: const EdgeInsets.all(16),
+                        width: double.infinity,
+                        child: charDataInteractionPieChar.isNotEmpty
+                            ? InteractionPiePage(
+                                data: charDataInteractionPieChar)
+                            : Center(
+                                child: Container(
+                                  width: 200, // Độ rộng hình tròn
+                                  height: 300,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.grey[300], // Màu tượng trưng
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "Không có dữ liệu",
+                                      style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ),
                     ],
                   ),
                 ),
@@ -519,7 +725,7 @@ class _DasboardPageState extends State<DasboardPage> {
                 ),
                 Container(
                   width: maxWidth,
-                  height: 300,
+                  height: 400,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
@@ -549,6 +755,32 @@ class _DasboardPageState extends State<DasboardPage> {
                         ),
                       ),
                       const Divider(color: Colors.grey),
+                      Container(
+                        margin: const EdgeInsets.all(16),
+                        width: double.infinity,
+                        child: charDataPotentialPieChar.isNotEmpty
+                            ? PotentialCustomerPieChart(
+                                data: charDataPotentialPieChar)
+                            : Center(
+                                child: Container(
+                                  width: 200, // Độ rộng hình tròn
+                                  height: 300,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.grey[300], // Màu tượng trưng
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "Không có dữ liệu",
+                                      style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                      ),
                     ],
                   ),
                 )

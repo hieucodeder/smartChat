@@ -61,10 +61,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   margin: const EdgeInsets.symmetric(vertical: 80),
                   child: Align(
                     alignment: Alignment.topCenter,
-                    child: SvgPicture.asset(
-                      'resources/logo_1.svg',
-                      width: 100,
-                      height: 100,
+                    child: Image.asset(
+                      'resources/Smartchat-2.png',
+                      width: 300,
+                      height: 150,
                     ),
                   ),
                 ),
@@ -80,7 +80,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        const SizedBox(height: 70),
+                        const SizedBox(height: 90),
                         ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
                             colors: [

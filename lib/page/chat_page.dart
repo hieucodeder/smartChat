@@ -204,7 +204,7 @@ class _ChatPageState extends State<ChatPage> {
             'type': 'bot',
             'text': '',
             'table': table,
-            'imageStatistic': images,
+            // 'imageStatistic': images,
           });
           if (historyId.isEmpty) {
             //gọi hàm mà không cập nhật UI
@@ -398,7 +398,7 @@ class _ChatPageState extends State<ChatPage> {
 
         spans.add(TextSpan(
           text: linkText,
-          style: GoogleFonts.robotoCondensed(
+          style: GoogleFonts.inter(
               color: Colors.blue, decoration: TextDecoration.underline),
           recognizer: TapGestureRecognizer()
             ..onTap = () async {
@@ -411,20 +411,17 @@ class _ChatPageState extends State<ChatPage> {
       } else if (match.pattern == regexBoldLine) {
         spans.add(TextSpan(
           text: "\n${match.group(1)!}",
-          style: GoogleFonts.robotoCondensed(
-              fontWeight: FontWeight.bold, fontSize: 16),
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
         ));
       } else if (match.pattern == regexItalic) {
         spans.add(TextSpan(
           text: match.group(1)!,
-          style: GoogleFonts.robotoCondensed(
-              fontStyle: FontStyle.italic, fontSize: 16),
+          style: GoogleFonts.inter(fontStyle: FontStyle.italic, fontSize: 16),
         ));
       } else if (match.pattern == regexBold) {
         spans.add(TextSpan(
           text: match.group(1)!,
-          style: GoogleFonts.robotoCondensed(
-              fontWeight: FontWeight.bold, fontSize: 17),
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 17),
         ));
       }
 
@@ -449,11 +446,11 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     final selectColors = Provider.of<Providercolor>(context).selectedColor;
-    final textChatBot = GoogleFonts.robotoCondensed(
+    final textChatBot = GoogleFonts.inter(
       fontSize: 14,
       color: Colors.black,
     );
-    final textChatbotTable = GoogleFonts.robotoCondensed(
+    final textChatbotTable = GoogleFonts.inter(
         fontSize: 15, fontWeight: FontWeight.bold, color: Colors.blue);
     // _messages = _chatProvider!.messages();
     _messages = Provider.of<ChatProvider>(context).messages();
@@ -533,7 +530,7 @@ class _ChatPageState extends State<ChatPage> {
                                     children:
                                         _parseMessage(message['text'] ?? ''),
                                   ),
-                                  style: GoogleFonts.robotoCondensed(
+                                  style: GoogleFonts.inter(
                                       fontSize: 15,
                                       color:
                                           isUser ? Colors.black : Colors.black),

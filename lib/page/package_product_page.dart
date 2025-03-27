@@ -143,7 +143,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
               ? const Center(
                   child: Text(
                     "Không có gói sản phẩm nào",
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 15),
                   ),
                 )
               : ListView.builder(
@@ -161,12 +161,13 @@ class _PackageProductPageState extends State<PackageProductPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 4,
+                      color: Colors.white,
                       child: Container(
                         decoration: BoxDecoration(
                             border: Border.all(
                                 width: 2, color: Colors.grey.shade300),
                             borderRadius: BorderRadius.circular(6)),
-                        padding: const EdgeInsets.all(15),
+                        padding: const EdgeInsets.all(3),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -181,7 +182,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                               ),
                               title: Text(
                                 plan["title"] ?? "",
-                                style: GoogleFonts.robotoCondensed(
+                                style: GoogleFonts.inter(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                   color: selectedColor == Colors.white
@@ -215,7 +216,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                                                       null
                                                   ? "${selectedPriceMap[plan["title"]]} VND / Tháng"
                                                   : "Miễn phí")), // Nếu không phải "Free", hiển thị giá hoặc "Miễn phí"
-                                      style: GoogleFonts.robotoCondensed(
+                                      style: GoogleFonts.inter(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                         color: isActive
@@ -258,26 +259,39 @@ class _PackageProductPageState extends State<PackageProductPage> {
                               plan["numbers_of_bot"]!,
                               "Số lượng BOT",
                             ),
-
                             _buildInfoRow(
-                              Icons.check_circle_outline, queries[0],
-                              "Số lượng ký tự/bot",
-                              // Lấy giá trị đầu tiên
-                            ),
-                            _buildInfoRow(
-                              Icons.check_circle_outline, queries[1],
-                              "Số lượng hỏi thông điệp/tháng",
-
+                              Icons.check_circle_outline, queries[2],
+                              "Số tệp tối đa(max 20M/tệp)",
                               // Lấy giá trị thứ hai
                             ),
+                            _buildInfoRow(
+                              Icons.check_circle_outline, queries[3],
+                              "Số lượng thông điệp hỏi/tháng",
+                              // Lấy giá trị thứ hai
+                            ),
+                            _buildInfoRow(
+                              Icons.check_circle_outline, queries[0],
+                              "Số QA tối đa",
+                              // Lấy giá trị đầu tiên
+                            ),
 
+                            _buildInfoRow(
+                              Icons.check_circle_outline, queries[1],
+                              "Số URL tối đa",
+                              // Lấy giá trị thứ hai
+                            ),
+                            // _buildInfoRow(
+                            //   Icons.check_circle_outline, queries[4],
+                            //   "Số lượng hỏi thông điệp/tháng",
+                            //   // Lấy giá trị thứ hai
+                            // ),
                             ListTile(
                               leading: const Icon(Icons.check_circle_outline,
                                   color: Colors.black),
                               title: Text(
-                                "${plan["title"] == "Cơ bản" ? 32 : plan["title"] == "Nâng cao" ? 40 : plan["title"] == "Tùy biến" ? 41 : 24} Tính năng thêm",
-                                style: GoogleFonts.robotoCondensed(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
+                                "${plan["title"] == "Cơ bản" ? 25 : plan["title"] == "Nâng cao" ? 28 : plan["title"] == "Tùy biến" ? 28 : 17} Tính năng thêm",
+                                style: GoogleFonts.inter(
+                                    fontSize: 14, fontWeight: FontWeight.w500),
                               ),
                               trailing: GestureDetector(
                                 onTap: () {
@@ -304,18 +318,18 @@ class _PackageProductPageState extends State<PackageProductPage> {
         SizedBox(width: 8), // Khoảng cách giữa icon và text
         Text(
           "$value",
-          style: GoogleFonts.robotoCondensed(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
           ),
         ),
         SizedBox(width: 8), // Khoảng cách giữa icon và text
 
         Text(
           "$label",
-          style: GoogleFonts.robotoCondensed(
-            fontWeight: FontWeight.bold, // Chữ đậm
-            fontSize: 16,
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w500, // Chữ đậm
+            fontSize: 14,
           ),
         ),
       ],
@@ -382,8 +396,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
         ),
         Text(
           label,
-          style: GoogleFonts.robotoCondensed(
-              fontSize: 14, fontWeight: FontWeight.bold),
+          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.bold),
         ),
       ],
     );

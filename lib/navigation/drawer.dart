@@ -8,8 +8,8 @@ import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/provider/selected_history_provider.dart';
-import 'package:chatbotbnn/service/app_config.dart';
 import 'package:chatbotbnn/service/delete_service.dart';
+import 'package:chatbotbnn/service/get_package_product_service.dart';
 import 'package:chatbotbnn/service/history_all_service.dart';
 import 'package:chatbotbnn/service/login_service.dart';
 import 'package:flutter/material.dart';
@@ -34,11 +34,50 @@ class _DrawerCustomState extends State<DrawerCustom> {
   TextEditingController startDateController = TextEditingController();
   TextEditingController endDateController = TextEditingController();
   String? _selectedKey; // Lưu ID của item được chọn
+  String packageProductName = "Đang tải..."; // Mặc định là "Đang tải..."
+  Widget packageIcon =
+      const Icon(Icons.help_outline, size: 50, color: Colors.grey);
 
   @override
   void initState() {
     super.initState();
     _fetchHistoryAllModel();
+    fetchPackageProduct();
+  }
+
+  Future<void> fetchPackageProduct() async {
+    final response = await fetchGetPackageProduct();
+    if (response != null && response.packageProductName != null) {
+      setState(() {
+        packageProductName = response.packageProductName!;
+        packageIcon = getIconForPackage(packageProductName); // Đúng kiểu Widget
+      });
+    } else {
+      setState(() {
+        packageProductName = "Không có dữ liệu";
+        packageIcon = const Icon(Icons.error, size: 50, color: Colors.red);
+      });
+    }
+  }
+
+  // Hàm chọn icon theo packageProductName
+  Widget getIconForPackage(String name) {
+    if (name == "Tùy biến") {
+      return Image.asset('resources/package.png',
+          width: 23, height: 23); // Hình ảnh từ assets
+    }
+    if (name == "Cơ bản") {
+      return Image.asset('resources/iconbasic.png',
+          width: 23, height: 23); // Hình ảnh từ assets
+    }
+    if (name == "Nâng cao") {
+      return Image.asset('resources/diamond.png',
+          width: 23, height: 23); // Hình ảnh từ assets
+    } else if (name == "Trải nghiệm") {
+      return Image.asset('resources/iconfree.png',
+          width: 23, height: 23); // Hình ảnh từ assets
+    }
+    return Icon(Icons.help_outline, size: 50, color: Colors.grey);
   }
 
   Future<Map<String, String?>> getChatbotInfo() async {
@@ -186,7 +225,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DefaultTextStyle.merge(
-                        style: GoogleFonts.robotoCondensed(
+                        style: GoogleFonts.inter(
                           fontSize: 24, // Kích thước lớn hơn
                           fontWeight: FontWeight.bold, // Chữ đậm
                           color: Colors.red, // Màu chữ đỏ
@@ -313,7 +352,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                             const SizedBox(width: 5),
                             Text(
                               'No Name',
-                              style: GoogleFonts.robotoCondensed(
+                              style: GoogleFonts.inter(
                                 fontSize: 15,
                                 color: selectedColor == Colors.white
                                     ? Colors.blueGrey
@@ -324,46 +363,36 @@ class _DrawerCustomState extends State<DrawerCustom> {
                         );
                       }
 
-                      final chatbotName = snapshot.data?['name'] ?? 'No Name';
-                      final chatbotPicture = snapshot.data?['picture'];
-
-                      return Row(
-                        children: [
-                          Container(
-                            height: 30,
-                            width: 30,
-                            padding: const EdgeInsets.only(
-                              left: 0,
-                              right: 0,
-                              top: 0,
-                              bottom: 0,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(width: 2, color: Colors.white),
-                              borderRadius: BorderRadius.circular(
-                                  25), // Adding rounded corners here
-                            ),
-                            child: CircleAvatar(
-                              backgroundImage: chatbotPicture != null &&
-                                      chatbotPicture.isNotEmpty
-                                  ? NetworkImage(
-                                      "${ApiConfig.baseUrlBasic}$chatbotPicture")
-                                  : const AssetImage('resources/Smartchat.png')
-                                      as ImageProvider,
-                              radius: 20,
-                            ),
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(10),
+                            bottomRight: Radius.circular(10),
                           ),
-                          const SizedBox(width: 5),
-                          Text(
-                            chatbotName,
-                            style: GoogleFonts.robotoCondensed(
-                              fontSize: 15,
-                              color: selectedColor == Colors.white
-                                  ? Colors.black
-                                  : Colors.white,
+                          color: selectedColor == Colors.white
+                              ? Color(0xFFEA4524)
+                              : selectedColor,
+                        ),
+                        height: 34,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            packageIcon,
+                            const SizedBox(width: 5),
+                            Text(
+                              packageProductName,
+                              style: GoogleFonts.inter(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                                color: (selectedColor ?? Colors.white) ==
+                                        Colors.white
+                                    ? Colors.black
+                                    : Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -449,7 +478,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                       decoration: InputDecoration(
                                         hintText:
                                             'Chọn ngày bắt đầu và kết thúc',
-                                        hintStyle: GoogleFonts.robotoCondensed(
+                                        hintStyle: GoogleFonts.inter(
                                           fontSize: 14,
                                           color: Colors.black45,
                                         ),
@@ -502,7 +531,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           ),
                           Text(
                             'Lịch sử',
-                            style: GoogleFonts.robotoCondensed(
+                            style: GoogleFonts.inter(
                               fontSize: 16,
                               color: selectedColor == Colors.white
                                   ? Colors.black
@@ -599,7 +628,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                       contents[index]['value'] ?? '',
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.robotoCondensed(
+                                      style: GoogleFonts.inter(
                                         fontSize: 14.0,
                                         color: selectedColor == Colors.white
                                             ? Colors.black
@@ -698,7 +727,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
         size: 22,
       ),
       title: Text(title,
-          style: GoogleFonts.robotoCondensed(
+          style: GoogleFonts.inter(
             fontSize: 15,
             color: selectedColor == Colors.white ? Colors.black : Colors.white,
           )),
@@ -715,7 +744,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
       leading: Icon(icon, color: Colors.white),
       title: Text(
         title,
-        style: GoogleFonts.robotoCondensed(fontSize: 15, color: Colors.white),
+        style: GoogleFonts.inter(fontSize: 15, color: Colors.white),
       ),
       childrenPadding: const EdgeInsets.only(left: 20.0),
       iconColor: Colors.white,
@@ -750,7 +779,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                     children: [
                       Text(
                         'Loading...', // Placeholder text
-                        style: GoogleFonts.robotoCondensed(
+                        style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: selectedColor == Colors.white
@@ -768,7 +797,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                   ),
                   Text(
                     'Loading...', // Placeholder text
-                    style: GoogleFonts.robotoCondensed(
+                    style: GoogleFonts.inter(
                         color: selectedColor == Colors.white
                             ? Colors.black
                             : Colors.white,
@@ -803,7 +832,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                     children: [
                       Text(
                         'Error loading user info', // Display error message
-                        style: GoogleFonts.robotoCondensed(
+                        style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: selectedColor == Colors.white
@@ -815,7 +844,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                   ),
                   Text(
                     '',
-                    style: GoogleFonts.robotoCondensed(
+                    style: GoogleFonts.inter(
                         color: selectedColor == Colors.white
                             ? Colors.black
                             : Colors.white,
@@ -853,7 +882,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                     children: [
                       Text(
                         userName,
-                        style: GoogleFonts.robotoCondensed(
+                        style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: selectedColor == Colors.white
@@ -871,7 +900,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                   ),
                   Text(
                     email, // Display fetched email
-                    style: GoogleFonts.robotoCondensed(
+                    style: GoogleFonts.inter(
                         color: selectedColor == Colors.white
                             ? Colors.black
                             : Colors.white,

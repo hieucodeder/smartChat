@@ -72,7 +72,7 @@ class _SlapsPageState extends State<SlapsPage> with TickerProviderStateMixin {
               ),
               // Logo ở góc trên bên phải
               Positioned(
-                bottom: 20, // Khoảng cách từ dưới lên
+                top: 300, // Khoảng cách từ dưới lên
                 left: 20, // Khoảng cách từ trái vào
                 child: Column(
                   crossAxisAlignment:
@@ -85,7 +85,7 @@ class _SlapsPageState extends State<SlapsPage> with TickerProviderStateMixin {
                           fontSize: 30,
                           fontWeight: FontWeight.bold),
                     ),
-                    Text('Kinh doanh chủ động',
+                    Text('Kinh doanh vượt trội',
                         style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 30,
@@ -95,11 +95,11 @@ class _SlapsPageState extends State<SlapsPage> with TickerProviderStateMixin {
                             color: Colors.white,
                             fontSize: 30,
                             fontWeight: FontWeight.bold)),
-                    Text('Cao cấp, thực tế, thông minh, đơn giản',
-                        style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold)),
+                    // Text('Cao cấp, thực tế, thông minh, đơn giản',
+                    //     style: GoogleFonts.inter(
+                    //         color: Colors.white,
+                    //         fontSize: 16,
+                    //         fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),

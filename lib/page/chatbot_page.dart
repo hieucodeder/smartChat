@@ -171,7 +171,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                       //               SizedBox(width: 10),
                       //               Text(
                       //                 "Thêm Trợ lý AI",
-                      //                 style: GoogleFonts.robotoCondensed(
+                      //                 style: GoogleFonts.inter(
                       //                   fontSize: 16,
                       //                   fontWeight: FontWeight.bold,
                       //                 ),
@@ -254,8 +254,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                   child: Text(
                                                     chatbot.chatbotName ??
                                                         'No Name',
-                                                    style: GoogleFonts
-                                                        .robotoCondensed(
+                                                    style: GoogleFonts.inter(
                                                       fontSize: 16,
                                                       fontWeight:
                                                           FontWeight.bold,
@@ -320,8 +319,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                               maxLines: 1,
                                               overflow: TextOverflow
                                                   .ellipsis, // Thêm để tránh tràn chữ
-                                              style:
-                                                  GoogleFonts.robotoCondensed(
+                                              style: GoogleFonts.inter(
                                                 fontSize: 13,
                                               ),
                                             ),
@@ -338,8 +336,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                 Expanded(
                                                   child: Text(
                                                     'Lần cập nhật cuối: ${formatDateTime(chatbot.updatedAt ?? '')}',
-                                                    style: GoogleFonts
-                                                        .robotoCondensed(
+                                                    style: GoogleFonts.inter(
                                                       fontSize: 12,
                                                       color: Colors.blueGrey,
                                                     ),

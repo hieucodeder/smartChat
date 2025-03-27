@@ -101,15 +101,12 @@ class _LoginPageState extends State<LoginPage> {
                   margin: const EdgeInsets.symmetric(vertical: 80),
                   child: Align(
                     alignment: Alignment.topCenter,
-                    child: SvgPicture.asset(
-                      'resources/logo_1.svg',
-                      width: 100,
-                      height: 100,
+                    child: Image.asset(
+                      'resources/Smartchat-2.png',
+                      width: 200,
+                      height: 150,
                     ),
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -120,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        const SizedBox(height: 70),
+                        const SizedBox(height: 90),
                         ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
                             colors: [
@@ -165,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
                                       'Tài khoản',
                                       style: GoogleFonts.inter(
                                           fontSize: 16,
-                                          color: const Color(0xFF064265),
+                                          color: Colors.white,
                                           fontWeight: FontWeight.w500),
                                     ),
                                   ),
@@ -255,8 +252,7 @@ class _LoginPageState extends State<LoginPage> {
                                               'Mật khẩu',
                                               style: GoogleFonts.inter(
                                                   fontSize: 16,
-                                                  color:
-                                                      const Color(0xFF064265)),
+                                                  color: Colors.white),
                                             ),
                                           ),
                                           const SizedBox(
@@ -287,7 +283,7 @@ class _LoginPageState extends State<LoginPage> {
                                             decoration: InputDecoration(
                                               hintText: 'Mật khẩu',
                                               hintStyle: GoogleFonts.inter(
-                                                fontSize: 14,
+                                                fontSize: 16,
                                                 color: const Color(0xFF064265),
                                               ),
                                               filled: true,

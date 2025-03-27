@@ -61,15 +61,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   margin: const EdgeInsets.symmetric(vertical: 80),
                   child: Align(
                     alignment: Alignment.topCenter,
-                    child: SvgPicture.asset(
-                      'resources/logo_1.svg',
-                      width: 100,
-                      height: 100,
+                    child: Image.asset(
+                      'resources/Smartchat-2.png',
+                      width: 300,
+                      height: 150,
                     ),
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -80,7 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        const SizedBox(height: 70),
+                        const SizedBox(height: 90),
                         ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
                             colors: [
@@ -258,7 +255,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                                     BorderRadius.circular(8),
                                               ),
                                               prefixIcon: const Icon(
-                                                Icons.lock_outline,
+                                                Icons.email_outlined,
                                                 size: 24,
                                                 color: Color(0xFF064265),
                                               ),
@@ -312,22 +309,57 @@ class _RegisterPageState extends State<RegisterPage> {
                                             MainAxisAlignment.spaceAround,
                                         children: [
                                           Expanded(
-                                            child: Container(
-                                              height: 46,
-                                              decoration: BoxDecoration(
+                                            child: TextFormField(
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Vui lòng nhập mật khẩu';
+                                                }
+                                                return null;
+                                              },
+                                              style: const TextStyle(
+                                                  color: Colors.black),
+                                              // controller: _usernameController,
+                                              decoration: InputDecoration(
+                                                filled: true,
+                                                fillColor: const Color.fromARGB(
+                                                    237, 250, 248, 248),
+                                                border: OutlineInputBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  color: Colors.white),
-                                              child: Center(
-                                                child: TextField(
-                                                  decoration: InputDecoration(
-                                                      hintText: 'Mật khẩu',
-                                                      hintStyle:
-                                                          GoogleFonts.inter(
-                                                        fontSize: 16,
-                                                        color: Colors.black,
-                                                      ),
-                                                      border: InputBorder.none),
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                hintText: 'Mật khẩu',
+                                                hintStyle: GoogleFonts.inter(
+                                                    fontSize: 16,
+                                                    color: const Color(
+                                                        0xFF064265)),
+                                                prefixIcon: const Icon(
+                                                  Icons.password,
+                                                  size: 24,
+                                                  color: Color(0xFF064265),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 10,
+                                                        horizontal: 12),
+                                                errorBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(
+                                                    color: Colors.red,
+                                                    width: 1.5,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.0),
+                                                ),
+                                                focusedErrorBorder:
+                                                    OutlineInputBorder(
+                                                  borderSide: const BorderSide(
+                                                    color: Colors.red,
+                                                    width: 1.5,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.0),
                                                 ),
                                               ),
                                             ),
@@ -336,23 +368,57 @@ class _RegisterPageState extends State<RegisterPage> {
                                             width: 20,
                                           ),
                                           Expanded(
-                                            child: Container(
-                                              height: 46,
-                                              decoration: BoxDecoration(
+                                            child: TextFormField(
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Vui lòng xác nhận mật khẩu';
+                                                }
+                                                return null;
+                                              },
+                                              style: const TextStyle(
+                                                  color: Colors.black),
+                                              // controller: _usernameController,
+                                              decoration: InputDecoration(
+                                                filled: true,
+                                                fillColor: const Color.fromARGB(
+                                                    237, 250, 248, 248),
+                                                border: OutlineInputBorder(
                                                   borderRadius:
-                                                      BorderRadius.circular(10),
-                                                  color: Colors.white),
-                                              child: Center(
-                                                child: TextField(
-                                                  decoration: InputDecoration(
-                                                      hintText:
-                                                          'Xác nhận mật khẩu',
-                                                      hintStyle:
-                                                          GoogleFonts.inter(
-                                                        fontSize: 16,
-                                                        color: Colors.black,
-                                                      ),
-                                                      border: InputBorder.none),
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                hintText: 'Xác nhận mật khẩu',
+                                                hintStyle: GoogleFonts.inter(
+                                                    fontSize: 16,
+                                                    color: const Color(
+                                                        0xFF064265)),
+                                                prefixIcon: const Icon(
+                                                  Icons.password_outlined,
+                                                  size: 24,
+                                                  color: Color(0xFF064265),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 10,
+                                                        horizontal: 12),
+                                                errorBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(
+                                                    color: Colors.red,
+                                                    width: 1.5,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.0),
+                                                ),
+                                                focusedErrorBorder:
+                                                    OutlineInputBorder(
+                                                  borderSide: const BorderSide(
+                                                    color: Colors.red,
+                                                    width: 1.5,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.0),
                                                 ),
                                               ),
                                             ),

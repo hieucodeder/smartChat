@@ -1,9 +1,9 @@
-class ResponseTotalInteraction  {
+class ResponseTotalInteraction {
   int? totalInteraction;
 
-  ResponseTotalInteraction ({this.totalInteraction});
+  ResponseTotalInteraction({this.totalInteraction});
 
-  ResponseTotalInteraction .fromJson(Map<String, dynamic> json) {
+  ResponseTotalInteraction.fromJson(Map<String, dynamic> json) {
     totalInteraction = json['total_sessions'];
   }
 

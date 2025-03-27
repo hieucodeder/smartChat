@@ -130,7 +130,7 @@ class _AppScreenState extends State<AppScreen> {
               return Text(
                   (snapshot.data ?? 'TRỢ LÝ AI')
                       .toUpperCase(), // ép kiểu thành chứ hoa
-                  style: GoogleFonts.robotoCondensed(
+                  style: GoogleFonts.inter(
                     fontSize: 17,
                     color: selectedColor == Colors.white
                         ? Colors.black
