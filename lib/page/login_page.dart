@@ -66,7 +66,6 @@ class _LoginPageState extends State<LoginPage> {
         resizeToAvoidBottomInset: true,
         body: Container(
             constraints: const BoxConstraints.expand(),
-            color: Colors.white,
             child: Form(
               key: _formKey,
               child: Stack(fit: StackFit.expand, children: [
@@ -81,15 +80,45 @@ class _LoginPageState extends State<LoginPage> {
                         Stack(
                           fit: StackFit.expand,
                           children: [
-                            SvgPicture.asset(
-                              'resources/bg1.svg',
-                              fit: BoxFit.cover,
-                              height: 60,
-                              width: 100,
-                            ),
-                            Container(
-                              color: Colors.white
-                                  .withOpacity(0.5), // Lớp phủ màu trắng nhạt
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: double.infinity,
+                                child: Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        SvgPicture.asset(
+                                          'resources/bg1.svg',
+                                          fit: BoxFit.cover,
+                                          height: 60,
+                                          width: 100,
+                                        ),
+                                        Container(
+                                          decoration: const BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Color(0xFFFFEDDA),
+                                                Color(0xFFF28411), // Red-orange
+                                                Color(0xFFF16C18),
+                                              ],
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          color: Colors.white.withOpacity(
+                                              0.6), // White overlay
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -102,14 +131,15 @@ class _LoginPageState extends State<LoginPage> {
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Image.asset(
-                      'resources/Smartchat-2.png',
-                      width: 200,
+                      'resources/Smartchat-1.png',
+                      width: 300,
                       height: 150,
                     ),
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 30, horizontal: 16),
                   constraints: const BoxConstraints.expand(),
                   margin: const EdgeInsets.fromLTRB(0, 130, 0, 0),
                   child: SingleChildScrollView(
@@ -121,11 +151,11 @@ class _LoginPageState extends State<LoginPage> {
                         ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
                             colors: [
-                              Color(0xFFF04A23), // Màu đỏ cam
                               Color(0xFFF16C18), // Màu cam đậm
+                              Color(0xFFF04A23), // Màu đỏ cam
                               Color(0xFFF18F0D), // Màu cam sáng
                             ],
-                            begin: Alignment.topLeft,
+                            begin: Alignment.topRight,
                             end: Alignment.bottomRight,
                           ).createShader(bounds),
                           child: Text(
@@ -145,39 +175,6 @@ class _LoginPageState extends State<LoginPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  ShaderMask(
-                                    shaderCallback: (bounds) =>
-                                        const LinearGradient(
-                                      colors: [
-                                        Color(0xFFF04A23), // Màu đỏ cam
-                                        Color(0xFFF16C18), // Màu cam đậm
-                                        Color(0xFFF18F0D), // Màu cam sáng
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ).createShader(bounds),
-                                    child: Text(
-                                      'Tài khoản',
-                                      style: GoogleFonts.inter(
-                                          fontSize: 16,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w500),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
-                                  Text(
-                                    '*',
-                                    style: GoogleFonts.inter(
-                                        fontSize: 16,
-                                        color: const Color(0xffF5222D),
-                                        fontWeight: FontWeight.w500),
-                                  )
-                                ],
-                              ),
                               Column(
                                 children: [
                                   TextFormField(
@@ -195,11 +192,24 @@ class _LoginPageState extends State<LoginPage> {
                                           237, 250, 248, 248),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide
+                                            .none, // Loại bỏ viền mặc định
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: BorderSide
+                                            .none, // Viền khi không focus
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide:
+                                            BorderSide.none, // Viền khi focus
                                       ),
                                       hintText: 'Tài khoản',
                                       hintStyle: GoogleFonts.inter(
-                                          fontSize: 16,
-                                          color: const Color(0xFF064265)),
+                                        fontSize: 16,
+                                        color: const Color(0xFF064265),
+                                      ),
                                       prefixIcon: const Icon(
                                         Icons.account_box_outlined,
                                         size: 24,
@@ -227,45 +237,12 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                   ),
                                   const SizedBox(
-                                    height: 10,
+                                    height: 20,
                                   ),
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        children: [
-                                          ShaderMask(
-                                            shaderCallback: (bounds) =>
-                                                const LinearGradient(
-                                              colors: [
-                                                Color(0xFFF04A23), // Màu đỏ cam
-                                                Color(
-                                                    0xFFF16C18), // Màu cam đậm
-                                                Color(
-                                                    0xFFF18F0D), // Màu cam sáng
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ).createShader(bounds),
-                                            child: Text(
-                                              'Mật khẩu',
-                                              style: GoogleFonts.inter(
-                                                  fontSize: 16,
-                                                  color: Colors.white),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 5,
-                                          ),
-                                          Text(
-                                            '*',
-                                            style: GoogleFonts.inter(
-                                                fontSize: 16,
-                                                color: Colors.red),
-                                          ),
-                                        ],
-                                      ),
                                       Column(
                                         children: [
                                           TextFormField(
@@ -292,6 +269,20 @@ class _LoginPageState extends State<LoginPage> {
                                               border: OutlineInputBorder(
                                                 borderRadius:
                                                     BorderRadius.circular(8),
+                                                borderSide: BorderSide
+                                                    .none, // Loại bỏ viền mặc định
+                                              ),
+                                              enabledBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                borderSide: BorderSide
+                                                    .none, // Viền khi không focus
+                                              ),
+                                              focusedBorder: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                borderSide: BorderSide
+                                                    .none, // Viền khi focus
                                               ),
                                               prefixIcon: const Icon(
                                                 Icons.lock_outline,
@@ -347,21 +338,21 @@ class _LoginPageState extends State<LoginPage> {
                             ],
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         GestureDetector(
                           onTap: _login,
                           child: Container(
                             decoration: BoxDecoration(
-                                gradient: const RadialGradient(
+                                gradient: const LinearGradient(
                                   colors: [
-                                    Color(0xFFF04A23),
-                                    Color(0xFFF16C18),
                                     Color(0xFFF18F0D),
+                                    Color(0xFFF16C18),
+                                    Color(0xFFF04A23),
                                   ],
-                                  center: Alignment.center,
-                                  radius: 1.0,
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
                                 ),
                                 borderRadius: BorderRadius.circular(10)),
                             height: 50,

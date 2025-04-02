@@ -26,6 +26,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:tabler_icons/tabler_icons.dart';
 
 class DasboardPage extends StatefulWidget {
   const DasboardPage({
@@ -359,7 +360,7 @@ class _DasboardPageState extends State<DasboardPage> {
   @override
   Widget build(BuildContext context) {
     final styleText =
-        GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500);
+        GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500);
     final styleNumber =
         GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold);
     return SingleChildScrollView(
@@ -398,13 +399,15 @@ class _DasboardPageState extends State<DasboardPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 5),
                               width: maxWidth * 0.47,
-                              height: 64,
+                              height: maxWidth * 0.16,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
-                                  color: const Color(0xfff9f0ff),
+                                  color: Colors.white,
                                   border:
-                                      Border.all(width: 2, color: Colors.grey),
+                                      Border.all(width: 1, color: Colors.grey),
                                   boxShadow: [
                                     BoxShadow(
                                       color: const Color(0x005c6566)
@@ -417,13 +420,18 @@ class _DasboardPageState extends State<DasboardPage> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.favorite_border),
                                       const SizedBox(
-                                        width: 10,
+                                          width: 20,
+                                          child:
+                                              Icon(TablerIcons.clock_hour_4)),
+                                      const SizedBox(
+                                        width: 8,
                                       ),
-                                      Text(
-                                        'Lượt tương tác',
-                                        style: styleText,
+                                      Expanded(
+                                        child: Text(
+                                          'Lượt tương tác',
+                                          style: styleText,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -438,13 +446,14 @@ class _DasboardPageState extends State<DasboardPage> {
                             ),
                             Container(
                               width: maxWidth * 0.47,
-                              height: 64,
+                              height: maxWidth * 0.16,
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 5),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   border:
-                                      Border.all(width: 2, color: Colors.grey),
-                                  color:
-                                      const Color.fromARGB(255, 253, 253, 218),
+                                      Border.all(width: 1, color: Colors.grey),
+                                  color: Colors.white,
                                   boxShadow: [
                                     BoxShadow(
                                       color: const Color(0x005c6566)
@@ -457,13 +466,17 @@ class _DasboardPageState extends State<DasboardPage> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.account_box_outlined),
                                       const SizedBox(
-                                        width: 10,
+                                          width: 20,
+                                          child: Icon(TablerIcons.user)),
+                                      const SizedBox(
+                                        width: 8,
                                       ),
-                                      Text(
-                                        'Khách hàng tiềm năng',
-                                        style: styleText,
+                                      Expanded(
+                                        child: Text(
+                                          'Khách hàng tiềm năng',
+                                          style: styleText,
+                                        ),
                                       )
                                     ],
                                   ),
@@ -478,7 +491,7 @@ class _DasboardPageState extends State<DasboardPage> {
                         ),
                       ),
                       const SizedBox(
-                        height: 10,
+                        height: 8,
                       ),
                       SizedBox(
                         width: maxWidth,
@@ -487,13 +500,15 @@ class _DasboardPageState extends State<DasboardPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 5),
                               width: maxWidth * 0.47,
-                              height: 64,
+                              height: maxWidth * 0.16,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   border:
-                                      Border.all(width: 2, color: Colors.grey),
-                                  color: const Color(0xffF6FFED),
+                                      Border.all(width: 1, color: Colors.grey),
+                                  color: Colors.white,
                                   boxShadow: [
                                     BoxShadow(
                                       color: const Color(0x005c6566)
@@ -506,13 +521,18 @@ class _DasboardPageState extends State<DasboardPage> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.message_outlined),
                                       const SizedBox(
-                                        width: 10,
+                                          width: 20,
+                                          child:
+                                              Icon(TablerIcons.message_circle)),
+                                      const SizedBox(
+                                        width: 8,
                                       ),
-                                      Text(
-                                        'Tin nhắn',
-                                        style: styleText,
+                                      Expanded(
+                                        child: Text(
+                                          'Tin nhắn',
+                                          style: styleText,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -525,12 +545,14 @@ class _DasboardPageState extends State<DasboardPage> {
                             ),
                             Container(
                               width: maxWidth * 0.47,
-                              height: 64,
+                              height: maxWidth * 0.16,
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 5),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   border:
-                                      Border.all(width: 2, color: Colors.grey),
-                                  color: const Color(0xffFFEEED),
+                                      Border.all(width: 1, color: Colors.grey),
+                                  color: Colors.white,
                                   boxShadow: [
                                     BoxShadow(
                                       color: const Color(0x005c6566)
@@ -543,13 +565,17 @@ class _DasboardPageState extends State<DasboardPage> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.support_outlined),
                                       const SizedBox(
-                                        width: 10,
+                                          width: 20,
+                                          child: Icon(Icons.support_outlined)),
+                                      const SizedBox(
+                                        width: 8,
                                       ),
-                                      Text(
-                                        'Trợ lý',
-                                        style: styleText,
+                                      Expanded(
+                                        child: Text(
+                                          'Trợ lý',
+                                          style: styleText,
+                                        ),
                                       )
                                     ],
                                   ),
@@ -569,7 +595,6 @@ class _DasboardPageState extends State<DasboardPage> {
                 ),
                 Container(
                   width: maxWidth,
-                  height: 350,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
@@ -579,13 +604,12 @@ class _DasboardPageState extends State<DasboardPage> {
                     children: [
                       Container(
                         width: maxWidth,
-                        height: 36,
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         margin: const EdgeInsets.symmetric(horizontal: 5),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.view_column_outlined,
+                            Icon(
+                              TablerIcons.chart_histogram,
                               size: 20,
                             ),
                             const SizedBox(
@@ -600,12 +624,11 @@ class _DasboardPageState extends State<DasboardPage> {
                       ),
                       const Divider(color: Colors.grey),
                       Container(
-                        margin: const EdgeInsets.all(16),
-                        padding: const EdgeInsets.only(right: 30, top: 30),
+                        padding: const EdgeInsets.only(right: 30, top: 8),
                         width: double.infinity,
                         child: chartData.isNotEmpty
                             ? InteractionCharPage(data: chartData)
-                            : Center(child: CircularProgressIndicator()),
+                            : const Center(child: CircularProgressIndicator()),
                       ),
                     ],
                   ),
@@ -615,7 +638,6 @@ class _DasboardPageState extends State<DasboardPage> {
                 ),
                 Container(
                   width: maxWidth,
-                  height: 350,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
@@ -631,7 +653,7 @@ class _DasboardPageState extends State<DasboardPage> {
                         child: Row(
                           children: [
                             const Icon(
-                              Icons.view_column_outlined,
+                              TablerIcons.chart_histogram,
                               size: 20,
                             ),
                             const SizedBox(
@@ -646,12 +668,11 @@ class _DasboardPageState extends State<DasboardPage> {
                       ),
                       const Divider(color: Colors.grey),
                       Container(
-                        margin: const EdgeInsets.all(16),
-                        padding: const EdgeInsets.only(right: 30, top: 30),
+                        padding: const EdgeInsets.only(right: 30, top: 8),
                         width: double.infinity,
                         child: charDataPotential.isNotEmpty
                             ? PotentialCustomerChar(data: charDataPotential)
-                            : Center(child: CircularProgressIndicator()),
+                            : const Center(child: CircularProgressIndicator()),
                       ),
                     ],
                   ),
@@ -661,7 +682,6 @@ class _DasboardPageState extends State<DasboardPage> {
                 ),
                 Container(
                   width: maxWidth,
-                  height: 400,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
@@ -676,16 +696,21 @@ class _DasboardPageState extends State<DasboardPage> {
                         margin: const EdgeInsets.symmetric(horizontal: 5),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.view_column_outlined,
-                              size: 20,
+                            const SizedBox(
+                              width: 20,
+                              child: Icon(
+                                TablerIcons.chart_pie,
+                                size: 20,
+                              ),
                             ),
                             const SizedBox(
-                              width: 4,
+                              width: 8,
                             ),
-                            Text(
-                              'Thống kê lượt tương tác theo kênh',
-                              style: styleText,
+                            Expanded(
+                              child: Text(
+                                'Thống kê lượt tương tác theo kênh',
+                                style: styleText,
+                              ),
                             )
                           ],
                         ),
@@ -740,16 +765,21 @@ class _DasboardPageState extends State<DasboardPage> {
                         margin: const EdgeInsets.symmetric(horizontal: 5),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.view_column_outlined,
-                              size: 20,
+                            const SizedBox(
+                              width: 20,
+                              child: Icon(
+                                TablerIcons.chart_pie,
+                                size: 20,
+                              ),
                             ),
                             const SizedBox(
-                              width: 4,
+                              width: 8,
                             ),
-                            Text(
-                              'Thống kê số lượng khách hàng tiềm năng theo kênh',
-                              style: styleText,
+                            Expanded(
+                              child: Text(
+                                'Thống kê số lượng khách hàng tiềm năng theo kênh',
+                                style: styleText,
+                              ),
                             )
                           ],
                         ),

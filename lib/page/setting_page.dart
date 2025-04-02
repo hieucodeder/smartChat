@@ -17,7 +17,7 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
-  final styleText = GoogleFonts.robotoCondensed(
+  final styleText = GoogleFonts.inter(
       fontSize: 16, color: Colors.black, fontWeight: FontWeight.w500);
   final List<Map<String, dynamic>> languages = [
     {'locale': const Locale('vi'), 'name': 'Tiếng Việt', 'flag': '🇻🇳'},
@@ -83,16 +83,14 @@ class _SettingPageState extends State<SettingPage> {
   void showChangePasswordDialog(BuildContext context) {
     final selectedColors =
         Provider.of<Providercolor>(context, listen: false).selectedColor;
-    final textStyles =
-        GoogleFonts.robotoCondensed(fontSize: 16, color: Colors.black);
+    final textStyles = GoogleFonts.inter(fontSize: 16, color: Colors.black);
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text(
             "Đổi mật khẩu",
-            style:
-                GoogleFonts.robotoCondensed(fontSize: 20, color: Colors.black),
+            style: GoogleFonts.inter(fontSize: 20, color: Colors.black),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -242,7 +240,7 @@ class _SettingPageState extends State<SettingPage> {
         return AlertDialog(
           title: Text(
             'Sửa người dùng',
-            style: GoogleFonts.robotoCondensed(fontSize: 20),
+            style: GoogleFonts.inter(fontSize: 20),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -257,7 +255,7 @@ class _SettingPageState extends State<SettingPage> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Đóng',
-                style: GoogleFonts.robotoCondensed(fontSize: 20),
+                style: GoogleFonts.inter(fontSize: 20),
               ),
             ),
             ElevatedButton(
@@ -269,8 +267,7 @@ class _SettingPageState extends State<SettingPage> {
 
                 Navigator.pop(context);
               },
-              child:
-                  Text('Lưu', style: GoogleFonts.robotoCondensed(fontSize: 20)),
+              child: Text('Lưu', style: GoogleFonts.inter(fontSize: 20)),
             ),
           ],
         );

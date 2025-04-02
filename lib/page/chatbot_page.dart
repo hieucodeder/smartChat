@@ -3,9 +3,11 @@ import 'package:chatbotbnn/page/create_chatbot_page.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/chatbotcolors_provider.dart';
 import 'package:chatbotbnn/provider/chatbotname_provider.dart';
+import 'package:chatbotbnn/provider/draw_selected_color_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
 import 'package:chatbotbnn/provider/navigation_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
+import 'package:chatbotbnn/provider/selected_item_provider.dart';
 import 'package:chatbotbnn/service/app_config.dart';
 import 'package:chatbotbnn/service/chatbot_service.dart';
 import 'package:chatbotbnn/service/role_service.dart';
@@ -62,7 +64,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
     BodyRole bodyRole = BodyRole(
       pageIndex: 1,
-      pageSize: '10',
+      pageSize: '10000000',
       userId: userId,
       searchText: '',
     );
@@ -99,6 +101,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
   Future<void> _fetchAndNavigate() async {
     final chatbotCode =
         Provider.of<ChatbotProvider>(context, listen: false).currentChatbotCode;
+    final drawProvider =
+        Provider.of<DrawSelectedColorProvider>(context, listen: false);
+    final selectedItemProvider =
+        Provider.of<SelectedItemProvider>(context, listen: false);
 
     if (chatbotCode != null) {
       setState(() {
@@ -112,13 +118,26 @@ class _ChatbotPageState extends State<ChatbotPage> {
             .setCurrentIndex(0);
 
         if (result != null) {
-        } else {}
+          drawProvider.setSelectedIndex(0);
+          selectedItemProvider.setSelectedIndex(-1);
+        } else {
+          // Xử lý khi result là null
+          selectedItemProvider.setSelectedIndex(-1);
+        }
+      } catch (e) {
+        // Xử lý lỗi nếu cần
+        print('Error fetching code model: $e');
+        selectedItemProvider.setSelectedIndex(-1);
       } finally {
         setState(() {
           isLoading = false;
         });
       }
-    } else {}
+    } else {
+      // Xử lý khi chatbotCode là null nếu cần
+      selectedItemProvider
+          .setSelectedIndex(-1); // Đặt trạng thái chưa chọn item nào
+    }
   }
 
   String formatDateTime(String dateTimeStr) {
@@ -150,40 +169,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     padding: const EdgeInsets.all(8.0),
                     itemCount: chatbotList.length,
                     itemBuilder: (context, index) {
-                      // if (index == 0) {
-                      //   // Hiển thị nút "Thêm mới"
-                      //   return GestureDetector(
-                      //     onTap: () => widget.onSelected(7),
-                      //     child: Card(
-                      //       color: Colors.white,
-                      //       elevation: 1,
-                      //       shape: RoundedRectangleBorder(
-                      //         borderRadius: BorderRadius.circular(10),
-                      //       ),
-                      //       child: SizedBox(
-                      //         height: 80, // Chiều cao tương tự item Card
-                      //         child: Center(
-                      //           child: Row(
-                      //             mainAxisAlignment: MainAxisAlignment.center,
-                      //             children: [
-                      //               const Icon(Icons.add,
-                      //                   size: 30, color: Colors.black54),
-                      //               SizedBox(width: 10),
-                      //               Text(
-                      //                 "Thêm Trợ lý AI",
-                      //                 style: GoogleFonts.inter(
-                      //                   fontSize: 16,
-                      //                   fontWeight: FontWeight.bold,
-                      //                 ),
-                      //               ),
-                      //             ],
-                      //           ),
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   );
-                      // }
-
                       final chatbot = chatbotList[index];
                       return GestureDetector(
                         onTap: () async {
@@ -219,7 +204,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
                               return Card(
                                 color: isSelected
-                                    ? Colors.blueAccent.withOpacity(0.3)
+                                    ? Color.fromARGB(
+                                        255, 255, 245, 234) // Màu cam sáng
                                     : Colors.white,
                                 elevation: 1,
                                 shape: RoundedRectangleBorder(
@@ -229,16 +215,28 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                   padding: const EdgeInsets.all(8.0),
                                   child: Row(
                                     children: [
-                                      CircleAvatar(
-                                        backgroundImage: chatbot.picture !=
-                                                    null &&
-                                                chatbot.picture!.isNotEmpty
-                                            ? NetworkImage(
-                                                "${ApiConfig.baseUrlBasic}${chatbot.picture!}")
-                                            : const AssetImage(
-                                                    'resources/Smartchat.png')
-                                                as ImageProvider,
-                                        radius: 30,
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Colors.white,
+
+                                          border: Border.all(
+                                              color: Colors.grey.shade400,
+                                              width: 1), // Viền trắng
+                                        ),
+                                        child: CircleAvatar(
+                                          backgroundColor: Colors.white,
+                                          foregroundImage: chatbot.picture !=
+                                                      null &&
+                                                  chatbot.picture!.isNotEmpty
+                                              ? NetworkImage(
+                                                  "${ApiConfig.baseUrlBasic}${chatbot.picture!}",
+                                                )
+                                              : const AssetImage(
+                                                  'resources/Smartchat.png',
+                                                ) as ImageProvider,
+                                          radius: 30,
+                                        ),
                                       ),
                                       const SizedBox(width: 10),
                                       Expanded(
@@ -255,16 +253,18 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                     chatbot.chatbotName ??
                                                         'No Name',
                                                     style: GoogleFonts.inter(
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isSelected
+                                                            ? Color(0xFFF28411)
+                                                            : Colors.black),
                                                   ),
                                                 ),
                                                 SizedBox(
                                                   width:
-                                                      50, // Điều chỉnh kích thước phù hợp
-                                                  height: 50,
+                                                      40, // Điều chỉnh kích thước phù hợp
+                                                  height: 40,
                                                   child: Stack(
                                                     alignment: Alignment.center,
                                                     children: [
@@ -285,20 +285,27 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                       CircularProgressIndicator(
                                                         value: 80 /
                                                             100, // Giá trị từ 0-1
-                                                        strokeWidth: 4,
+                                                        strokeWidth: 3,
                                                         backgroundColor:
                                                             Colors.transparent,
                                                         valueColor:
                                                             AlwaysStoppedAnimation<
-                                                                Color>(color ==
-                                                                    Colors.white
-                                                                ? Colors.orange
-                                                                : color),
+                                                                    Color>(
+                                                                isSelected
+                                                                    ? Color(
+                                                                        0xFFF04A23)
+                                                                    : color ==
+                                                                            Colors
+                                                                                .white
+                                                                        ? Color(
+                                                                            0xFFF04A23)
+                                                                        : color),
                                                       ),
                                                       // Hiển thị phần trăm ở giữa
-                                                      const Text(
+                                                      Text(
                                                         "80%",
-                                                        style: TextStyle(
+                                                        style:
+                                                            GoogleFonts.inter(
                                                           fontSize: 14,
                                                           fontWeight:
                                                               FontWeight.bold,
@@ -320,16 +327,20 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                               overflow: TextOverflow
                                                   .ellipsis, // Thêm để tránh tràn chữ
                                               style: GoogleFonts.inter(
-                                                fontSize: 13,
-                                              ),
+                                                  fontSize: 13,
+                                                  color: isSelected
+                                                      ? Color(0xFFF28411)
+                                                      : Colors.black),
                                             ),
                                             Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.spaceAround,
                                               children: [
-                                                const Icon(Icons.access_time,
+                                                Icon(Icons.access_time,
                                                     size: 14,
-                                                    color: Colors.blueGrey),
+                                                    color: isSelected
+                                                        ? Color(0xFFF28411)
+                                                        : Colors.blueGrey),
                                                 const SizedBox(
                                                   width: 4,
                                                 ),
@@ -337,13 +348,16 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                   child: Text(
                                                     'Lần cập nhật cuối: ${formatDateTime(chatbot.updatedAt ?? '')}',
                                                     style: GoogleFonts.inter(
-                                                      fontSize: 12,
-                                                      color: Colors.blueGrey,
-                                                    ),
+                                                        fontSize: 12,
+                                                        color: isSelected
+                                                            ? Color(0xFFF28411)
+                                                            : Colors.blueGrey),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
                                                 ),
-                                                SizedBox(
-                                                    width: maxWidth * 0.03),
+
                                                 Transform.scale(
                                                   scale: 0.8,
                                                   child: Switch(
@@ -360,16 +374,17 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                       print(
                                                           "Trạng thái mới: $newStatus");
                                                     },
-                                                    activeColor:
-                                                        color == Colors.white
-                                                            ? Colors.orange
+                                                    activeColor: isSelected
+                                                        ? Color(0xFFF04A23)
+                                                        : color == Colors.white
+                                                            ? Color(0xFFF04A23)
                                                             : color,
                                                   ),
                                                 ),
-                                                const Icon(
-                                                  Icons.edit_outlined,
-                                                  size: 20,
-                                                ),
+                                                // const Icon(
+                                                //   Icons.edit_outlined,
+                                                //   size: 20,
+                                                // ),
                                               ],
                                             ),
                                           ],

@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'dart:convert';
 
 import 'package:chatbotbnn/model/body_history.dart';
@@ -5,19 +7,24 @@ import 'package:chatbotbnn/model/delete_model.dart';
 import 'package:chatbotbnn/model/history_all_model.dart';
 import 'package:chatbotbnn/provider/chat_provider.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
+import 'package:chatbotbnn/provider/draw_selected_color_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/provider/selected_history_provider.dart';
+import 'package:chatbotbnn/provider/selected_item_provider.dart';
+import 'package:chatbotbnn/service/app_config.dart';
 import 'package:chatbotbnn/service/delete_service.dart';
 import 'package:chatbotbnn/service/get_package_product_service.dart';
 import 'package:chatbotbnn/service/history_all_service.dart';
 import 'package:chatbotbnn/service/login_service.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tabler_icons/tabler_icons.dart';
 
 class DrawerCustom extends StatefulWidget {
   final BodyHistory bodyHistory;
@@ -36,7 +43,8 @@ class _DrawerCustomState extends State<DrawerCustom> {
   String? _selectedKey; // Lưu ID của item được chọn
   String packageProductName = "Đang tải..."; // Mặc định là "Đang tải..."
   Widget packageIcon =
-      const Icon(Icons.help_outline, size: 50, color: Colors.grey);
+      const Icon(Icons.help_outline, size: 40, color: Colors.white);
+  int _selectedIndex = -1; // -1 nghĩa là không có mục nào được chọn ban đầu
 
   @override
   void initState() {
@@ -60,24 +68,47 @@ class _DrawerCustomState extends State<DrawerCustom> {
     }
   }
 
-  // Hàm chọn icon theo packageProductName
   Widget getIconForPackage(String name) {
+    double iconSize = 18.0; // Điều chỉnh kích thước tại đây
+
     if (name == "Tùy biến") {
-      return Image.asset('resources/package.png',
-          width: 23, height: 23); // Hình ảnh từ assets
+      return SvgPicture.asset(
+        'resources/package.svg',
+        width: iconSize,
+        height: iconSize,
+        fit: BoxFit.contain,
+        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+      );
     }
     if (name == "Cơ bản") {
-      return Image.asset('resources/iconbasic.png',
-          width: 23, height: 23); // Hình ảnh từ assets
+      return SvgPicture.asset(
+        'resources/iconbasic.svg',
+        width: iconSize,
+        height: iconSize,
+        fit: BoxFit.contain,
+        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+      );
     }
     if (name == "Nâng cao") {
-      return Image.asset('resources/diamond.png',
-          width: 23, height: 23); // Hình ảnh từ assets
-    } else if (name == "Trải nghiệm") {
-      return Image.asset('resources/iconfree.png',
-          width: 23, height: 23); // Hình ảnh từ assets
+      return SvgPicture.asset(
+        'resources/diamond.svg',
+        width: iconSize,
+        height: iconSize,
+        fit: BoxFit.contain,
+        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+      );
     }
-    return Icon(Icons.help_outline, size: 50, color: Colors.grey);
+    if (name == "Trải nghiệm") {
+      return SvgPicture.asset(
+        'resources/iconfree.svg',
+        width: iconSize,
+        height: iconSize,
+        fit: BoxFit.contain,
+        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+      );
+    }
+
+    return Icon(Icons.help_outline, size: iconSize, color: Colors.grey);
   }
 
   Future<Map<String, String?>> getChatbotInfo() async {
@@ -114,6 +145,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
 
   Future<void> deleteChatHistory(
       BuildContext context, String? historyId) async {
+    final styleText = GoogleFonts.inter(fontSize: 14);
     try {
       // Nếu historyId null, lấy từ Provider
       String? historyIdString = historyId ??
@@ -137,13 +169,21 @@ class _DrawerCustomState extends State<DrawerCustom> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Xác nhận xóa'),
-          content:
-              const Text('Bạn có chắc chắn muốn xóa lịch sử chat này không?'),
+          title: Text(
+            'Xác nhận xóa',
+            style: styleText,
+          ),
+          content: Text(
+            'Bạn có chắc chắn muốn xóa lịch sử chat này không?',
+            style: styleText,
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Đóng'),
+              child: Text(
+                'Đóng',
+                style: styleText,
+              ),
             ),
             TextButton(
               onPressed: () async {
@@ -157,12 +197,21 @@ class _DrawerCustomState extends State<DrawerCustom> {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Thông báo'),
-                      content: const Text('Xóa thành công'),
+                      title: Text(
+                        'Thông báo',
+                        style: styleText,
+                      ),
+                      content: Text(
+                        'Xóa thành công',
+                        style: styleText,
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: const Text('OK'),
+                          child: Text(
+                            'OK',
+                            style: styleText,
+                          ),
                         ),
                       ],
                     ),
@@ -175,13 +224,21 @@ class _DrawerCustomState extends State<DrawerCustom> {
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: const Text('Lỗi'),
-                      content: const Text(
-                          'Có lỗi xảy ra trong quá trình xóa lịch sử.'),
+                      title: Text(
+                        'Lỗi',
+                        style: styleText,
+                      ),
+                      content: Text(
+                        'Có lỗi xảy ra trong quá trình xóa lịch sử.',
+                        style: styleText,
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Đóng'),
+                          child: Text(
+                            'Đóng',
+                            style: styleText,
+                          ),
                         ),
                       ],
                     ),
@@ -364,17 +421,18 @@ class _DrawerCustomState extends State<DrawerCustom> {
                       }
 
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 3, horizontal: 8),
                         decoration: BoxDecoration(
                           borderRadius: const BorderRadius.only(
                             topRight: Radius.circular(10),
                             bottomRight: Radius.circular(10),
                           ),
                           color: selectedColor == Colors.white
-                              ? Color(0xFFEA4524)
+                              ? const Color(0xFFED5113)
                               : selectedColor,
                         ),
-                        height: 34,
+                        height: 30,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -385,9 +443,8 @@ class _DrawerCustomState extends State<DrawerCustom> {
                               style: GoogleFonts.inter(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w500,
-                                color: (selectedColor ?? Colors.white) ==
-                                        Colors.white
-                                    ? Colors.black
+                                color: selectedColor == Colors.white
+                                    ? Colors.white
                                     : Colors.white,
                               ),
                             ),
@@ -406,45 +463,51 @@ class _DrawerCustomState extends State<DrawerCustom> {
                   children: [
                     SizedBox(
                       width: double.infinity,
-                      height: 40,
                       child: _buildListTile(
-                          icon: Icons.dashboard_customize_outlined,
-                          title: 'Bảng điều khiển',
-                          onTap: () => widget.onItemSelected(4)),
+                        context: context,
+                        icon: TablerIcons.dashboard,
+                        title: 'Bảng điều khiển',
+                        index: 4,
+                        onTap: () => widget.onItemSelected(4),
+                      ),
                     ),
                     SizedBox(
                       width: double.infinity,
-                      height: 40,
                       child: _buildListTile(
-                        icon: Icons.chat,
+                        context: context,
+                        icon: TablerIcons.message_dots,
+                        index: 0,
                         title: 'Trải nghiệm thử',
                         onTap: () => widget.onItemSelected(0),
                       ),
                     ),
                     SizedBox(
                       width: double.infinity,
-                      height: 40,
                       child: _buildListTile(
-                        icon: FontAwesomeIcons.listOl,
+                        context: context,
+                        icon: TablerIcons.calendar,
                         title: 'Danh sách Trợ lý AI',
+                        index: 1,
                         onTap: () => widget.onItemSelected(1),
                       ),
                     ),
                     SizedBox(
                       width: double.infinity,
-                      height: 40,
                       child: _buildListTile(
-                        icon: FontAwesomeIcons.person,
+                        context: context,
+                        icon: TablerIcons.user_circle,
                         title: 'Khách hàng tiềm năng',
+                        index: 6,
                         onTap: () => widget.onItemSelected(6),
                       ),
                     ),
                     SizedBox(
                       width: double.infinity,
-                      height: 40,
                       child: _buildListTile(
-                          icon: Icons.design_services_outlined,
+                          context: context,
+                          icon: TablerIcons.crown,
                           title: 'Gói dịch vụ',
+                          index: 5,
                           onTap: () => widget.onItemSelected(5)),
                     ),
                     Divider(
@@ -493,7 +556,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                     child: const Icon(
                                       Icons.close_sharp,
                                       color: Colors.black54,
-                                      size: 20,
+                                      size: 23,
                                     ),
                                   ),
                                 const VerticalDivider(
@@ -503,8 +566,11 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                 ),
                                 GestureDetector(
                                   onTap: _selectDateRange,
-                                  child: const Icon(Icons.calendar_today,
-                                      color: Colors.black54),
+                                  child: const Icon(
+                                    Icons.calendar_today,
+                                    color: Colors.black54,
+                                    size: 23,
+                                  ),
                                 ),
                               ],
                             ),
@@ -513,26 +579,30 @@ class _DrawerCustomState extends State<DrawerCustom> {
                       ],
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 9),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          const CircleAvatar(
-                            radius: 10,
-                            backgroundColor: Colors.grey,
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundColor: selectedColor == Colors.white
+                                ? Colors.white
+                                : selectedColor,
                             child: Icon(
-                              Icons.history,
-                              color: Colors.white,
+                              TablerIcons.history,
+                              color: selectedColor == Colors.white
+                                  ? Colors.black
+                                  : Colors.white,
                               size: 20,
                             ),
                           ),
                           const SizedBox(
-                            width: 5,
+                            width: 6,
                           ),
                           Text(
                             'Lịch sử',
                             style: GoogleFonts.inter(
-                              fontSize: 16,
+                              fontSize: 15,
                               color: selectedColor == Colors.white
                                   ? Colors.black
                                   : Colors.white,
@@ -599,8 +669,12 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                       itemKey;
                               return GestureDetector(
                                 onTap: () {
-                                  selectedChatProvider.setSelectedChatId(
-                                      itemKey); // Lưu vào Provider
+                                  selectedChatProvider
+                                      .setSelectedChatId(itemKey);
+                                  Provider.of<SelectedItemProvider>(context,
+                                          listen: false)
+                                      .setSelectedIndex(
+                                          index); // Lưu index của item được chọn
                                   Future.delayed(
                                       const Duration(milliseconds: 100), () {
                                     _loadChatHistoryAndNavigate(itemKey);
@@ -611,10 +685,19 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                   width: double.infinity,
                                   height: 50,
                                   decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(4),
-                                      color: selectedColor == Colors.white
-                                          ? Colors.white
-                                          : Colors.transparent),
+                                    borderRadius: BorderRadius.circular(4),
+                                    color: Provider.of<SelectedItemProvider>(
+                                                    context)
+                                                .selectedIndex ==
+                                            index
+                                        ? (selectedColor == Colors.white
+                                            ? const Color(0xFFEDEDED)
+                                            : Colors.white.withOpacity(
+                                                0.1)) // Màu khi được chọn với nền tối
+                                        : (selectedColor == Colors.white
+                                            ? Colors.white
+                                            : Colors.transparent),
+                                  ),
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 1),
                                   child: ListTile(
@@ -630,10 +713,18 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.inter(
                                         fontSize: 14.0,
-                                        color: selectedColor == Colors.white
-                                            ? Colors.black
-                                            : Colors.white,
-                                        fontWeight: FontWeight.w500,
+                                        color:
+                                            Provider.of<SelectedItemProvider>(
+                                                            context)
+                                                        .selectedIndex ==
+                                                    index
+                                                ? (selectedColor == Colors.white
+                                                    ? const Color(0xFF000000)
+                                                    : Colors.white)
+                                                : (selectedColor == Colors.white
+                                                    ? const Color(0xFF333333)
+                                                    : Colors.white),
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                     trailing: GestureDetector(
@@ -650,6 +741,10 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                       ),
                                     ),
                                     onTap: () {
+                                      Provider.of<SelectedItemProvider>(context,
+                                              listen: false)
+                                          .setSelectedIndex(
+                                              index); // Cập nhật index khi tap vào ListTile
                                       _loadChatHistoryAndNavigate(
                                           contents[index]['key']);
                                       Navigator.pop(context);
@@ -684,8 +779,9 @@ class _DrawerCustomState extends State<DrawerCustom> {
           IconButton(
             icon: Icon(
               Icons.menu,
-              color:
-                  selectedColor == Colors.white ? Colors.black : Colors.white,
+              color: selectedColor == Colors.white
+                  ? const Color(0xfffe64f13)
+                  : Colors.white,
             ),
             iconSize: 23,
             onPressed: () => Navigator.pop(context),
@@ -703,35 +799,74 @@ class _DrawerCustomState extends State<DrawerCustom> {
                     .loadInitialMessage(context);
                 Navigator.pop(context);
               },
-              icon: Icon(
-                Icons.replay_outlined,
-                color:
-                    selectedColor == Colors.white ? Colors.black : Colors.white,
+              icon: SvgPicture.asset(
+                'resources/icon_reload.svg',
+                fit: BoxFit.cover,
+                width: 23,
+                height: 23,
+                color: selectedColor == Colors.white
+                    ? const Color(0xfffe64f13)
+                    : Colors.white,
               ))
         ],
       ),
     );
   }
 
+  // Hàm xây dựng ListTile với trạng thái màu từ Provider
   Widget _buildListTile({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    required int index,
   }) {
+    final provider = Provider.of<DrawSelectedColorProvider>(context);
+    bool isSelected = provider.selectedIndex == index;
     final selectedColor = Provider.of<Providercolor>(context).selectedColor;
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        icon,
-        color: selectedColor == Colors.white ? Colors.black : Colors.white,
-        size: 22,
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: isSelected
+            ? const Color(0xFFED8113).withOpacity(0.2)
+            : Colors.transparent,
       ),
-      title: Text(title,
-          style: GoogleFonts.inter(
-            fontSize: 15,
-            color: selectedColor == Colors.white ? Colors.black : Colors.white,
-          )),
-      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: ListTile(
+              contentPadding: EdgeInsets.zero, // Xóa padding mặc định
+              leading: Icon(
+                icon,
+                color: isSelected
+                    ? const Color(0xFFED3113)
+                    : (selectedColor == Colors.white
+                        ? Colors.black
+                        : Colors.white),
+                size: 23,
+              ),
+              title: Text(title,
+                  style: GoogleFonts.inter(
+                    color: isSelected
+                        ? const Color(0xFFED3113)
+                        : (selectedColor == Colors.white
+                            ? Colors.black
+                            : Colors.white),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  )),
+              onTap: () {
+                provider.setSelectedIndex(
+                    index); // Cập nhật trạng thái trong Provider
+                onTap(); // Gọi hàm onTap gốc
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -761,7 +896,12 @@ class _DrawerCustomState extends State<DrawerCustom> {
       future:
           loginService.getAccountFullNameAndUsername(), // Fetch the user data
       builder: (context, snapshot) {
-        // Loading state
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const Text(
+              "Không có dữ liệu người dùng"); // Xử lý khi không có dữ liệu
+        }
+        final data = snapshot.data!;
+        final imageUrl = data['picture'] ?? '';
         if (snapshot.connectionState == ConnectionState.waiting) {
           return ListTile(
             leading: ClipRRect(
@@ -812,13 +952,20 @@ class _DrawerCustomState extends State<DrawerCustom> {
         // Error state
         else if (snapshot.hasError) {
           return ListTile(
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(100),
-              child: Image.asset(
-                'resources/logo_smart.png',
-                height: 30,
-                width: 30,
-                fit: BoxFit.cover,
+            leading: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(
+                    color: Colors.grey.shade400, width: 1), // Viền trắng
+              ),
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                radius: 23,
+                foregroundImage: (imageUrl.isNotEmpty)
+                    ? NetworkImage("${ApiConfig.baseUrlBasic}$imageUrl")
+                    : const AssetImage('resources/Smartchat.png')
+                        as ImageProvider,
               ),
             ),
             contentPadding: EdgeInsets.zero,
@@ -862,12 +1009,19 @@ class _DrawerCustomState extends State<DrawerCustom> {
           final email = snapshot.data?['email'] ?? 'Không có email';
 
           return ListTile(
-            leading: CircleAvatar(
-              child: Image.asset(
-                'resources/Smartchat.png',
-                height: 30,
-                width: 30,
-                fit: BoxFit.cover,
+            leading: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(
+                    color: Colors.grey.shade400, width: 1), // Viền trắng
+              ),
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                radius: 23,
+                foregroundImage: (imageUrl.isNotEmpty)
+                    ? NetworkImage("${ApiConfig.baseUrlBasic}$imageUrl")
+                    : const AssetImage('resources/logoAI.png') as ImageProvider,
               ),
             ),
             contentPadding: EdgeInsets.zero,

@@ -29,6 +29,7 @@ class LoginService {
         await prefs.setString('username', account.username!);
         await prefs.setString('full_name', account.fullName!);
         await prefs.setString('email', account.email!);
+        await prefs.setString('picture', account.picture!);
         await prefs.setString('token', account.token!);
 
         return {
@@ -50,14 +51,16 @@ class LoginService {
     final userId = prefs.getString('userid');
     final userName = prefs.getString('full_name');
     final email = prefs.getString('email');
-
-    if (userId == null || userName == null && email == null) {
+    final picture = prefs.getString('picture');
+    if (userId == null ||
+        userName == null && email == null && picture == null) {
       return null;
     }
 
     return {
       'full_name': userName ?? '', // Return default text if null
       'email': email ?? 'Không có email', // Return default text if null
+      'picture': picture ?? ""
     };
   }
 }

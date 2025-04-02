@@ -23,6 +23,10 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
       []; // Lưu danh sách các cột động từ slot_details
   String? searchContent;
   String? slotsStatus;
+  String? currentPage = "1";
+  String? pageSize = "10";
+  final List<int> itemsPerPageOptions = [10, 20, 50, 100];
+  bool hasMoreData = true;
 
   String? selectedItem;
   final List<String> items = [
@@ -35,7 +39,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
   @override
   void initState() {
     super.initState();
-    fetchCustomers(searchContent, slotsStatus);
+    fetchCustomers(searchContent, slotsStatus, currentPage, pageSize);
   }
 
   Future<Map<String, String?>> getChatbotInfo() async {
@@ -46,16 +50,18 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
     };
   }
 
-  Future<void> fetchCustomers(
-      String? selectedValue, String? searchValue) async {
+  Future<void> fetchCustomers(String? selectedValue, String? searchValue,
+      String? pageIndex, String? pageSize1) async {
     setState(() {
       isLoading = true;
       slotsStatus = selectedValue; // Cập nhật giá trị đã chọn vào slotsStatus
       searchContent = searchValue;
+      currentPage = pageIndex;
+      pageSize = pageSize1;
     });
 
-    List<DataPotentialCustomer> data =
-        await fetchAllPotentialCustomer(context, searchContent, slotsStatus);
+    List<DataPotentialCustomer> data = await fetchAllPotentialCustomer(
+        context, searchContent, slotsStatus, currentPage, pageSize);
 
     Set<String> columnsSet = {};
     for (var customer in data) {
@@ -124,6 +130,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
     return SingleChildScrollView(
       child: Container(
           padding: const EdgeInsets.all(8),
+          color: Colors.white,
           child: Column(
             children: [
               Row(
@@ -178,7 +185,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                       chatbotPicture.isNotEmpty
                                   ? NetworkImage(
                                       "${ApiConfig.baseUrlBasic}$chatbotPicture")
-                                  : const AssetImage('resources/logo_smart.png')
+                                  : const AssetImage('resources/Smartchat.png')
                                       as ImageProvider,
                               radius: 20,
                             ),
@@ -197,7 +204,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                   ),
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Row(
@@ -215,15 +222,17 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                       // Nếu chọn "Tất cả trạng thái", truyền null hoặc chuỗi rỗng
                       fetchCustomers(
                           newValue == 'Tất cả trạng thái' ? null : newValue,
-                          searchContent);
+                          searchContent,
+                          currentPage,
+                          pageSize);
                     },
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 10,
                   ),
                   Expanded(
                     child: Container(
-                      height: 45,
+                      height: 40,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(width: 1.2, color: Colors.black26),
@@ -232,7 +241,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                           BoxShadow(
                             color: Colors.black12.withOpacity(0.05),
                             blurRadius: 5,
-                            offset: Offset(0, 2),
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
@@ -244,7 +253,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                           hintText: 'Tìm kiếm tại đây...',
                           hintStyle: GoogleFonts.inter(
                               fontSize: 14, color: Colors.black45),
-                          contentPadding: EdgeInsets.symmetric(
+                          contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -252,87 +261,221 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                           ),
                           suffixIcon: GestureDetector(
                             onTap: () {
-                              fetchCustomers(
-                                  slotsStatus, _searchController.text);
+                              fetchCustomers(slotsStatus, currentPage, pageSize,
+                                  _searchController.text);
                             },
                             child: Container(
-                              padding: EdgeInsets.all(8),
-                              margin: EdgeInsets.all(4),
+                              width: 10,
+                              padding: const EdgeInsets.all(8),
+                              margin: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
                                 color: selectedColor == Colors.white
-                                    ? Colors.deepOrange
+                                    ? const Color(0xfffed5113)
                                     : selectedColor,
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Icon(Icons.search, color: Colors.white),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.search,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
                             ),
                           ),
                         ),
                         onSubmitted: (value) {
-                          fetchCustomers(slotsStatus, value);
+                          fetchCustomers(
+                              slotsStatus, currentPage, pageSize, value);
                         },
                       ),
                     ),
                   )
                 ],
               ),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Container(
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.white,
-                    border: Border.all(width: 2, color: Colors.grey)),
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white,
+                  border: Border.all(width: 2, color: Colors.grey),
+                ),
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columns: [
-                              DataColumn(
-                                  label: Text("STT",
+                    : (dynamicColumns.isNotEmpty &&
+                            customers.isNotEmpty) // Kiểm tra dữ liệu
+                        ? SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: DataTable(
+                                columns: [
+                                  DataColumn(
+                                    label: Text(
+                                      "STT",
                                       style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.bold))),
-                              // const DataColumn(
-                              //     label: Text("Intent Slots",
-                              //         style: GoogleFonts.inter(fontWeight: FontWeight.bold))),
-                              ...dynamicColumns.map((col) => DataColumn(
-                                    label: Text(col,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  // const DataColumn(
+                                  //     label: Text("Intent Slots",
+                                  //         style: GoogleFonts.inter(fontWeight: FontWeight.bold))),
+                                  ...dynamicColumns.map(
+                                    (col) => DataColumn(
+                                      label: Text(
+                                        col,
                                         style: GoogleFonts.inter(
-                                            fontWeight: FontWeight.bold)),
-                                  )),
-                              DataColumn(
-                                  label: Text("Trạng thái",
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      "Trạng thái",
                                       style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.bold))),
-                            ],
-                            rows:
-                                customers.asMap().entries.map<DataRow>((entry) {
-                              int index = entry.key + 1;
-                              DataPotentialCustomer customer = entry.value;
-
-                              return DataRow(
-                                cells: [
-                                  DataCell(
-                                      Center(child: Text(index.toString()))),
-                                  // DataCell(Text(customer.intentSlots ?? "")),
-                                  ...dynamicColumns.map((col) {
-                                    return DataCell(Center(
-                                      child:
-                                          Text(customer.slotDetails[col] ?? ""),
-                                    )); // Nếu không có thì để trống
-                                  }),
-                                  DataCell(Center(
-                                      child: Text(customer.slotStatus ?? ""))),
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
                                 ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
+                                rows: customers
+                                    .asMap()
+                                    .entries
+                                    .map<DataRow>((entry) {
+                                  int index = entry.key + 1;
+                                  DataPotentialCustomer customer = entry.value;
+
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Center(
+                                          child: Text(index.toString()))),
+                                      ...dynamicColumns.map((col) {
+                                        return DataCell(
+                                          Center(
+                                            child: Text(
+                                                customer.slotDetails[col] ??
+                                                    ""),
+                                          ),
+                                        ); // Nếu không có thì để trống
+                                      }),
+                                      DataCell(
+                                        Center(
+                                            child: Text(
+                                                customer.slotStatus ?? "")),
+                                      ),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          )
+                        : const Center(
+                            child: Text("Không có dữ liệu để hiển thị")),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 48.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      onPressed:
+                          (currentPage != null && int.parse(currentPage!) > 1)
+                              ? () {
+                                  setState(() {
+                                    currentPage = (int.parse(currentPage!) - 1)
+                                        .toString(); // Giảm trang
+                                  });
+                                  fetchCustomers(
+                                    searchContent,
+                                    slotsStatus,
+                                    currentPage,
+                                    pageSize,
+                                  );
+                                }
+                              : null,
+                      icon: const Icon(
+                        Icons.chevron_left,
+                        color: Colors.grey,
                       ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 2.0, horizontal: 10.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: selectedColor == Colors.white
+                                ? const Color(0xfffed5113)
+                                : selectedColor),
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                      child: Text(
+                        currentPage ?? "1",
+                        style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: selectedColor == Colors.white
+                                ? const Color(0xfffed51123)
+                                : selectedColor),
+                      ), // Hiển thị trang hiện tại, mặc định "1"
+                    ),
+                    IconButton(
+                      onPressed: hasMoreData
+                          ? () {
+                              setState(() {
+                                currentPage =
+                                    (int.parse(currentPage ?? "1") + 1)
+                                        .toString(); // Tăng trang
+                              });
+                              fetchCustomers(
+                                searchContent,
+                                slotsStatus,
+                                currentPage,
+                                pageSize,
+                              );
+                            }
+                          : null,
+                      icon: const Icon(
+                        Icons.chevron_right,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    Container(
+                      height: 30,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(width: 1, color: Colors.black12),
+                      ),
+                      child: DropdownButton<String>(
+                        value: pageSize,
+                        items: itemsPerPageOptions.map((int value) {
+                          return DropdownMenuItem<String>(
+                            value: value.toString(),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2.0),
+                              child: Text('$value/${'trang'}',
+                                  style: GoogleFonts.inter(fontSize: 14)),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              pageSize = newValue;
+                              currentPage = "1"; // Đặt lại về trang 1
+                            });
+                            fetchCustomers(
+                              searchContent,
+                              slotsStatus,
+                              currentPage,
+                              pageSize,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               )
             ],
           )),

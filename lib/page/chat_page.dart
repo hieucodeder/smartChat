@@ -165,7 +165,7 @@ class _ChatPageState extends State<ChatPage> {
       userId: userId,
       userIndustry: "",
     );
-    print('Cấu hình: $chatbotRequest');
+    // print('Cấu hình: $chatbotRequest');
 
     String? response;
 
@@ -198,14 +198,24 @@ class _ChatPageState extends State<ChatPage> {
             (_messages[0]['type'] == 'bot' &&
                 _messages[0]['text'] == 'response')) {
           _messages[0]['table'] = table;
-          _messages[0]['imageStatistic'] = images;
+
+          // Kiểm tra dữ liệu ảnh trước khi thêm vào danh sách tin nhắn
+          if (images.isNotEmpty && images.every((img) => img is String)) {
+            _messages[0]['imageStatistic'] = images;
+          } else {
+            _messages[0]['imageStatistic'] = [];
+          }
         } else {
           _messages.insert(0, {
             'type': 'bot',
             'text': '',
             'table': table,
-            // 'imageStatistic': images,
+            'imageStatistic':
+                images.isNotEmpty && images.every((img) => img is String)
+                    ? images
+                    : [],
           });
+
           if (historyId.isEmpty) {
             //gọi hàm mà không cập nhật UI
             Future.microtask(() => _fetchHistoryAllModel(context));
@@ -222,44 +232,6 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
   }
-  // // 📌 Gọi API
-  // AnswerModelPq? responsepq = await fetchApiResponsePq(chatbotRequest);
-
-  // if (responsepq != null && responsepq.data != null) {
-  //   DataAnswer? responseData = responsepq.data;
-
-  //   // 📌 Lấy tin nhắn từ chatbot
-  //   String botResponse =
-  //       responseData?.message ?? "Chatbot không có câu trả lời.";
-
-  //   // 📌 Tìm ảnh trong nội dung Markdown
-  //   RegExp markdownImageRegex = RegExp(r'!\[.*?\]\((.*?)\)');
-  //   List<String> imageUrls = responseData?.images ?? [];
-
-  //   // 📌 Trích xuất ảnh từ Markdown
-  //   for (RegExpMatch match in markdownImageRegex.allMatches(botResponse)) {
-  //     if (match.group(1) != null) {
-  //       imageUrls.add(match.group(1)!);
-  //     }
-  //   }
-
-  //   setState(() {
-  //     _messages.insert(0, {
-  //       'type': 'bot',
-  //       'text': botResponse,
-  //       'images': imageUrls,
-  //     });
-  //   });
-  // } else {
-  //   setState(() {
-  //     _messages.insert(
-  //         0, {'type': 'bot', 'text': "Chatbot không thể trả lời lúc này."});
-  //   });
-  // }
-
-  // setState(() {
-  //   _isLoading = false;
-  // });
 
   Future<void> fetchAndUpdateChatHistory() async {
     if (!mounted) return;
@@ -268,13 +240,11 @@ class _ChatPageState extends State<ChatPage> {
         Provider.of<HistoryidProvider>(context, listen: false);
     final newHistoryId = historyidProvider.chatbotHistoryId;
 
-    // Nếu không có lịch sử chat, không cần fetch
     if (newHistoryId.isEmpty) {
       debugPrint("⚠️ No chatbot history ID available.");
       return;
     }
 
-    // Kiểm tra nếu không có thay đổi ID, tránh load lại không cần thiết
     if (_messages.isNotEmpty &&
         historyidProvider.previousHistoryId == newHistoryId) {
       debugPrint("🔄 No changes in history ID, skipping fetch.");
@@ -283,51 +253,49 @@ class _ChatPageState extends State<ChatPage> {
 
     try {
       debugPrint("📡 Fetching chat history for ID: $newHistoryId");
-
-      // Lấy dữ liệu tin nhắn từ API
       List<Map<String, dynamic>> contents =
           await fetchChatHistory(newHistoryId);
 
       if (!mounted) return;
 
       setState(() {
-        _messages.clear(); // Xóa tin nhắn cũ trước khi cập nhật
+        _messages.clear();
 
         for (var content in contents) {
-          List<dynamic> images = [];
+          List<String> images = [];
 
-          // Kiểm tra và xử lý danh sách hình ảnh từ `imageStatistic`
-          if (content.containsKey('imageStatistic')) {
-            var imageData = content['imageStatistic'];
-
-            if (imageData is List<String>) {
-              images = imageData;
-              debugPrint('✅ Dữ liệu ảnh hợp lệ: $images');
-            } else {
-              debugPrint(
-                  '❌ Dữ liệu ảnh không đúng kiểu: ${imageData.runtimeType}');
-            }
+          // Kiểm tra và xử lý dữ liệu ảnh
+          if (content.containsKey('imageStatistic') &&
+              content['imageStatistic'] is List<String>) {
+            images = List<String>.from(content['imageStatistic']);
+            debugPrint('✅ Dữ liệu ảnh hợp lệ: $images');
+          } else {
+            debugPrint(
+                '❌ Dữ liệu ảnh không đúng kiểu: ${content['imageStatistic'].runtimeType}');
           }
 
-          // Chèn tin nhắn vào danh sách `_messages`
+          // Xác định loại tin nhắn (user hay bot) từ dữ liệu lịch sử
+          final isUser = content['type'] == 'user';
+
+          // Thêm tin nhắn vào danh sách với cấu trúc phù hợp
           _messages.insert(0, {
-            'type': 'bot',
+            'type': isUser ? 'user' : 'bot', // Phân biệt user và bot
             'text': content['text'] ?? "",
             'table': content['table'] as List<Map<String, dynamic>>?,
             'imageStatistic': images,
           });
-          // Cuộn xuống cuối cùng sau khi danh sách tin nhắn cập nhật
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _scrollController.animateTo(
-              _scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
-          });
         }
       });
 
-      // Cập nhật lại `previousHistoryId` sau khi tải xong
+      // Cuộn xuống cuối cùng sau khi danh sách tin nhắn cập nhật
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      });
+
       historyidProvider.setChatbotHistoryId(newHistoryId);
     } catch (e, stackTrace) {
       debugPrint("❌ Error in fetchAndUpdateChatHistory: $e");
@@ -335,42 +303,19 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  void loadChatHistoryId(BuildContext context, String chatbotCode) async {
-    debugPrint("🔍 Starting loadChatHistoryId...");
-
-    try {
-      HistoryAllModel historyData =
-          await fetchChatHistoryAll(chatbotCode, null, null);
-      debugPrint("📥 Fetched history data: ${historyData.toJson()}");
-
-      int? historyId = int.tryParse(
-          Provider.of<HistoryidProvider>(context, listen: false)
-              .chatbotHistoryId);
-
-      if (historyId != null && historyId > 0) {
-        Provider.of<HistoryidProvider>(context, listen: false)
-            .setChatbotHistoryId(historyId.toString());
-      } else {
-        debugPrint("⚠ No valid history data found in Provider.");
-      }
-    } catch (e, stackTrace) {
-      debugPrint("❌ Error in loadChatHistoryId: $e");
-      debugPrint("🛑 StackTrace: $stackTrace");
-    }
-  }
-
-  List<TextSpan> _parseMessage(String message) {
-    List<TextSpan> spans = [];
+  List<InlineSpan> _parseMessage(String message) {
+    List<InlineSpan> spans = [];
     RegExp regexBold = RegExp(r'\*\*(.*?)\*\*'); // In đậm
     RegExp regexItalic = RegExp(r'##(.*?)##'); // In nghiêng
     RegExp regexBoldLine = RegExp(r'^\s*###\s*(.*?)\s*$', multiLine: true);
-
+    RegExp regexImage = RegExp(r'!\[(.*?)\]\((.*?)\)'); // Ảnh Markdown
     RegExp regexLink = RegExp(r'\[(.*?)\]\((.*?)\)'); // Link dạng Markdown
 
     int lastIndex = 0;
 
     while (lastIndex < message.length) {
       List<RegExpMatch?> matches = [
+        regexImage.firstMatch(message.substring(lastIndex)),
         regexLink.firstMatch(message.substring(lastIndex)),
         regexBoldLine.firstMatch(message.substring(lastIndex)),
         regexItalic.firstMatch(message.substring(lastIndex)),
@@ -378,7 +323,10 @@ class _ChatPageState extends State<ChatPage> {
       ].where((match) => match != null).toList();
 
       if (matches.isEmpty) {
-        spans.add(TextSpan(text: message.substring(lastIndex)));
+        spans.add(TextSpan(
+          text: message.substring(lastIndex),
+          style: GoogleFonts.inter(color: Colors.black),
+        ));
         break;
       }
 
@@ -388,22 +336,89 @@ class _ChatPageState extends State<ChatPage> {
       // Thêm văn bản thường trước phần định dạng
       if (match.start > 0) {
         spans.add(TextSpan(
-            text: message.substring(lastIndex, lastIndex + match.start)));
+          text: message.substring(lastIndex, lastIndex + match.start),
+          style: GoogleFonts.inter(color: Colors.black),
+        ));
       }
 
-      // Xử lý từng loại định dạng
-      if (match.pattern == regexLink) {
+      if (match.pattern == regexImage) {
+        String linkText =
+            match.group(1)!; // Văn bản thay thế (không dùng trong code này)
+        String linkUrl = match.group(2)!;
+
+        // Kiểm tra xem có phải link ảnh không
+        bool isImageUrl =
+            RegExp(r'\.(jpg|jpeg|png|gif|webp)$', caseSensitive: false)
+                .hasMatch(linkUrl);
+
+        if (isImageUrl) {
+          spans.add(
+            WidgetSpan(
+              child: GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      backgroundColor: Colors.transparent,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.9,
+                          height: MediaQuery.of(context).size.height * 0.5,
+                          child: PhotoView(
+                            imageProvider: NetworkImage(linkUrl),
+                            backgroundDecoration:
+                                const BoxDecoration(color: Colors.white),
+                            minScale: PhotoViewComputedScale.contained,
+                            maxScale: PhotoViewComputedScale.covered * 2.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  child: Image.network(
+                    linkUrl,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Text('Không thể tải ảnh');
+                    },
+                  ),
+                ),
+              ),
+            ),
+          );
+        } else {
+          spans.add(TextSpan(
+            text: match[0],
+            style: GoogleFonts.inter(color: Colors.black),
+          ));
+        }
+      } else if (match.pattern == regexLink) {
         String linkText = match.group(1)!;
         String linkUrl = match.group(2)!;
 
         spans.add(TextSpan(
           text: linkText,
           style: GoogleFonts.inter(
-              color: Colors.blue, decoration: TextDecoration.underline),
+            color: Colors.blue,
+            decoration: TextDecoration.underline,
+          ),
           recognizer: TapGestureRecognizer()
             ..onTap = () async {
-              if (await canLaunchUrl(Uri.parse(linkUrl))) {
-                await launchUrl(Uri.parse(linkUrl),
+              String url =
+                  linkUrl.startsWith('http') ? linkUrl : 'https://$linkUrl';
+              if (await canLaunchUrl(Uri.parse(url))) {
+                await launchUrl(Uri.parse(url),
                     mode: LaunchMode.externalApplication);
               }
             },
@@ -411,34 +426,36 @@ class _ChatPageState extends State<ChatPage> {
       } else if (match.pattern == regexBoldLine) {
         spans.add(TextSpan(
           text: "\n${match.group(1)!}",
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.black,
+          ),
         ));
       } else if (match.pattern == regexItalic) {
         spans.add(TextSpan(
           text: match.group(1)!,
-          style: GoogleFonts.inter(fontStyle: FontStyle.italic, fontSize: 16),
+          style: GoogleFonts.inter(
+            fontStyle: FontStyle.italic,
+            fontSize: 16,
+            color: Colors.black,
+          ),
         ));
       } else if (match.pattern == regexBold) {
         spans.add(TextSpan(
           text: match.group(1)!,
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 17),
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.bold,
+            fontSize: 17,
+            color: Colors.black,
+          ),
         ));
       }
 
-      lastIndex += match.end;
+      lastIndex = lastIndex + match.end; // Cập nhật chỉ số chính xác
     }
 
     return spans;
-  }
-
-  void _scrollToBottom() {
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    });
   }
 
   final ScrollController _scrollController = ScrollController();
@@ -452,7 +469,7 @@ class _ChatPageState extends State<ChatPage> {
     );
     final textChatbotTable = GoogleFonts.inter(
         fontSize: 15, fontWeight: FontWeight.bold, color: Colors.blue);
-    // _messages = _chatProvider!.messages();
+
     _messages = Provider.of<ChatProvider>(context).messages();
     return Container(
       constraints: const BoxConstraints.expand(),
@@ -468,307 +485,307 @@ class _ChatPageState extends State<ChatPage> {
               itemBuilder: (context, index) {
                 final message = _messages[_messages.length - 1 - index];
 
-                final isUser = message['type'] == 'user';
-                String extractImageUrl(String markdownText) {
-                  RegExp exp = RegExp(r'!\[.*?\]\((.*?)\)');
-                  Match? match = exp.firstMatch(markdownText);
-                  return match != null
-                      ? match.group(1)!
-                      : markdownText; // Trả về URL ảnh nếu có
-                }
-
-                List<String> imageUrls = message['images'] ?? [];
-
-// 📌 Trích xuất URL ảnh trước khi hiển thị
-                List<String> validImageUrls =
-                    imageUrls.map((e) => extractImageUrl(e)).toList();
-
+                final isUser = message['type'] ==
+                    'user'; // Xác định user hay bot từ dữ liệu
                 // final String? imageUrl = message['image'];
-                List<Map<String, dynamic>>? table = message['table'];
-                List<String> columns = [];
-                if (table != null && table.isNotEmpty) {
-                  columns = table.first.keys.toList();
-                }
+                // List<Map<String, dynamic>>? table = message['table'];
+                // List<String> columns = [];
+                // if (table != null && table.isNotEmpty) {
+                //   columns = table.first.keys.toList();
+                // }
 
-                return Align(
-                  alignment: isUser
-                      ? Alignment.centerRight
-                      : Alignment
-                          .centerLeft, // Canh phải cho user, trái cho bot
-
-                  child: Row(
-                    mainAxisAlignment: isUser
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Flexible(
-                        child: Column(
-                          children: [
-                            Visibility(
-                              visible: message['text']?.isNotEmpty ?? false,
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(vertical: 5),
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color:
-                                      isUser ? selectColors : Colors.grey[300],
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: const Radius.circular(10),
-                                    topRight: const Radius.circular(10),
-                                    bottomLeft: isUser
-                                        ? const Radius.circular(10)
-                                        : Radius.zero,
-                                    bottomRight: isUser
-                                        ? Radius.zero
-                                        : const Radius.circular(10),
-                                  ),
-                                ),
-                                child: Text.rich(
-                                  TextSpan(
-                                    // children: _parseMessage(message['text']!),
-                                    children:
-                                        _parseMessage(message['text'] ?? ''),
-                                  ),
-                                  style: GoogleFonts.inter(
-                                      fontSize: 15,
-                                      color:
-                                          isUser ? Colors.black : Colors.black),
-                                ),
-                              ),
-                            ),
-                            // 📌 Hiển thị danh sách ảnh nếu có
-                            // if (validImageUrls.isNotEmpty)
-                            //   Wrap(
-                            //     spacing: 8.0, // Khoảng cách giữa các ảnh
-                            //     runSpacing: 8.0,
-                            //     children: validImageUrls.map((imageUrl) {
-                            //       return GestureDetector(
-                            //         onTap: () {
-                            //           // // Mở ảnh toàn màn hình khi nhấn vào
-                            //           // Navigator.push(
-                            //           //   context,
-                            //           //   MaterialPageRoute(
-                            //           //     builder: (context) => FullScreenImage(imageUrl: imageUrl),
-                            //           //   ),
-                            //           // );
-                            //         },
-                            //         child: ClipRRect(
-                            //           borderRadius: BorderRadius.circular(10),
-                            //           child: Image.network(
-                            //             imageUrl,
-                            //             width: 100,
-                            //             height: 100,
-                            //             fit: BoxFit.cover,
-                            //           ),
-                            //         ),
-                            //       );
-                            //     }).toList(),
-                            //   ),
-
-                            // 🖼 Kiểm tra nếu có ảnh thì hiển thị ảnh
-                            Builder(
-                              builder: (context) {
-                                final regex = RegExp(
-                                    r'!\[.*?\]\((https?://[^\)]+\.(png|jpg|jpeg|gif|webp))\)');
-
-                                final match =
-                                    regex.firstMatch(message['text'] ?? '');
-
-                                if (match != null) {
-                                  String imageUrl =
-                                      match.group(1)!; // Lấy URL ảnh
-
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 5),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: Image.network(
-                                        imageUrl,
-                                        fit: BoxFit.cover,
+                return Row(
+                  mainAxisAlignment:
+                      isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                  children: [
+                    Flexible(
+                      child: Column(
+                        children: [
+                          Visibility(
+                            visible: (message['text']?.isNotEmpty ?? false) ||
+                                (message['imageStatistic'] != null &&
+                                    (message['imageStatistic'] as List<dynamic>)
+                                        .isNotEmpty),
+                            child: isUser
+                                ? Container(
+                                    padding: const EdgeInsets.all(10),
+                                    margin: EdgeInsets.zero,
+                                    decoration: BoxDecoration(
+                                      color: selectColors == Colors.white
+                                          ? (isUser
+                                              ? const Color(
+                                                  0xffed5113) // Orange when white and isUser
+                                              : selectColors) // White when white and not isUser
+                                          : (selectColors ==
+                                                  const Color(0xFF284973)
+                                              ? (isUser
+                                                  ? selectColors
+                                                  : null) // Blue or orange
+                                              : (selectColors ==
+                                                      const Color(0xff48433d)
+                                                  ? (isUser
+                                                      ? const Color(0xff48433d)
+                                                      : null) // Blue or black
+                                                  : selectColors)), // Fallback to selectColors
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(10),
+                                        topRight: Radius.circular(10),
+                                        bottomLeft: Radius.circular(10),
+                                        bottomRight: Radius.zero,
                                       ),
                                     ),
-                                  );
-                                }
-                                return SizedBox.shrink(); // Không có ảnh thì ẩn
-                              },
-                            ),
-
-                            // if (!isUser)
-                            //   Row(
-                            //     children: [
-                            //       Row(
-                            //         children: [
-                            //           GestureDetector(
-                            //             onTap: () {
-                            //               Clipboard.setData(ClipboardData(
-                            //                   text: message['text'] ?? ''));
-                            //               ScaffoldMessenger.of(context)
-                            //                   .showSnackBar(
-                            //                 const SnackBar(
-                            //                     content: Text(
-                            //                         'Đã sao chép vào clipboard!')),
-                            //               );
-                            //             },
-                            //             child: const Row(
-                            //               mainAxisSize: MainAxisSize.min,
-                            //               children: [
-                            //                 Icon(Icons.copy,
-                            //                     size: 18, color: Colors.grey),
-                            //                 SizedBox(width: 4),
-                            //               ],
-                            //             ),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //     ],
-                            //   ),
-                            if (table != null &&
-                                table is List &&
-                                (table as List<Map<String, dynamic>>)
-                                    .isNotEmpty)
-                              SingleChildScrollView(
-                                scrollDirection: Axis.vertical,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: DataTable(
-                                    columns: [
-                                      DataColumn(
-                                        label: Text(
-                                          "STT",
-                                          style: textChatbotTable,
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                      ...columns.map((col) => DataColumn(
-                                            label: Text(
-                                              col,
-                                              style: textChatbotTable,
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ))
-                                    ],
-                                    rows: table!
-                                        .asMap()
-                                        .entries
-                                        .map<DataRow>((entry) {
-                                      int index =
-                                          entry.key + 1; // Đánh số thứ tự
-                                      Map<String, dynamic> row = entry.value;
-                                      return DataRow(
-                                        cells: [
-                                          DataCell(
-                                            SizedBox(
-                                              width: 40,
-                                              child: Center(
-                                                child: Text(
-                                                  index.toString(),
-                                                  style: textChatBot,
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              ),
-                                            ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            children: _parseMessage(
+                                                    message['text'] ?? '')
+                                                .map((span) {
+                                              if (span is TextSpan) {
+                                                return TextSpan(
+                                                  text: span.text,
+                                                  style: span.style?.copyWith(
+                                                    fontSize: 13,
+                                                    color: Colors
+                                                        .white, // Chữ trắng cho user
+                                                  ),
+                                                  recognizer: span.recognizer,
+                                                );
+                                              } else {
+                                                return span;
+                                              }
+                                            }).toList(),
                                           ),
-                                          ...columns.map((col) {
-                                            var value = row[col];
-                                            String displayValue;
-
-                                            // Kiểm tra nếu giá trị là số thì làm tròn đến 2 chữ số thập phân
-                                            if (value is double) {
-                                              displayValue =
-                                                  value.toStringAsFixed(2);
-                                            } else {
-                                              displayValue = value.toString();
-                                            }
-
-                                            return DataCell(
-                                              Center(
-                                                child: Text(
-                                                  displayValue,
-                                                  style: textChatBot,
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              ),
-                                            );
-                                          }).toList(),
-                                        ],
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                              ),
-                            if (message['imageStatistic'] != null &&
-                                message['imageStatistic'] is List<String> &&
-                                message['imageStatistic'].isNotEmpty)
-                              ...(message['imageStatistic'] as List<String>)
-                                  .map<Widget>((imageUrl) {
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => Dialog(
-                                            backgroundColor: Colors.transparent,
-                                            child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              child: SizedBox(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.9,
-                                                height: MediaQuery.of(context)
-                                                        .size
-                                                        .height *
-                                                    0.7,
-                                                child: PhotoView(
-                                                  imageProvider: NetworkImage(
-                                                      imageUrl), // Sử dụng imageUrl thay vì image.path
-                                                  backgroundDecoration:
-                                                      const BoxDecoration(
-                                                          color: Colors.white),
-                                                  minScale:
-                                                      PhotoViewComputedScale
-                                                          .contained,
-                                                  maxScale:
-                                                      PhotoViewComputedScale
-                                                              .covered *
-                                                          2.0,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: Container(
-                                        margin: const EdgeInsets.symmetric(
-                                            vertical: 5),
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: isUser
-                                              ? selectColors
-                                              : Colors.white,
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          border: Border.all(
-                                              width: 2,
-                                              color:
-                                                  Colors.grey.withOpacity(0.3)),
                                         ),
-                                        child: Image.network(
-                                            imageUrl), // Sử dụng imageUrl thay vì image.path!
+                                        if (message['imageStatistic'] != null &&
+                                            message['imageStatistic']
+                                                is List<String> &&
+                                            (message['imageStatistic']
+                                                    as List<String>)
+                                                .isNotEmpty)
+                                          Wrap(
+                                            spacing: 8,
+                                            runSpacing: 8,
+                                            children: (message['imageStatistic']
+                                                    as List<String>)
+                                                .map((imageUrl) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (context) =>
+                                                        Dialog(
+                                                      backgroundColor:
+                                                          Colors.transparent,
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        child: SizedBox(
+                                                          width: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              0.9,
+                                                          height: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .height *
+                                                              0.7,
+                                                          child: PhotoView(
+                                                            imageProvider:
+                                                                NetworkImage(
+                                                                    imageUrl),
+                                                            backgroundDecoration:
+                                                                const BoxDecoration(
+                                                                    color: Colors
+                                                                        .white),
+                                                            minScale:
+                                                                PhotoViewComputedScale
+                                                                    .contained,
+                                                            maxScale:
+                                                                PhotoViewComputedScale
+                                                                        .covered *
+                                                                    2.0,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Image.network(
+                                                  imageUrl,
+                                                  fit: BoxFit.cover,
+                                                  loadingBuilder: (context,
+                                                      child, loadingProgress) {
+                                                    if (loadingProgress == null)
+                                                      return child;
+                                                    return const SizedBox(
+                                                      child: Center(
+                                                          child:
+                                                              CircularProgressIndicator()),
+                                                    );
+                                                  },
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return const Icon(
+                                                        Icons.error,
+                                                        size: 100,
+                                                        color: Colors.red);
+                                                  },
+                                                ),
+                                              );
+                                            }).toList(),
+                                          ),
+                                      ],
+                                    ),
+                                  )
+                                : Container(
+                                    padding: const EdgeInsets.only(
+                                        right: 10, top: 10, bottom: 10),
+                                    decoration: BoxDecoration(
+                                      color: selectColors == Colors.white
+                                          ? (isUser
+                                              ? const Color(
+                                                  0xffed5113) // Orange when white and isUser
+                                              : selectColors) // White when white and not isUser
+                                          : (selectColors ==
+                                                  const Color(0xFF284973)
+                                              ? (isUser
+                                                  ? selectColors
+                                                  : null) // Blue or orange
+                                              : (selectColors ==
+                                                      const Color(0xff48433d)
+                                                  ? (isUser
+                                                      ? const Color(0xff48433d)
+                                                      : null) // Blue or black
+                                                  : selectColors)), // Fallback to selectColors
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(10),
+                                        topRight: Radius.circular(10),
+                                        bottomLeft: Radius.zero,
+                                        bottomRight: Radius.circular(10),
                                       ),
                                     ),
-                                  ],
-                                );
-                              }).toList(),
-                          ],
-                        ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            children: _parseMessage(
+                                                    message['text'] ?? '')
+                                                .map((span) {
+                                              if (span is TextSpan) {
+                                                return TextSpan(
+                                                  text: span.text,
+                                                  style: span.style?.copyWith(
+                                                    fontSize: 13,
+                                                    color: Colors
+                                                        .black, // Chữ đen cho bot
+                                                  ),
+                                                  recognizer: span.recognizer,
+                                                );
+                                              } else {
+                                                return span;
+                                              }
+                                            }).toList(),
+                                          ),
+                                        ),
+                                        if (message['imageStatistic'] != null &&
+                                            message['imageStatistic']
+                                                is List<String> &&
+                                            (message['imageStatistic']
+                                                    as List<String>)
+                                                .isNotEmpty)
+                                          Wrap(
+                                            spacing: 8,
+                                            runSpacing: 8,
+                                            children: (message['imageStatistic']
+                                                    as List<String>)
+                                                .map((imageUrl) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (context) =>
+                                                        Dialog(
+                                                      backgroundColor:
+                                                          Colors.transparent,
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(10),
+                                                        child: SizedBox(
+                                                          width: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .width *
+                                                              0.9,
+                                                          height: MediaQuery.of(
+                                                                      context)
+                                                                  .size
+                                                                  .height *
+                                                              0.7,
+                                                          child: PhotoView(
+                                                            imageProvider:
+                                                                NetworkImage(
+                                                                    imageUrl),
+                                                            backgroundDecoration:
+                                                                const BoxDecoration(
+                                                                    color: Colors
+                                                                        .white),
+                                                            minScale:
+                                                                PhotoViewComputedScale
+                                                                    .contained,
+                                                            maxScale:
+                                                                PhotoViewComputedScale
+                                                                        .covered *
+                                                                    2.0,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                                child: Image.network(
+                                                  imageUrl,
+                                                  width: 100,
+                                                  height: 100,
+                                                  fit: BoxFit.cover,
+                                                  loadingBuilder: (context,
+                                                      child, loadingProgress) {
+                                                    if (loadingProgress == null)
+                                                      return child;
+                                                    return const SizedBox(
+                                                      width: 100,
+                                                      height: 100,
+                                                      child: Center(
+                                                          child:
+                                                              CircularProgressIndicator()),
+                                                    );
+                                                  },
+                                                  errorBuilder: (context, error,
+                                                      stackTrace) {
+                                                    return const Icon(
+                                                        Icons.error,
+                                                        size: 100,
+                                                        color: Colors.red);
+                                                  },
+                                                ),
+                                              );
+                                            }).toList(),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               },
             ),
@@ -794,33 +811,6 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
           ],
-          if (_suggestions.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _suggestions.map((suggestion) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                        onPressed: () {
-                          _controller.text = suggestion; // Đưa gợi ý vào ô nhập
-                        },
-                        child: Text(suggestion),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
           Container(
             padding: const EdgeInsets.all(10),
             color: Colors.grey[200],
@@ -843,7 +833,6 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
                 Visibility(
                   visible: !_isLoading,
                   child: IconButton(

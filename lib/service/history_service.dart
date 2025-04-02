@@ -47,6 +47,7 @@ Future<List<Map<String, dynamic>>> fetchChatHistory(String historyId) async {
               if (match.group(1) != null) {
                 imageUrls.add(match.group(1)!);
                 message = message.replaceAll(match.group(0)!, '');
+                print('link anh ${message}');
               }
             }
 
@@ -66,8 +67,6 @@ Future<List<Map<String, dynamic>>> fetchChatHistory(String historyId) async {
           }
         }).toList() ??
         [];
-
-    // debugPrint("✅ Lịch sử trò chuyện: ${jsonEncode(result)}");
 
     return result;
   } else {

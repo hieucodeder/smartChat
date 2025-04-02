@@ -48,8 +48,21 @@ class _RegisterPageState extends State<RegisterPage> {
                               width: 100,
                             ),
                             Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFFFFEDDA),
+                                    Color(0xFFF28411), // Red-orange
+                                    Color(0xFFF16C18),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                              ),
+                            ),
+                            Container(
                               color: Colors.white
-                                  .withOpacity(0.5), // Lớp phủ màu trắng nhạt
+                                  .withOpacity(0.6), // White overlay
                             ),
                           ],
                         ),
@@ -62,14 +75,15 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Image.asset(
-                      'resources/Smartchat-2.png',
+                      'resources/Smartchat-1.png',
                       width: 300,
                       height: 150,
                     ),
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
                   constraints: const BoxConstraints.expand(),
                   margin: const EdgeInsets.fromLTRB(0, 130, 0, 0),
                   child: SingleChildScrollView(
@@ -105,39 +119,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  ShaderMask(
-                                    shaderCallback: (bounds) =>
-                                        const LinearGradient(
-                                      colors: [
-                                        Color(0xFFF04A23), // Màu đỏ cam
-                                        Color(0xFFF16C18), // Màu cam đậm
-                                        Color(0xFFF18F0D), // Màu cam sáng
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ).createShader(bounds),
-                                    child: Text(
-                                      'Họ tên',
-                                      style: GoogleFonts.inter(
-                                          fontSize: 16,
-                                          color: const Color(0xFF064265),
-                                          fontWeight: FontWeight.w500),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
-                                  Text(
-                                    '*',
-                                    style: GoogleFonts.inter(
-                                        fontSize: 16,
-                                        color: const Color(0xffF5222D),
-                                        fontWeight: FontWeight.w500),
-                                  )
-                                ],
-                              ),
                               Column(
                                 children: [
                                   TextFormField(

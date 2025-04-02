@@ -108,39 +108,6 @@ Future<String?> fetchApiResponseNumber(
               }
               suggestionFlag = false;
             }
-            // if (decodedData.containsKey('choices')) {
-            //   for (var choice in decodedData['choices']) {
-            //     if (choice is Map<String, dynamic> &&
-            //         choice.containsKey('delta')) {
-            //       String? content = choice['delta']['content'];
-            //       if (content != null && content.isNotEmpty) {
-            //         fullContent.write(content);
-
-            //         setState(() {
-            //           // Kiểm tra nếu nội dung có chứa Markdown ảnh
-            //           RegExp regex = RegExp(r"!\[(.*?)\]\((.*?)\)");
-            //           var match = regex.firstMatch(content);
-
-            //           if (match != null) {
-            //             String imageType =
-            //                 match.group(1)!; // Lấy loại ảnh (pie, bar,...)
-            //             String imageUrl = match.group(2)!; // Lấy URL ảnh
-
-            //             // Kiểm tra nếu ảnh là dạng thống kê (pie chart, bar chart, etc.)
-            //             if (["pie", "bar", "line"]
-            //                 .contains(imageType.toLowerCase())) {
-            //               messages.insert(
-            //                   0, {'type': 'imageStatistic', 'url': imageUrl});
-            //             } else {
-            //               messages.insert(
-            //                   0, {'type': 'imageStatistic', 'url': imageUrl});
-            //             }
-            //           }
-            //         });
-            //       }
-            //     }
-            //   }
-            // }
 
             // Xử lý nội dung chatbot (choices)
             if (decodedData is Map<String, dynamic> &&
@@ -153,24 +120,26 @@ Future<String?> fetchApiResponseNumber(
 
                   if (content != null && content.isNotEmpty) {
                     fullContent.write(content);
+// Loại bỏ dấu "!" trước link ảnh
+                    String cleanedContent = content.replaceAllMapped(
+                        RegExp(r"!\[(.*?)\]\((.*?)\)"),
+                        (match) => "[${match.group(1)}](${match.group(2)})");
 
+                    Iterable<RegExpMatch> matches =
+                        RegExp(r"\[(.*?)\]\((.*?)\)")
+                            .allMatches(cleanedContent);
+
+                    List<String> imageUrls = [];
+                    String textContent = cleanedContent.trim();
+
+                    for (var match in matches) {
+                      String imageUrl = match.group(2)!;
+                      imageUrls.add(imageUrl);
+
+                      // Xóa Markdown ảnh khỏi văn bản
+                      textContent = textContent.replaceAll(match.group(0)!, "");
+                    }
                     setState(() {
-                      // Kiểm tra nếu có ảnh trong nội dung
-                      RegExp regex = RegExp(r"!\[(.*?)\]\((.*?)\)");
-                      Iterable<RegExpMatch> matches = regex.allMatches(content);
-
-                      List<String> imageUrls = [];
-                      String textContent = content; // Giữ lại phần văn bản
-
-                      for (var match in matches) {
-                        String imageUrl = match.group(2)!;
-                        imageUrls.add(imageUrl);
-
-                        // Xóa Markdown ảnh khỏi văn bản
-                        textContent =
-                            textContent.replaceAll(match.group(0)!, '');
-                      }
-
                       if (imageUrls.isNotEmpty) {
                         messages.insert(0, {
                           'type': 'imageStatistic',
@@ -178,13 +147,12 @@ Future<String?> fetchApiResponseNumber(
                         });
                       }
 
-                      if (textContent.trim().isNotEmpty) {
+                      if (textContent.isNotEmpty) {
                         if (messages.isEmpty || messages[0]['type'] != 'bot') {
                           messages
                               .insert(0, {'type': 'bot', 'text': textContent});
                         }
-                        messages[0]['text'] =
-                            fullContent.toString(); // 🔹 Cập nhật nội dung
+                        messages[0]['text'] = fullContent.toString();
                       }
                     });
                   }

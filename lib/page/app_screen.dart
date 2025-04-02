@@ -128,15 +128,15 @@ class _AppScreenState extends State<AppScreen> {
               return const Text('Lỗi tải tên');
             } else {
               return Text(
-                  (snapshot.data ?? 'TRỢ LÝ AI')
-                      .toUpperCase(), // ép kiểu thành chứ hoa
-                  style: GoogleFonts.inter(
-                    fontSize: 17,
-                    color: selectedColor == Colors.white
-                        ? Colors.black
-                        : Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ));
+                (snapshot.data ?? 'TRỢ LÝ AI').toUpperCase(),
+                style: GoogleFonts.inter(
+                  fontSize: 17,
+                  color: selectedColor == Colors.white
+                      ? Colors.white
+                      : Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
             }
           },
         ),
@@ -144,18 +144,21 @@ class _AppScreenState extends State<AppScreen> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: IconButton(
-                onPressed: () {
-                  Provider.of<ChatProvider>(context, listen: false)
-                      .loadInitialMessage(context);
-                },
-                icon: const Icon(Icons.replay_outlined)),
+              onPressed: () {
+                Provider.of<ChatProvider>(context, listen: false)
+                    .loadInitialMessage(context);
+              },
+              icon: const Icon(Icons.replay_outlined),
+            ),
           )
         ],
         iconTheme: IconThemeData(
-          color: selectedColor == Colors.white ? Colors.black : Colors.white,
+          color: selectedColor == Colors.white ? Colors.white : Colors.white,
         ),
         centerTitle: true,
-        backgroundColor: selectedColor,
+        backgroundColor: selectedColor == Colors.white
+            ? Color(0xFFFef6622)
+            : selectedColor, // 🌟 Thay đổi màu toàn bộ AppBar
       ),
       body: _getPage(currentIndex),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

@@ -10,7 +10,11 @@ import 'package:flutter/material.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
 
 Future<List<DataPotentialCustomer>> fetchAllPotentialCustomer(
-    BuildContext context, String? searchContent, String? slotsStatus) async {
+    BuildContext context,
+    String? searchContent,
+    String? slotsStatus,
+    String? pageIndex,
+    String? pageSize) async {
   final String apiUrl = '${ApiConfig.baseUrl}/search-slots-by-intent';
 
   try {
@@ -34,8 +38,8 @@ Future<List<DataPotentialCustomer>> fetchAllPotentialCustomer(
     final requestBody = BodySlotIntent(
       chatbotCode: chatbotCode,
       intentQueue: "",
-      pageIndex: "1",
-      pageSize: "10",
+      pageIndex: pageIndex,
+      pageSize: pageSize,
       searchContent: searchContent,
       slotStatus: slotsStatus,
       userId: userId,

@@ -4,7 +4,9 @@ import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:flutter/material.dart';
 import 'package:chatbotbnn/model/package_product_response.dart';
 import 'package:chatbotbnn/service/package_product_service.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class PackageProductPage extends StatefulWidget {
@@ -115,35 +117,67 @@ class _PackageProductPageState extends State<PackageProductPage> {
     }
   }
 
-  String getIconForPlan(String title) {
-    switch (title.toLowerCase()) {
-      // Chuyển về chữ thường để tránh lỗi
-      case "trải nghiệm":
-        return 'resources/iconfree.png';
-      case "cơ bản":
-        return 'resources/iconbasic.png';
-      case "nâng cao":
-        return 'resources/diamond.png';
-      case "tùy biến":
-        return 'resources/package.png';
-      default:
-        return 'resources/iconfree.png'; // Icon mặc định nếu không khớp
+  Widget getIconForPlan(String? title) {
+    if (title == null || title.isEmpty) {
+      return const Icon(Icons.help_outline, size: 23, color: Colors.grey);
     }
+
+    String assetPath;
+
+    switch (title.toLowerCase()) {
+      case "trải nghiệm":
+        assetPath = 'resources/iconfree.svg';
+        break;
+      case "cơ bản":
+        assetPath = 'resources/iconbasic.svg';
+        break;
+      case "nâng cao":
+        assetPath = 'resources/diamond.svg';
+        break;
+      case "tùy biến":
+        assetPath = 'resources/package.svg';
+        break;
+      default:
+        assetPath = 'resources/iconfree.svg';
+    }
+
+    // Determine if the asset is SVG
+    bool isSvg = assetPath.endsWith('.svg');
+
+    return isSvg
+        ? SvgPicture.asset(assetPath, width: 23, height: 23)
+        : Image.asset(assetPath, width: 30, height: 30, fit: BoxFit.contain);
+  }
+
+  String formatNumber(dynamic value, {bool first = false}) {
+    if (value is List && value.isNotEmpty) {
+      value = first ? value.first : value[1];
+    }
+
+    // Chuyển đổi value thành số nguyên (int) nếu là chuỗi
+    int? number = int.tryParse(value.toString());
+
+    if (number == null) {
+      return value.toString(); // Trả về nguyên bản nếu không thể chuyển đổi
+    }
+
+    return NumberFormat("#,###", "en_US").format(number);
   }
 
   @override
   Widget build(BuildContext context) {
     final selectedColor = Provider.of<Providercolor>(context).selectedColor;
 
-    return Padding(
+    return Container(
+      color: Colors.white,
       padding: const EdgeInsets.all(20),
       child: isLoading
           ? const Center(child: CircularProgressIndicator())
           : plans.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     "Không có gói sản phẩm nào",
-                    style: TextStyle(fontSize: 15),
+                    style: GoogleFonts.inter(fontSize: 15),
                   ),
                 )
               : ListView.builder(
@@ -173,20 +207,15 @@ class _PackageProductPageState extends State<PackageProductPage> {
                           children: [
                             /// Tiêu đề gói
                             ListTile(
-                              leading: Image.asset(
-                                getIconForPlan(plan["title"] ??
-                                    ""), // Gọi hàm để lấy icon tương ứng
-                                fit: BoxFit.contain,
-                                width: 30,
-                                height: 30,
-                              ),
+                              leading: getIconForPlan(plan["title"] ??
+                                  ""), // Gọi hàm để lấy icon tương ứng
                               title: Text(
                                 plan["title"] ?? "",
                                 style: GoogleFonts.inter(
                                   fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                   color: selectedColor == Colors.white
-                                      ? Colors.orange
+                                      ? const Color(0xFFED5113)
                                       : selectedColor,
                                 ),
                               ),
@@ -210,18 +239,18 @@ class _PackageProductPageState extends State<PackageProductPage> {
                                           ? "Liên hệ"
                                           : (plan["title"] == "Trải nghiệm"
                                               ? (plan["price"] ??
-                                                  "Miễn phí") // Nếu là "Free", giữ nguyên giá hoặc "Miễn phí"
+                                                  "Miễn phí") // Nếu là "Trải nghiệm", giữ nguyên giá hoặc "Miễn phí"
                                               : (selectedPriceMap[
                                                           plan["title"]] !=
                                                       null
-                                                  ? "${selectedPriceMap[plan["title"]]} VND / Tháng"
-                                                  : "Miễn phí")), // Nếu không phải "Free", hiển thị giá hoặc "Miễn phí"
+                                                  ? "${formatNumber(selectedPriceMap[plan["title"]])} VND / Tháng"
+                                                  : "Miễn phí")), // Nếu không phải "Trải nghiệm", hiển thị giá hoặc "Miễn phí"
                                       style: GoogleFonts.inter(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
                                         color: isActive
-                                            ? Colors.green
-                                            : Colors.orange,
+                                            ? Colors.black
+                                            : Colors.black,
                                       ),
                                     ),
                                   ],
@@ -256,51 +285,61 @@ class _PackageProductPageState extends State<PackageProductPage> {
                             /// Hiển thị thông tin chi tiết
                             _buildInfoRow(
                               Icons.check_circle_outline,
-                              plan["numbers_of_bot"]!,
-                              "Số lượng BOT",
+                              formatNumber(plan["numbers_of_bot"]!),
+                              "Trợ lý AI",
                             ),
                             _buildInfoRow(
-                              Icons.check_circle_outline, queries[2],
-                              "Số tệp tối đa(max 20M/tệp)",
+                              Icons.check_circle_outline,
+                              formatNumber(queries[1]),
+                              "tệp tối đa(max 10M/tệp)",
                               // Lấy giá trị thứ hai
                             ),
                             _buildInfoRow(
-                              Icons.check_circle_outline, queries[3],
-                              "Số lượng thông điệp hỏi/tháng",
+                              Icons.check_circle_outline,
+                              formatNumber(queries[2]),
+                              "URL tối đa",
                               // Lấy giá trị thứ hai
                             ),
                             _buildInfoRow(
-                              Icons.check_circle_outline, queries[0],
-                              "Số QA tối đa",
+                              Icons.check_circle_outline,
+                              formatNumber(queries[3]),
+                              "QA tối đa",
                               // Lấy giá trị đầu tiên
                             ),
-
                             _buildInfoRow(
-                              Icons.check_circle_outline, queries[1],
-                              "Số URL tối đa",
+                              Icons.check_circle_outline,
+                              formatNumber(queries[0]),
+                              "thông điệp hỏi/tháng",
                               // Lấy giá trị thứ hai
                             ),
-                            // _buildInfoRow(
-                            //   Icons.check_circle_outline, queries[4],
-                            //   "Số lượng hỏi thông điệp/tháng",
-                            //   // Lấy giá trị thứ hai
-                            // ),
+
                             ListTile(
-                              leading: const Icon(Icons.check_circle_outline,
-                                  color: Colors.black),
-                              title: Text(
-                                "${plan["title"] == "Cơ bản" ? 25 : plan["title"] == "Nâng cao" ? 28 : plan["title"] == "Tùy biến" ? 28 : 17} Tính năng thêm",
-                                style: GoogleFonts.inter(
-                                    fontSize: 14, fontWeight: FontWeight.w500),
+                              leading: const Icon(
+                                Icons.check_circle_outline,
+                                color: Colors.black,
+                                size: 20,
                               ),
+                              title: Text(
+                                plan["title"] == "Tùy biến"
+                                    ? "Tính năng theo yêu cầu"
+                                    : "${plan["title"] == "Cơ bản" ? 25 : plan["title"] == "Nâng cao" ? 28 : 17} Tính năng thêm",
+                                style: GoogleFonts.inter(
+                                    fontSize: 14, fontWeight: FontWeight.w600),
+                              ),
+
                               trailing: GestureDetector(
                                 onTap: () {
                                   _showFeatureDialog(
                                       context, plan["features"]!.split(", "));
                                 },
-                                child: const Icon(Icons.info_outline,
-                                    color: Colors.black),
+                                child: const Icon(
+                                  Icons.info_outline,
+                                  color: Colors.black,
+                                  size: 20,
+                                ),
                               ),
+                              contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 8.0), // Đồng bộ padding
                             ),
                           ],
                         ),
@@ -311,28 +350,19 @@ class _PackageProductPageState extends State<PackageProductPage> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, dynamic value, String label) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.black), // Icon màu xanh
-        SizedBox(width: 8), // Khoảng cách giữa icon và text
-        Text(
-          "$value",
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
-        ),
-        SizedBox(width: 8), // Khoảng cách giữa icon và text
+  Widget _buildInfoRow(IconData icon, String value, String label) {
+    // Kiểm tra nếu value là "99,999,999" thì thay bằng "Không giới hạn"
+    String displayValue =
+        (value == formatNumber(99999999)) ? "Không giới hạn" : value;
 
-        Text(
-          "$label",
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w500, // Chữ đậm
-            fontSize: 14,
-          ),
-        ),
-      ],
+    return ListTile(
+      leading: Icon(icon, color: Colors.black, size: 20),
+      title: Text(
+        "$displayValue $label",
+        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+      ),
+      contentPadding:
+          EdgeInsets.symmetric(horizontal: 8.0), // Điều chỉnh padding nếu cần
     );
   }
 
@@ -342,15 +372,26 @@ class _PackageProductPageState extends State<PackageProductPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Danh sách tính năng"),
+          title: Text(
+            "Danh sách tính năng",
+            style: GoogleFonts.inter(
+                fontSize: 18, color: Colors.black, fontWeight: FontWeight.w500),
+          ),
           content: SizedBox(
             width: double.maxFinite,
             child: ListView(
               shrinkWrap: true,
               children: features
                   .map((feature) => ListTile(
-                        leading: const Icon(Icons.check),
-                        title: Text(feature),
+                        leading: const Icon(
+                          Icons.check,
+                          size: 23,
+                        ),
+                        title: Text(
+                          feature,
+                          style: GoogleFonts.inter(
+                              fontSize: 14, color: Colors.black),
+                        ),
                       ))
                   .toList(),
             ),
@@ -358,7 +399,10 @@ class _PackageProductPageState extends State<PackageProductPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Đóng"),
+              child: Text(
+                "Đóng",
+                style: GoogleFonts.inter(fontSize: 16, color: Colors.black),
+              ),
             ),
           ],
         );
@@ -369,6 +413,20 @@ class _PackageProductPageState extends State<PackageProductPage> {
   Widget _buildRadioButton(
       String planTitle, int months, String label, List<dynamic> listMonths) {
     final selectedColor = Provider.of<Providercolor>(context).selectedColor;
+
+    // Đặt giá trị mặc định là 12 nếu selectedMonthsMap[planTitle] chưa được khởi tạo
+    if (selectedMonthsMap[planTitle] == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          selectedMonthsMap[planTitle] = 12; // Mặc định chọn 12 tháng
+          selectedPriceMap[planTitle] = listMonths.firstWhere(
+            (item) => item["count_month"] == 12,
+            orElse: () => {"unit_price": null},
+          )["unit_price"];
+        });
+      });
+    }
+
     return Row(
       children: [
         Radio<int>(
@@ -387,7 +445,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
             (Set<MaterialState> states) {
               if (states.contains(MaterialState.selected)) {
                 return selectedColor == Colors.white
-                    ? Colors.orange
+                    ? const Color(0xFFED5113)
                     : selectedColor; // Màu khi được chọn
               }
               return Colors.grey; // Màu mặc định

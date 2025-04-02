@@ -62,7 +62,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Image.asset(
-                      'resources/Smartchat-2.png',
+                      'resources/Smartchat-1.png',
                       width: 300,
                       height: 150,
                     ),
