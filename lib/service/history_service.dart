@@ -25,51 +25,44 @@ Future<List<Map<String, dynamic>>> fetchChatHistory(String historyId) async {
 
     tempHistory.clear();
 
-    final List<Map<String, dynamic>> result = historyModel.data?.map((e) {
-          if (e.messageType == 'answer') {
-            final contentJson = jsonDecode(e.content ?? '{}');
-            String message = contentJson['message'] ?? '';
+    // Tạo danh sách kết quả
+    final List<Map<String, dynamic>> result = [];
+    String? lastQuery;
 
-            // Loại bỏ chuỗi "!pie!bar" khỏi text
-            message = message.replaceAll('!pie!bar', '').trim();
+    // Duyệt qua từng phần tử trong historyModel.data
+    for (var e in historyModel.data ?? []) {
+      if (e.messageType == 'question') {
+        // Lưu câu hỏi để ghép với câu trả lời sau
+        lastQuery = e.content ?? '';
+      } else if (e.messageType == 'answer') {
+        final contentJson = jsonDecode(e.content ?? '{}');
+        String message = contentJson['message'] ?? '';
 
-            List<dynamic> imageUrls = [];
+        // Xử lý suggestions nếu có
+        List<String> suggestions = [];
+        if (contentJson.containsKey('suggestions') &&
+            contentJson['suggestions'] is List) {
+          suggestions = List<String>.from(contentJson['suggestions']);
+        }
 
-            if (contentJson.containsKey('images') &&
-                contentJson['images'] is List) {
-              imageUrls = List<String>.from(contentJson['images']);
-            }
+        // Thêm cặp query-answer vào result
+        result.add({
+          'query': lastQuery ?? '', // Dùng câu hỏi trước đó
+          'text': message, // Giữ nguyên text chứa markdown hình ảnh
+          'table': (contentJson['table'] as List?)
+              ?.map((item) => (item as Map<String, dynamic>))
+              .toList(),
+          'suggestions': suggestions,
+        });
 
-            final RegExp imageRegex = RegExp(r'!\[.*?\]\((.*?)\)');
-            final matches = imageRegex.allMatches(message);
+        // Reset lastQuery sau khi đã ghép
+        lastQuery = null;
+      }
+    }
 
-            for (var match in matches) {
-              if (match.group(1) != null) {
-                imageUrls.add(match.group(1)!);
-                message = message.replaceAll(match.group(0)!, '');
-                print('link anh ${message}');
-              }
-            }
-
-            return {
-              'text': message,
-              'table': (contentJson['table'] as List?)
-                  ?.map((item) => (item as Map<String, dynamic>))
-                  .toList(),
-              'imageStatistic': imageUrls.toSet().toList(),
-            };
-          } else {
-            return {
-              'text': e.content ?? '',
-              'table': null,
-              'imageStatistic': [],
-            };
-          }
-        }).toList() ??
-        [];
-
+    tempHistory.addAll(result);
     return result;
   } else {
-    throw Exception('Failed to load chat history');
+    throw Exception('Failed to load chat history: ${response.statusCode}');
   }
 }
