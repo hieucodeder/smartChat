@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:chatbotbnn/model/chatbot_info.dart';
+import 'package:chatbotbnn/model/response_get_code.dart';
+import 'package:chatbotbnn/model/resquest_update_chatbot.dart';
 import 'package:chatbotbnn/page/create_chatbot_page.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/chatbotcolors_provider.dart';
@@ -10,11 +14,14 @@ import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/provider/selected_item_provider.dart';
 import 'package:chatbotbnn/service/app_config.dart';
 import 'package:chatbotbnn/service/chatbot_service.dart';
+import 'package:chatbotbnn/service/get_code_service.dart';
 import 'package:chatbotbnn/service/role_service.dart';
+import 'package:chatbotbnn/service/update_chatbot_service.dart';
 import 'package:flutter/material.dart';
 import 'package:chatbotbnn/model/body_role.dart';
 import 'package:chatbotbnn/model/role_model.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,13 +38,95 @@ class _ChatbotPageState extends State<ChatbotPage> {
   List<Data> chatbotList = [];
   bool isLoading = true;
   int? selectedIndex;
-  bool isActive = true;
-  List<String> chatbotNames = [];
 
+  List<String> chatbotNames = [];
+  Map<String, List<Map<String, dynamic>>> chatbotProgress = {};
+  bool isActive = true;
+  ResponseGetCode? chatbotData;
+  List<ResponseGetCode> chatbotListData = [];
   @override
   void initState() {
     super.initState();
     _loadChatbots();
+    _loadChatbotsCode();
+  }
+
+  // Modified _loadChatbotsCode
+  Future<void> _loadChatbotsCode() async {
+    chatbotListData = []; // Clear existing data
+
+    // Load data for all chatbots in parallel
+    final futures = chatbotList.map((chatbot) async {
+      try {
+        return await fetchGetChatBotCode(chatbot.chatbotCode ?? '');
+      } catch (e) {
+        print('Error loading chatbot ${chatbot.chatbotCode}: $e');
+        return null;
+      }
+    }).toList();
+
+    final results = await Future.wait(futures);
+
+    setState(() {
+      chatbotListData = results.whereType<ResponseGetCode>().toList();
+    });
+  }
+
+  Future<void> _updateChatbotStatusForItem(ResponseGetCode chatbotData) async {
+    try {
+      print(
+          "🔄 Đang cập nhật trạng thái cho chatbot: ${chatbotData.chatbotName}");
+
+      // Tạo request với dữ liệu của chatbot hiện tại
+      final request = ResquestUpdateChatbot(
+        chatIcon: chatbotData.chatIcon,
+        chatbotCode: chatbotData.chatbotCode,
+        chatbotName: chatbotData.chatbotName,
+        createdAt: chatbotData.createdAt,
+        description: chatbotData.description,
+        displayName: chatbotData.displayName,
+        footer: chatbotData.footer,
+        groupId: chatbotData.groupId,
+        id: chatbotData.id,
+        initialMessages: chatbotData.initialMessages,
+        isActive: chatbotData.isActive, // Sử dụng trạng thái của item hiện tại
+        isEmbed: chatbotData.isEmbed,
+        isRemoved: chatbotData.isRemoved,
+        isSyncHeader: chatbotData.isSyncHeader,
+        messagePlaceholder: chatbotData.messagePlaceholder,
+        picture: chatbotData.picture,
+        progress: chatbotData.progress,
+        suggestedMessages: chatbotData.suggestedMessages,
+        theme: chatbotData.theme,
+        totalCount: chatbotData.totalCount,
+        totalMessages: chatbotData.totalMessages,
+        updatedAt: chatbotData.updatedAt,
+        userId: chatbotData.userId,
+        userMessageColor: chatbotData.userMessageColor,
+      );
+      print("isActive: ${chatbotData.isActive}");
+
+      // Gọi API để cập nhật
+      final response = await fetchApiResponseUpdateChatbot(request);
+
+      if (response != null && response.results == true) {
+        print("✅ Cập nhật thành công: ${response.message}");
+      } else {
+        print(
+            "❌ Cập nhật thất bại: ${response?.message ?? 'Không có phản hồi từ API'}");
+        // Nếu thất bại, có thể khôi phục trạng thái cũ
+        setState(() {
+          chatbotData.isActive =
+              (chatbotData.isActive == 1) ? 0 : 1; // Đảo ngược lại
+        });
+      }
+    } catch (e) {
+      print("⚠️ Lỗi khi cập nhật chatbot: $e");
+      setState(() {
+        chatbotData.isActive =
+            (chatbotData.isActive == 1) ? 0 : 1; // Đảo ngược lại nếu lỗi
+      });
+    }
   }
 
   void loadChatbotNames() {
@@ -76,25 +165,103 @@ class _ChatbotPageState extends State<ChatbotPage> {
         chatbotList = roleModel.data!;
         isLoading = false;
       });
+
+      // Load chatbot names
       loadChatbotNames();
+      _loadChatbotsCode();
 
       if (chatbotList.isNotEmpty) {
         String? savedChatbotName = prefs.getString('chatbot_name');
-
-        // Tìm chatbot có tên trùng với chatbot đã lưu
         int selectedIndex = chatbotList
             .indexWhere((chatbot) => chatbot.chatbotName == savedChatbotName);
 
-        // Nếu không tìm thấy, chọn chatbot đầu tiên
         if (selectedIndex == -1) selectedIndex = 0;
 
-        await prefs.setString('chatbot_name',
-            chatbotList[selectedIndex].chatbotName ?? 'no name');
+        await Future.wait([
+          prefs.setString('chatbot_name',
+              chatbotList[selectedIndex].chatbotName ?? 'no name'),
+        ]);
       }
+
+      // Run background API calls to fetch progress for each chatbot
+      List<String> chatbotCodes =
+          chatbotList.map((chatbot) => chatbot.chatbotCode ?? '').toList();
+      await _runBackgroundApiCalls(chatbotCodes);
     } else {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> _runBackgroundApiCalls(List<String> chatbotCodes) async {
+    final prefs = await SharedPreferences.getInstance();
+    for (String code in chatbotCodes) {
+      try {
+        final String apiUrl = '${ApiConfig.baseUrl}get-by-code/$code';
+        final Map<String, String> headers = await ApiConfig.getHeaders();
+
+        final response = await http.get(
+          Uri.parse(apiUrl),
+          headers: headers,
+        );
+
+        if (response.statusCode == 200) {
+          final Map<String, dynamic> responseData = jsonDecode(response.body);
+          // Parse response into class ResponseGetCode
+          ResponseGetCode chatbotData = ResponseGetCode.fromJson(responseData);
+
+          print('Success for chatbotCode $code:');
+          print('isActive: ${chatbotData.isActive}');
+          print('progress: ${chatbotData.progress}');
+
+          await _updateChatbotStatusForItem(chatbotData);
+
+          // Store the chatbotData temporarily
+          await prefs.setString(
+              'chatbot_data_$code', jsonEncode(chatbotData.toJson()));
+
+          if (chatbotData.progress != null) {
+            try {
+              List<dynamic> progressList = jsonDecode(chatbotData.progress!);
+
+              List<Map<String, dynamic>> progressItems = progressList
+                  .map((item) => {
+                        'id': item['id'] as String?,
+                        'value': item['value'] as int?,
+                      })
+                  .toList();
+
+              // Calculate total progress
+              int totalProgress = progressItems.fold(
+                0,
+                (sum, item) => sum + ((item['value'] as num?)?.toInt() ?? 0),
+              );
+
+              print('Progress for $code:');
+              for (var item in progressItems) {
+                print('${item['id']}: ${item['value']}');
+              }
+
+              print('Total progress for $code: $totalProgress');
+
+              // Update UI with progress information
+              setState(() {
+                // You can use this to store progress per chatbot code or globally
+                chatbotProgress[code] = progressItems;
+              });
+            } catch (e) {
+              print('Error parsing progress for $code: $e');
+            }
+          } else {
+            print('No progress data found for $code');
+          }
+        } else {
+          print('Failed for chatbotCode $code: ${response.statusCode}');
+        }
+      } catch (e) {
+        print('Error processing chatbotCode $code: $e');
+      }
     }
   }
 
@@ -170,6 +337,14 @@ class _ChatbotPageState extends State<ChatbotPage> {
                     itemCount: chatbotList.length,
                     itemBuilder: (context, index) {
                       final chatbot = chatbotList[index];
+                      String code = chatbotList[index].chatbotCode ?? '';
+                      double progress = chatbotProgress[code]?.fold(
+                              0, (sum, item) => sum! + (item['value'] ?? 0)) ??
+                          0;
+                      // Check if we have data for this index
+                      bool hasData = index < chatbotListData.length;
+                      int isActive =
+                          hasData ? (chatbotListData[index].isActive ?? 0) : 0;
                       return GestureDetector(
                         onTap: () async {
                           final prefs = await SharedPreferences.getInstance();
@@ -263,15 +438,15 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                 ),
                                                 SizedBox(
                                                   width:
-                                                      40, // Điều chỉnh kích thước phù hợp
-                                                  height: 40,
+                                                      35, // Adjust size as needed
+                                                  height: 35,
                                                   child: Stack(
                                                     alignment: Alignment.center,
                                                     children: [
-                                                      // Vòng tròn nền (màu xám)
+                                                      // Background circle (gray)
                                                       CircularProgressIndicator(
                                                         value:
-                                                            1, // Vòng tròn nền luôn đầy
+                                                            1, // Always full for background circle
                                                         strokeWidth: 4,
                                                         backgroundColor: Colors
                                                             .grey.shade300,
@@ -281,10 +456,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                                 Colors
                                                                     .transparent),
                                                       ),
-                                                      // Vòng tròn tiến trình (màu cam)
+                                                      // Progress circle (orange)
                                                       CircularProgressIndicator(
-                                                        value: 80 /
-                                                            100, // Giá trị từ 0-1
+                                                        value: progress != null
+                                                            ? progress / 100
+                                                            : 0, // Dynamic progress from 0-1
                                                         strokeWidth: 3,
                                                         backgroundColor:
                                                             Colors.transparent,
@@ -301,36 +477,44 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                                             0xFFF04A23)
                                                                         : color),
                                                       ),
-                                                      // Hiển thị phần trăm ở giữa
-                                                      Text(
-                                                        "80%",
-                                                        style:
-                                                            GoogleFonts.inter(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black,
+                                                      // Display percentage in the center
+                                                      Align(
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child: Text(
+                                                          '${progress != null ? progress.toStringAsFixed(0) : 0}%', // Display percentage
+                                                          style:
+                                                              GoogleFonts.inter(
+                                                            fontSize:
+                                                                10, // Adjust font size
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Colors.black,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
                                                   ),
-                                                ),
+                                                )
                                               ],
                                             ),
-                                            Text(
-                                              (chatbot.description
-                                                          ?.isNotEmpty ==
-                                                      true)
-                                                  ? chatbot.description!
-                                                  : 'Trợ lý AI thông minh, sẵn sàng hỗ trợ bạn 24/7!',
-                                              maxLines: 1,
-                                              overflow: TextOverflow
-                                                  .ellipsis, // Thêm để tránh tràn chữ
-                                              style: GoogleFonts.inter(
-                                                  fontSize: 13,
-                                                  color: isSelected
-                                                      ? Color(0xFFF28411)
-                                                      : Colors.black),
+                                            SizedBox(
+                                              width: 250,
+                                              child: Text(
+                                                (chatbot.description
+                                                            ?.isNotEmpty ==
+                                                        true)
+                                                    ? chatbot.description!
+                                                    : 'Trợ lý AI thông minh, sẵn sàng hỗ trợ bạn 24/7!',
+                                                maxLines: 2,
+                                                overflow: TextOverflow
+                                                    .ellipsis, // Thêm để tránh tràn chữ
+                                                style: GoogleFonts.inter(
+                                                    fontSize: 12,
+                                                    color: isSelected
+                                                        ? Color(0xFFF28411)
+                                                        : Colors.black),
+                                              ),
                                             ),
                                             Row(
                                               mainAxisAlignment:
@@ -358,33 +542,37 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                   ),
                                                 ),
 
-                                                Transform.scale(
-                                                  scale: 0.8,
-                                                  child: Switch(
-                                                    value: (chatbot.isActive ??
-                                                            0) ==
-                                                        1, // Ép kiểu int -> bool
-                                                    onChanged: (bool value) {
-                                                      setState(() {
-                                                        isActive = value;
-                                                      });
-                                                      // Cập nhật trạng thái mới (1 = hoạt động, 0 = không hoạt động)
-                                                      int newStatus =
-                                                          value ? 1 : 0;
-                                                      print(
-                                                          "Trạng thái mới: $newStatus");
-                                                    },
-                                                    activeColor: isSelected
-                                                        ? Color(0xFFF04A23)
-                                                        : color == Colors.white
-                                                            ? Color(0xFFF04A23)
-                                                            : color,
+                                                // Update the switch widget in your ListView.builder:
+                                                // In your ListView.builder, add safety checks:
+                                                if (hasData)
+                                                  Transform.scale(
+                                                    scale: 0.8,
+                                                    child: Switch(
+                                                        value: isActive == 1,
+                                                        onChanged: (_) {
+                                                          setState(() {
+                                                            chatbotListData[
+                                                                        index]
+                                                                    .isActive =
+                                                                (isActive == 1)
+                                                                    ? 0
+                                                                    : 1;
+                                                          });
+                                                          _updateChatbotStatusForItem(
+                                                              chatbotListData[
+                                                                  index]);
+                                                        },
+                                                        activeColor:
+                                                            Color(0xFFF04A23)),
+                                                  )
+                                                else
+                                                  const SizedBox(
+                                                    width: 35,
+                                                    height: 35,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                            strokeWidth: 2),
                                                   ),
-                                                ),
-                                                // const Icon(
-                                                //   Icons.edit_outlined,
-                                                //   size: 20,
-                                                // ),
                                               ],
                                             ),
                                           ],

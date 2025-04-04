@@ -48,8 +48,21 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               width: 100,
                             ),
                             Container(
-                              color: Colors.white
-                                  .withOpacity(0.5), // Lớp phủ màu trắng nhạt
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFFFFEDDA),
+                                    Color(0xFFF28411), // Red-orange
+                                    Color(0xFFF16C18),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                              ),
+                              child: Container(
+                                color: Colors.white
+                                    .withOpacity(0.5), // Lớp phủ màu trắng nhạt
+                              ),
                             ),
                           ],
                         ),
@@ -80,7 +93,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        const SizedBox(height: 90),
+                        const SizedBox(height: 120),
                         ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
                             colors: [
@@ -105,7 +118,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           style: GoogleFonts.inter(
                               fontSize: 14, fontWeight: FontWeight.w400),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         TextFormField(
@@ -149,21 +162,21 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             ),
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 20,
                         ),
                         GestureDetector(
                           // onTap: _login,
                           child: Container(
                             decoration: BoxDecoration(
-                                gradient: const RadialGradient(
+                                gradient: const LinearGradient(
                                   colors: [
-                                    Color(0xFFF04A23),
-                                    Color(0xFFF16C18),
                                     Color(0xFFF18F0D),
+                                    Color(0xFFF16C18),
+                                    Color(0xFFF04A23),
                                   ],
-                                  center: Alignment.center,
-                                  radius: 1.0,
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
                                 ),
                                 borderRadius: BorderRadius.circular(10)),
                             height: 50,

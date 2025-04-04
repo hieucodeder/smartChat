@@ -58,7 +58,7 @@ class _SlapsPageState extends State<SlapsPage> with TickerProviderStateMixin {
 
               // Logo ở góc trên bên phải
               Positioned(
-                top: 30, // Khoảng cách từ trên xuống
+                top: 50, // Khoảng cách từ trên xuống
                 left: 20, // Khoảng cách từ phải vào
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(100),

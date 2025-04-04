@@ -27,17 +27,21 @@ Future<List<Map<String, dynamic>>> fetchChatHistory(String historyId) async {
 
     // Tạo danh sách kết quả
     final List<Map<String, dynamic>> result = [];
-    String? lastQuery;
 
     // Duyệt qua từng phần tử trong historyModel.data
     for (var e in historyModel.data ?? []) {
       if (e.messageType == 'question') {
-        // Lưu câu hỏi để ghép với câu trả lời sau
-        lastQuery = e.content ?? '';
+        // Thêm câu hỏi vào danh sách kết quả
+        result.add({
+          'query': e.content ?? '',
+          'text': e.content ?? '',
+          'table': null,
+          'suggestions': [],
+        });
       } else if (e.messageType == 'answer') {
         final contentJson = jsonDecode(e.content ?? '{}');
         String message = contentJson['message'] ?? '';
-
+        print('cau tra loi ${message}');
         // Xử lý suggestions nếu có
         List<String> suggestions = [];
         if (contentJson.containsKey('suggestions') &&
@@ -47,19 +51,15 @@ Future<List<Map<String, dynamic>>> fetchChatHistory(String historyId) async {
 
         // Thêm cặp query-answer vào result
         result.add({
-          'query': lastQuery ?? '', // Dùng câu hỏi trước đó
-          'text': message, // Giữ nguyên text chứa markdown hình ảnh
+          'query': e.content ?? '', // Dùng câu hỏi trước đó
+          'text': message,
           'table': (contentJson['table'] as List?)
               ?.map((item) => (item as Map<String, dynamic>))
               .toList(),
           'suggestions': suggestions,
         });
-
-        // Reset lastQuery sau khi đã ghép
-        lastQuery = null;
       }
     }
-
     tempHistory.addAll(result);
     return result;
   } else {

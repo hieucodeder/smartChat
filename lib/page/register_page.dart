@@ -135,15 +135,16 @@ class _RegisterPageState extends State<RegisterPage> {
                                       fillColor: const Color.fromARGB(
                                           237, 250, 248, 248),
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: BorderSide.none),
                                       hintText: 'Họ tên',
                                       hintStyle: GoogleFonts.inter(
                                           fontSize: 16,
                                           color: const Color(0xFF064265)),
                                       prefixIcon: const Icon(
                                         Icons.account_box_outlined,
-                                        size: 24,
+                                        size: 23,
                                         color: Color(0xFF064265),
                                       ),
                                       contentPadding:
@@ -174,40 +175,6 @@ class _RegisterPageState extends State<RegisterPage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Row(
-                                        children: [
-                                          ShaderMask(
-                                            shaderCallback: (bounds) =>
-                                                const LinearGradient(
-                                              colors: [
-                                                Color(0xFFF04A23), // Màu đỏ cam
-                                                Color(
-                                                    0xFFF16C18), // Màu cam đậm
-                                                Color(
-                                                    0xFFF18F0D), // Màu cam sáng
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ).createShader(bounds),
-                                            child: Text(
-                                              'Email',
-                                              style: GoogleFonts.inter(
-                                                  fontSize: 16,
-                                                  color:
-                                                      const Color(0xFF064265)),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                            width: 5,
-                                          ),
-                                          Text(
-                                            '*',
-                                            style: GoogleFonts.inter(
-                                                fontSize: 16,
-                                                color: Colors.red),
-                                          ),
-                                        ],
-                                      ),
                                       Column(
                                         children: [
                                           TextFormField(
@@ -232,32 +199,14 @@ class _RegisterPageState extends State<RegisterPage> {
                                               fillColor: const Color.fromARGB(
                                                   237, 250, 248, 248),
                                               border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  borderSide: BorderSide.none),
                                               prefixIcon: const Icon(
                                                 Icons.email_outlined,
                                                 size: 24,
                                                 color: Color(0xFF064265),
                                               ),
-                                              // suffixIcon: IconButton(
-                                              //   icon: Icon(
-                                              //     _isPasswordVisible
-                                              //         ? Icons
-                                              //             .visibility_outlined
-                                              //         : Icons
-                                              //             .visibility_off_outlined,
-                                              //     color: const Color.fromARGB(
-                                              //         236, 85, 80, 80),
-                                              //     size: 18,
-                                              //   ),
-                                              //   onPressed: () {
-                                              //     setState(() {
-                                              //       _isPasswordVisible =
-                                              //           !_isPasswordVisible;
-                                              //     });
-                                              //   },
-                                              // ),
                                               contentPadding:
                                                   const EdgeInsets.symmetric(
                                                       horizontal: 12),
@@ -306,9 +255,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                                 fillColor: const Color.fromARGB(
                                                     237, 250, 248, 248),
                                                 border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    borderSide:
+                                                        BorderSide.none),
                                                 hintText: 'Mật khẩu',
                                                 hintStyle: GoogleFonts.inter(
                                                     fontSize: 16,
@@ -365,9 +316,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                                 fillColor: const Color.fromARGB(
                                                     237, 250, 248, 248),
                                                 border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    borderSide:
+                                                        BorderSide.none),
                                                 hintText: 'Xác nhận mật khẩu',
                                                 hintStyle: GoogleFonts.inter(
                                                     fontSize: 16,
@@ -420,14 +373,14 @@ class _RegisterPageState extends State<RegisterPage> {
                           // onTap: _login,
                           child: Container(
                             decoration: BoxDecoration(
-                                gradient: const RadialGradient(
+                                gradient: const LinearGradient(
                                   colors: [
-                                    Color(0xFFF04A23),
-                                    Color(0xFFF16C18),
                                     Color(0xFFF18F0D),
+                                    Color(0xFFF16C18),
+                                    Color(0xFFF04A23),
                                   ],
-                                  center: Alignment.center,
-                                  radius: 1.0,
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
                                 ),
                                 borderRadius: BorderRadius.circular(10)),
                             height: 50,

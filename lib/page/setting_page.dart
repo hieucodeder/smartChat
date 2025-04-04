@@ -380,7 +380,7 @@ class _SettingPageState extends State<SettingPage> {
                 // margin: const EdgeInssets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Provider.of<Providercolor>(context).selectedColor),
+                    color: Colors.transparent),
                 child: Center(
                   child: Text(
                     'Thông báo!',
@@ -388,17 +388,24 @@ class _SettingPageState extends State<SettingPage> {
                         fontWeight: FontWeight.bold,
                         fontSize: 24,
                         color: selectedColor == Colors.white
-                            ? Colors.black
+                            ? Color(0xFFFef6622)
                             : selectedColor),
                   ),
                 )),
-            content: const Text('Bạn có muốn đăng xuất tài khoản không?'),
+            content: Text(
+              'Bạn có muốn đăng xuất tài khoản không?',
+              style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: selectedColor == Colors.white
+                      ? Color(0xFFFef6622)
+                      : selectedColor),
+            ),
             actions: [
               Container(
                 height: 40,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: Colors.white,
+                    color: Colors.transparent,
                     border: Border.all(
                         width: 1,
                         color:
@@ -409,15 +416,17 @@ class _SettingPageState extends State<SettingPage> {
                     },
                     child: Text(
                       'Hủy',
-                      style: TextStyle(
-                          color: Provider.of<Providercolor>(context)
-                              .selectedColor),
+                      style: GoogleFonts.inter(
+                          color: selectedColor == Colors.white
+                              ? Color(0xFFFef6622)
+                              : selectedColor),
                     )),
               ),
               ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Provider.of<Providercolor>(context).selectedColor,
+                    backgroundColor: selectedColor == Colors.white
+                        ? Colors.transparent
+                        : selectedColor,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                         side: BorderSide.none),
@@ -429,9 +438,12 @@ class _SettingPageState extends State<SettingPage> {
                             builder: (context) => const LoginPage()),
                         (Route<dynamic> route) => false);
                   },
-                  child: const Text(
+                  child: Text(
                     'Xác nhận',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                        color: selectedColor == Colors.white
+                            ? Color(0xFFFef6622)
+                            : Colors.white),
                   ))
             ],
           );

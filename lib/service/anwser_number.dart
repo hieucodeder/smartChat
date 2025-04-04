@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:chatbotbnn/model/answer_model_pqnew.dart';
 import 'package:chatbotbnn/model/body_chatbot_answer.dart';
+import 'package:chatbotbnn/model/response_answer_false.dart';
 import 'package:chatbotbnn/service/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -108,7 +109,6 @@ Future<String?> fetchApiResponseNumber(
               }
               suggestionFlag = false;
             }
-
             // Xử lý nội dung chatbot (choices)
             if (decodedData is Map<String, dynamic> &&
                 decodedData.containsKey('choices')) {

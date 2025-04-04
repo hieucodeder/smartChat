@@ -165,7 +165,6 @@ class _ChatPageState extends State<ChatPage> {
       userId: userId,
       userIndustry: "",
     );
-    // print('Cấu hình: $chatbotRequest');
 
     String? response;
 
@@ -303,21 +302,208 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  List<InlineSpan> _parseMessage(String message) {
+  // List<InlineSpan> _parseMessage(String message) {
+  //   List<InlineSpan> spans = [];
+  //   RegExp regexBold = RegExp(r'\*\*(.*?)\*\*'); // In đậm
+  //   RegExp regexItalic = RegExp(r'##(.*?)##'); // In nghiêng
+  //   RegExp regexBoldLine = RegExp(r'^\s*###\s*(.*?)\s*$', multiLine: true);
+  //   RegExp regexImage = RegExp(r'!\[(.*?)\]\((.*?)\)'); // Ảnh Markdown
+  //   RegExp regexLink = RegExp(r'\[(.*?)\]\((.*?)\)'); // Link dạng Markdown
+
+  //   int lastIndex = 0;
+
+  //   while (lastIndex < message.length) {
+  //     List<RegExpMatch?> matches = [
+  //       regexImage.firstMatch(message.substring(lastIndex)),
+  //       regexLink.firstMatch(message.substring(lastIndex)),
+  //       regexBoldLine.firstMatch(message.substring(lastIndex)),
+  //       regexItalic.firstMatch(message.substring(lastIndex)),
+  //       regexBold.firstMatch(message.substring(lastIndex)),
+  //     ].where((match) => match != null).toList();
+
+  //     if (matches.isEmpty) {
+  //       spans.add(TextSpan(
+  //         text: message.substring(lastIndex),
+  //         style: GoogleFonts.inter(color: Colors.black),
+  //       ));
+  //       break;
+  //     }
+
+  //     matches.sort((a, b) => a!.start.compareTo(b!.start));
+  //     var match = matches.first!;
+
+  //     // Thêm văn bản thường trước phần định dạng
+  //     if (match.start > 0) {
+  //       spans.add(TextSpan(
+  //         text: message.substring(lastIndex, lastIndex + match.start),
+  //         style: GoogleFonts.inter(color: Colors.black),
+  //       ));
+  //     }
+
+  //     if (match.pattern == regexImage) {
+  //       String linkText = match.group(1)!; // Văn bản thay thế
+  //       String linkUrl = match.group(2)!;
+
+  //       // Kiểm tra xem có phải link ảnh không
+  //       bool isImageUrl =
+  //           RegExp(r'\.(jpg|jpeg|png|gif|webp)$', caseSensitive: false)
+  //               .hasMatch(linkUrl);
+
+  //       if (isImageUrl) {
+  //         spans.add(
+  //           WidgetSpan(
+  //             child: GestureDetector(
+  //               onTap: () {
+  //                 showDialog(
+  //                   context: context,
+  //                   barrierDismissible:
+  //                       true, // Cho phép đóng dialog khi nhấn ra ngoài
+  //                   builder: (context) => Dialog(
+  //                     insetPadding: EdgeInsets.zero, // Xóa padding mặc định
+  //                     backgroundColor: Colors.black, // Nền đen để nổi bật ảnh
+  //                     child: SizedBox(
+  //                       width: MediaQuery.of(context)
+  //                           .size
+  //                           .width, // Chiều rộng full màn hình
+  //                       height: MediaQuery.of(context)
+  //                           .size
+  //                           .height, // Chiều cao full màn hình
+  //                       child: Stack(
+  //                         children: [
+  //                           PhotoView(
+  //                             imageProvider: NetworkImage(linkUrl),
+  //                             backgroundDecoration: const BoxDecoration(
+  //                               color: Colors.black,
+  //                             ),
+  //                             minScale: PhotoViewComputedScale.contained,
+  //                             maxScale: PhotoViewComputedScale.covered * 2.0,
+  //                             loadingBuilder: (context, event) => const Center(
+  //                               child: CircularProgressIndicator(),
+  //                             ),
+  //                             errorBuilder: (context, error, stackTrace) =>
+  //                                 const Center(
+  //                               child: Text(
+  //                                 'Không thể tải ảnh',
+  //                                 style: TextStyle(color: Colors.white),
+  //                               ),
+  //                             ),
+  //                           ),
+  //                           // Nút đóng dialog
+  //                           Positioned(
+  //                             top: 40,
+  //                             right: 20,
+  //                             child: IconButton(
+  //                               icon: const Icon(
+  //                                 Icons.close,
+  //                                 color: Colors.white,
+  //                                 size: 30,
+  //                               ),
+  //                               onPressed: () => Navigator.of(context).pop(),
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 );
+  //               },
+  //               child: Padding(
+  //                 padding: const EdgeInsets.symmetric(vertical: 5),
+  //                 child: Image.network(
+  //                   linkUrl,
+  //                   width: double.infinity,
+  //                   fit: BoxFit.cover,
+  //                   loadingBuilder: (context, child, loadingProgress) {
+  //                     if (loadingProgress == null) return child;
+  //                     return const Center(
+  //                       child: CircularProgressIndicator(),
+  //                     );
+  //                   },
+  //                   errorBuilder: (context, error, stackTrace) {
+  //                     return const Text('Không thể tải ảnh');
+  //                   },
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         );
+  //       } else {
+  //         spans.add(TextSpan(
+  //           text: match[0],
+  //           style: GoogleFonts.inter(color: Colors.black),
+  //         ));
+  //       }
+  //     } else if (match.pattern == regexLink) {
+  //       String linkText = match.group(1)!;
+  //       String linkUrl = match.group(2)!;
+
+  //       spans.add(TextSpan(
+  //         text: linkText,
+  //         style: GoogleFonts.inter(
+  //           color: Colors.blue,
+  //           decoration: TextDecoration.underline,
+  //         ),
+  //         recognizer: TapGestureRecognizer()
+  //           ..onTap = () async {
+  //             String url =
+  //                 linkUrl.startsWith('http') ? linkUrl : 'https://$linkUrl';
+  //             if (await canLaunchUrl(Uri.parse(url))) {
+  //               await launchUrl(Uri.parse(url),
+  //                   mode: LaunchMode.externalApplication);
+  //             }
+  //           },
+  //       ));
+  //     } else if (match.pattern == regexBoldLine) {
+  //       spans.add(TextSpan(
+  //         text: "\n${match.group(1)!}",
+  //         style: GoogleFonts.inter(
+  //           fontWeight: FontWeight.bold,
+  //           fontSize: 16,
+  //           color: Colors.black,
+  //         ),
+  //       ));
+  //     } else if (match.pattern == regexItalic) {
+  //       spans.add(TextSpan(
+  //         text: match.group(1)!,
+  //         style: GoogleFonts.inter(
+  //           fontStyle: FontStyle.italic,
+  //           fontSize: 16,
+  //           color: Colors.black,
+  //         ),
+  //       ));
+  //     } else if (match.pattern == regexBold) {
+  //       spans.add(TextSpan(
+  //         text: match.group(1)!,
+  //         style: GoogleFonts.inter(
+  //           fontWeight: FontWeight.bold,
+  //           fontSize: 17,
+  //           color: Colors.black,
+  //         ),
+  //       ));
+  //     }
+
+  //     lastIndex = lastIndex + match.end; // Cập nhật chỉ số chính xác
+  //   }
+
+  //   return spans;
+  // }
+
+  List<InlineSpan> _parseMessage(String message, BuildContext context) {
     List<InlineSpan> spans = [];
     RegExp regexBold = RegExp(r'\*\*(.*?)\*\*'); // In đậm
     RegExp regexItalic = RegExp(r'##(.*?)##'); // In nghiêng
-    RegExp regexBoldLine = RegExp(r'^\s*###\s*(.*?)\s*$', multiLine: true);
+    RegExp regexBoldItalicLine = RegExp(r'^\s*###\s*(.*?)\s*$',
+        multiLine: true); // Đậm + nghiêng với ###
     RegExp regexImage = RegExp(r'!\[(.*?)\]\((.*?)\)'); // Ảnh Markdown
-    RegExp regexLink = RegExp(r'\[(.*?)\]\((.*?)\)'); // Link dạng Markdown
-
+    RegExp regexLink =
+        RegExp(r'(\*\*|##)?\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)(\*\*|##)?');
     int lastIndex = 0;
 
     while (lastIndex < message.length) {
       List<RegExpMatch?> matches = [
         regexImage.firstMatch(message.substring(lastIndex)),
         regexLink.firstMatch(message.substring(lastIndex)),
-        regexBoldLine.firstMatch(message.substring(lastIndex)),
+        regexBoldItalicLine.firstMatch(message.substring(lastIndex)),
         regexItalic.firstMatch(message.substring(lastIndex)),
         regexBold.firstMatch(message.substring(lastIndex)),
       ].where((match) => match != null).toList();
@@ -333,7 +519,6 @@ class _ChatPageState extends State<ChatPage> {
       matches.sort((a, b) => a!.start.compareTo(b!.start));
       var match = matches.first!;
 
-      // Thêm văn bản thường trước phần định dạng
       if (match.start > 0) {
         spans.add(TextSpan(
           text: message.substring(lastIndex, lastIndex + match.start),
@@ -342,43 +527,70 @@ class _ChatPageState extends State<ChatPage> {
       }
 
       if (match.pattern == regexImage) {
-        String linkText =
-            match.group(1)!; // Văn bản thay thế (không dùng trong code này)
+        String altText = match.group(1)!;
         String linkUrl = match.group(2)!;
 
-        // Kiểm tra xem có phải link ảnh không
         bool isImageUrl =
             RegExp(r'\.(jpg|jpeg|png|gif|webp)$', caseSensitive: false)
-                .hasMatch(linkUrl);
+                    .hasMatch(linkUrl) ||
+                linkUrl.contains('bizweb.dktcdn.net') ||
+                linkUrl.startsWith('http');
 
         if (isImageUrl) {
           spans.add(
             WidgetSpan(
-              child: GestureDetector(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => Dialog(
-                      backgroundColor: Colors.transparent,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (context) => Dialog(
+                        insetPadding: EdgeInsets.zero,
+                        backgroundColor: Colors.black,
                         child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.9,
-                          height: MediaQuery.of(context).size.height * 0.5,
-                          child: PhotoView(
-                            imageProvider: NetworkImage(linkUrl),
-                            backgroundDecoration:
-                                const BoxDecoration(color: Colors.white),
-                            minScale: PhotoViewComputedScale.contained,
-                            maxScale: PhotoViewComputedScale.covered * 2.0,
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                          child: Stack(
+                            children: [
+                              PhotoView(
+                                imageProvider: NetworkImage(linkUrl),
+                                backgroundDecoration: const BoxDecoration(
+                                  color: Colors.black,
+                                ),
+                                minScale: PhotoViewComputedScale.contained,
+                                maxScale: PhotoViewComputedScale.covered * 2.0,
+                                loadingBuilder: (context, event) =>
+                                    const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Center(
+                                  child: Text(
+                                    'Không thể tải ảnh',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 40,
+                                right: 20,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 30,
+                                  ),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
+                    );
+                  },
                   child: Image.network(
                     linkUrl,
                     width: double.infinity,
@@ -404,14 +616,21 @@ class _ChatPageState extends State<ChatPage> {
           ));
         }
       } else if (match.pattern == regexLink) {
-        String linkText = match.group(1)!;
-        String linkUrl = match.group(2)!;
+        String linkText = match.group(2)!; // Text trong []
+        String linkUrl = match.group(3)!; // URL trong ()
+        String? title = match.group(4); // Tiêu đề (nếu có)
+        bool isBold =
+            match.group(1) == '**' || match.group(5) == '**'; // Kiểm tra in đậm
+        bool isItalic = match.group(1) == '##' ||
+            match.group(5) == '##'; // Kiểm tra in nghiêng
 
         spans.add(TextSpan(
           text: linkText,
           style: GoogleFonts.inter(
             color: Colors.blue,
             decoration: TextDecoration.underline,
+            fontWeight: isBold ? FontWeight.bold : null,
+            fontStyle: isItalic ? FontStyle.italic : null,
           ),
           recognizer: TapGestureRecognizer()
             ..onTap = () async {
@@ -423,11 +642,14 @@ class _ChatPageState extends State<ChatPage> {
               }
             },
         ));
-      } else if (match.pattern == regexBoldLine) {
+      } else if (match.pattern == regexBoldItalicLine) {
+        String boldItalicText = match.group(1)!;
+        List<InlineSpan> nestedSpans = _parseNested(boldItalicText, context);
         spans.add(TextSpan(
-          text: "\n${match.group(1)!}",
+          children: nestedSpans,
           style: GoogleFonts.inter(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.bold, // Đậm
+            fontStyle: FontStyle.italic, // Nghiêng
             fontSize: 16,
             color: Colors.black,
           ),
@@ -452,7 +674,162 @@ class _ChatPageState extends State<ChatPage> {
         ));
       }
 
-      lastIndex = lastIndex + match.end; // Cập nhật chỉ số chính xác
+      lastIndex = lastIndex + match.end;
+    }
+
+    return spans;
+  }
+
+// Hàm phụ để xử lý định dạng lồng nhau
+  List<InlineSpan> _parseNested(String text, BuildContext context) {
+    List<InlineSpan> spans = [];
+    RegExp regexImage = RegExp(r'!\[(.*?)\]\((.*?)\)');
+    RegExp regexLink =
+        RegExp(r'(\*\*|##)?\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)(\*\*|##)?');
+    RegExp regexItalic = RegExp(r'##(.*?)##');
+    RegExp regexBold = RegExp(r'\*\*(.*?)\*\*');
+
+    int lastIndex = 0;
+
+    while (lastIndex < text.length) {
+      List<RegExpMatch?> matches = [
+        regexImage.firstMatch(text.substring(lastIndex)),
+        regexLink.firstMatch(text.substring(lastIndex)),
+        regexItalic.firstMatch(text.substring(lastIndex)),
+        regexBold.firstMatch(text.substring(lastIndex)),
+      ].where((match) => match != null).toList();
+
+      if (matches.isEmpty) {
+        spans.add(TextSpan(text: text.substring(lastIndex)));
+        break;
+      }
+
+      matches.sort((a, b) => a!.start.compareTo(b!.start));
+      var match = matches.first!;
+
+      if (match.start > 0) {
+        spans.add(
+            TextSpan(text: text.substring(lastIndex, lastIndex + match.start)));
+      }
+
+      if (match.pattern == regexImage) {
+        String altText = match.group(1)!;
+        String linkUrl = match.group(2)!;
+        bool isImageUrl =
+            RegExp(r'\.(jpg|jpeg|png|gif|webp)$', caseSensitive: false)
+                    .hasMatch(linkUrl) ||
+                linkUrl.contains('bizweb.dktcdn.net') ||
+                linkUrl.startsWith('http');
+
+        if (isImageUrl) {
+          spans.add(WidgetSpan(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: true,
+                    builder: (context) => Dialog(
+                      insetPadding: EdgeInsets.zero,
+                      backgroundColor: Colors.black,
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height,
+                        child: Stack(
+                          children: [
+                            PhotoView(
+                              imageProvider: NetworkImage(linkUrl),
+                              backgroundDecoration: const BoxDecoration(
+                                color: Colors.black,
+                              ),
+                              minScale: PhotoViewComputedScale.contained,
+                              maxScale: PhotoViewComputedScale.covered * 2.0,
+                              loadingBuilder: (context, event) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Center(
+                                child: Text(
+                                  'Không thể tải ảnh',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 40,
+                              right: 20,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                child: Image.network(
+                  linkUrl,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const Center(child: CircularProgressIndicator());
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Text('Không thể tải ảnh');
+                  },
+                ),
+              ),
+            ),
+          ));
+        } else {
+          spans.add(TextSpan(text: match[0]));
+        }
+      } else if (match.pattern == regexLink) {
+        String linkText = match.group(2)!;
+        String linkUrl = match.group(3)!;
+        String? title = match.group(4);
+        bool isBold = match.group(1) == '**' || match.group(5) == '**';
+        bool isItalic = match.group(1) == '##' || match.group(5) == '##';
+
+        spans.add(TextSpan(
+          text: linkText,
+          style: GoogleFonts.inter(
+            color: Colors.blue,
+            decoration: TextDecoration.underline,
+            fontWeight: isBold ? FontWeight.bold : null,
+            fontStyle: isItalic ? FontStyle.italic : null,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () async {
+              String url =
+                  linkUrl.startsWith('http') ? linkUrl : 'https://$linkUrl';
+              if (await canLaunchUrl(Uri.parse(url))) {
+                await launchUrl(Uri.parse(url),
+                    mode: LaunchMode.externalApplication);
+              }
+            },
+        ));
+      } else if (match.pattern == regexItalic) {
+        spans.add(TextSpan(
+          text: match.group(1)!,
+          style: GoogleFonts.inter(fontStyle: FontStyle.italic),
+        ));
+      } else if (match.pattern == regexBold) {
+        spans.add(TextSpan(
+          text: match.group(1)!,
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        ));
+      }
+
+      lastIndex = lastIndex + match.end;
     }
 
     return spans;
@@ -541,7 +918,8 @@ class _ChatPageState extends State<ChatPage> {
                                         RichText(
                                           text: TextSpan(
                                             children: _parseMessage(
-                                                    message['text'] ?? '')
+                                                    message['text'] ?? '',
+                                                    context)
                                                 .map((span) {
                                               if (span is TextSpan) {
                                                 return TextSpan(
@@ -676,7 +1054,8 @@ class _ChatPageState extends State<ChatPage> {
                                         RichText(
                                           text: TextSpan(
                                             children: _parseMessage(
-                                                    message['text'] ?? '')
+                                                    message['text'] ?? '',
+                                                    context)
                                                 .map((span) {
                                               if (span is TextSpan) {
                                                 return TextSpan(
@@ -812,7 +1191,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             color: Colors.grey[200],
             child: Row(
               children: [

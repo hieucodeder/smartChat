@@ -11,7 +11,7 @@ Future<List<DataConfig>> fetchChatbotConfig(String chatbotCode) async {
       headers: await ApiConfig.getHeaders(),
       body: jsonEncode({'chatbot_code': chatbotCode}),
     );
-    debugPrint(' KQ:  ${response.body}');
+   
     if (response.statusCode == 200) {
       String responseBody = response.body.trim(); // Xóa khoảng trắng đầu/cuối
       debugPrint("📥 JSON từ API: ${responseBody.length} ký tự");

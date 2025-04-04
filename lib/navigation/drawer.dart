@@ -45,20 +45,26 @@ class _DrawerCustomState extends State<DrawerCustom> {
   Widget packageIcon =
       const Icon(Icons.help_outline, size: 40, color: Colors.white);
   int _selectedIndex = -1; // -1 nghĩa là không có mục nào được chọn ban đầu
+  bool _isMounted = false;
+  
 
   @override
   void initState() {
     super.initState();
+    _isMounted = true; // Đánh dấu state đang hoạt động
+
     _fetchHistoryAllModel();
     fetchPackageProduct();
   }
 
   Future<void> fetchPackageProduct() async {
     final response = await fetchGetPackageProduct();
+    if (!_isMounted) return; // Nếu state bị dispose, không cập nhật UI
+
     if (response != null && response.packageProductName != null) {
       setState(() {
         packageProductName = response.packageProductName!;
-        packageIcon = getIconForPackage(packageProductName); // Đúng kiểu Widget
+        packageIcon = getIconForPackage(packageProductName);
       });
     } else {
       setState(() {
