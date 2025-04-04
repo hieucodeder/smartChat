@@ -379,12 +379,16 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
                               return Card(
                                 color: isSelected
-                                    ? Color.fromARGB(
+                                    ? const Color.fromARGB(
                                         255, 255, 245, 234) // Màu cam sáng
                                     : Colors.white,
                                 elevation: 1,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color: Colors.grey, // Màu viền
+                                    width: 0.5, // Độ dày viền
+                                  ),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -420,8 +424,6 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
                                               children: [
                                                 Expanded(
                                                   child: Text(
@@ -432,7 +434,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                         fontWeight:
                                                             FontWeight.bold,
                                                         color: isSelected
-                                                            ? Color(0xFFF28411)
+                                                            ? const Color(
+                                                                0xFFFef6622)
                                                             : Colors.black),
                                                   ),
                                                 ),
@@ -461,21 +464,19 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                         value: progress != null
                                                             ? progress / 100
                                                             : 0, // Dynamic progress from 0-1
-                                                        strokeWidth: 3,
+                                                        strokeWidth: 4,
                                                         backgroundColor:
                                                             Colors.transparent,
-                                                        valueColor:
-                                                            AlwaysStoppedAnimation<
-                                                                    Color>(
-                                                                isSelected
+                                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                                            isSelected
+                                                                ? Color(
+                                                                    0xFFFef6622)
+                                                                : color ==
+                                                                        Colors
+                                                                            .white
                                                                     ? Color(
-                                                                        0xFFF04A23)
-                                                                    : color ==
-                                                                            Colors
-                                                                                .white
-                                                                        ? Color(
-                                                                            0xFFF04A23)
-                                                                        : color),
+                                                                        0xFFFef6622)
+                                                                    : color),
                                                       ),
                                                       // Display percentage in the center
                                                       Align(
@@ -489,7 +490,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                                 10, // Adjust font size
                                                             fontWeight:
                                                                 FontWeight.bold,
-                                                            color: Colors.black,
+                                                            color: Color(
+                                                                0xFFFef6622),
                                                           ),
                                                         ),
                                                       ),
@@ -512,7 +514,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                 style: GoogleFonts.inter(
                                                     fontSize: 12,
                                                     color: isSelected
-                                                        ? Color(0xFFF28411)
+                                                        ? Color(0xFFFef6622)
                                                         : Colors.black),
                                               ),
                                             ),
@@ -521,9 +523,10 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                   MainAxisAlignment.spaceAround,
                                               children: [
                                                 Icon(Icons.access_time,
-                                                    size: 14,
+                                                    size: 13,
                                                     color: isSelected
-                                                        ? Color(0xFFF28411)
+                                                        ? const Color(
+                                                            0xFFF28411)
                                                         : Colors.blueGrey),
                                                 const SizedBox(
                                                   width: 4,
@@ -534,7 +537,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                     style: GoogleFonts.inter(
                                                         fontSize: 12,
                                                         color: isSelected
-                                                            ? Color(0xFFF28411)
+                                                            ? const Color(
+                                                                0xFFFef6622)
                                                             : Colors.blueGrey),
                                                     maxLines: 1,
                                                     overflow:
@@ -545,25 +549,29 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                 // Update the switch widget in your ListView.builder:
                                                 // In your ListView.builder, add safety checks:
                                                 if (hasData)
-                                                  Transform.scale(
-                                                    scale: 0.8,
-                                                    child: Switch(
-                                                        value: isActive == 1,
-                                                        onChanged: (_) {
-                                                          setState(() {
-                                                            chatbotListData[
-                                                                        index]
-                                                                    .isActive =
-                                                                (isActive == 1)
-                                                                    ? 0
-                                                                    : 1;
-                                                          });
-                                                          _updateChatbotStatusForItem(
+                                                  SizedBox(
+                                                    width: 40,
+                                                    child: Transform.scale(
+                                                      scale: 0.8,
+                                                      child: Switch(
+                                                          value: isActive == 1,
+                                                          onChanged: (_) {
+                                                            setState(() {
                                                               chatbotListData[
-                                                                  index]);
-                                                        },
-                                                        activeColor:
-                                                            Color(0xFFF04A23)),
+                                                                          index]
+                                                                      .isActive =
+                                                                  (isActive ==
+                                                                          1)
+                                                                      ? 0
+                                                                      : 1;
+                                                            });
+                                                            _updateChatbotStatusForItem(
+                                                                chatbotListData[
+                                                                    index]);
+                                                          },
+                                                          activeColor: Color(
+                                                              0xFFFef6622)),
+                                                    ),
                                                   )
                                                 else
                                                   const SizedBox(

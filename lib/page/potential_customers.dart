@@ -127,176 +127,177 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
   @override
   Widget build(BuildContext context) {
     final selectedColor = Provider.of<Providercolor>(context).selectedColor;
-    return SingleChildScrollView(
-      child: Container(
-          padding: const EdgeInsets.all(8),
-          color: Colors.white,
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  FutureBuilder<Map<String, String?>>(
-                    future: getChatbotInfo(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
-                      }
-                      if (snapshot.hasError || !snapshot.hasData) {
-                        return Row(
-                          children: [
-                            const CircleAvatar(
-                              backgroundImage:
-                                  AssetImage('resources/logo_smart.png'),
-                              radius: 20,
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              'No Name',
-                              style: GoogleFonts.inter(
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-
-                      final chatbotName = snapshot.data?['name'] ?? 'No Name';
-                      final chatbotPicture = snapshot.data?['picture'];
-
+    return Container(
+        height: MediaQuery.of(context).size.height,
+        padding: const EdgeInsets.all(8),
+        color: Colors.white,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                FutureBuilder<Map<String, String?>>(
+                  future: getChatbotInfo(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    }
+                    if (snapshot.hasError || !snapshot.hasData) {
                       return Row(
                         children: [
-                          Container(
-                            height: 30,
-                            width: 30,
-                            padding: const EdgeInsets.only(
-                              left: 0,
-                              right: 0,
-                              top: 0,
-                              bottom: 0,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(width: 2, color: Colors.white),
-                              borderRadius: BorderRadius.circular(
-                                  25), // Adding rounded corners here
-                            ),
-                            child: CircleAvatar(
-                              backgroundImage: chatbotPicture != null &&
-                                      chatbotPicture.isNotEmpty
-                                  ? NetworkImage(
-                                      "${ApiConfig.baseUrlBasic}$chatbotPicture")
-                                  : const AssetImage('resources/Smartchat.png')
-                                      as ImageProvider,
-                              radius: 20,
-                            ),
+                          const CircleAvatar(
+                            backgroundImage:
+                                AssetImage('resources/logo_smart.png'),
+                            radius: 20,
                           ),
                           const SizedBox(width: 5),
                           Text(
-                            chatbotName,
+                            'No Name',
                             style: GoogleFonts.inter(
-                                fontSize: 16,
-                                color: Colors.black,
-                                fontWeight: FontWeight.w500),
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
                           ),
                         ],
                       );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  buildDropdown(
-                    items: items,
-                    selectedItem: selectedItem,
-                    hint: 'Tất cả trạng thái',
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedItem = newValue;
-                      });
+                    }
 
-                      // Nếu chọn "Tất cả trạng thái", truyền null hoặc chuỗi rỗng
-                      fetchCustomers(
-                          newValue == 'Tất cả trạng thái' ? null : newValue,
-                          searchContent,
-                          currentPage,
-                          pageSize);
-                    },
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    child: Container(
-                      height: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(width: 1.2, color: Colors.black26),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12.withOpacity(0.05),
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
+                    final chatbotName = snapshot.data?['name'] ?? 'No Name';
+                    final chatbotPicture = snapshot.data?['picture'];
+
+                    return Row(
+                      children: [
+                        Container(
+                          height: 30,
+                          width: 30,
+                          padding: const EdgeInsets.only(
+                            left: 0,
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
                           ),
-                        ],
-                      ),
-                      child: TextField(
-                        controller: _searchController,
-                        style: GoogleFonts.inter(
-                            fontSize: 14, color: Colors.black),
-                        decoration: InputDecoration(
-                          hintText: 'Tìm kiếm tại đây...',
-                          hintStyle: GoogleFonts.inter(
-                              fontSize: 14, color: Colors.black45),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
+                          decoration: BoxDecoration(
+                            border: Border.all(width: 2, color: Colors.white),
+                            borderRadius: BorderRadius.circular(
+                                25), // Adding rounded corners here
                           ),
-                          suffixIcon: GestureDetector(
-                            onTap: () {
-                              fetchCustomers(slotsStatus, currentPage, pageSize,
-                                  _searchController.text);
-                            },
-                            child: Container(
-                              width: 10,
-                              padding: const EdgeInsets.all(8),
-                              margin: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: selectedColor == Colors.white
-                                    ? const Color(0xfffed5113)
-                                    : selectedColor,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.search,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                          child: CircleAvatar(
+                            backgroundImage: chatbotPicture != null &&
+                                    chatbotPicture.isNotEmpty
+                                ? NetworkImage(
+                                    "${ApiConfig.baseUrlBasic}$chatbotPicture")
+                                : const AssetImage('resources/Smartchat.png')
+                                    as ImageProvider,
+                            radius: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          chatbotName,
+                          style: GoogleFonts.inter(
+                              fontSize: 16,
+                              color: Colors.black,
+                              fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                buildDropdown(
+                  items: items,
+                  selectedItem: selectedItem,
+                  hint: 'Tất cả trạng thái',
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedItem = newValue;
+                    });
+
+                    // Nếu chọn "Tất cả trạng thái", truyền null hoặc chuỗi rỗng
+                    fetchCustomers(
+                        newValue == 'Tất cả trạng thái' ? null : newValue,
+                        searchContent,
+                        currentPage,
+                        pageSize);
+                  },
+                ),
+                const SizedBox(
+                  width: 10,
+                ),
+                Expanded(
+                  child: Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(width: 1.2, color: Colors.black26),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12.withOpacity(0.05),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      style:
+                          GoogleFonts.inter(fontSize: 14, color: Colors.black),
+                      decoration: InputDecoration(
+                        hintText: 'Tìm kiếm tại đây...',
+                        hintStyle: GoogleFonts.inter(
+                            fontSize: 14, color: Colors.black45),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixIcon: GestureDetector(
+                          onTap: () {
+                            fetchCustomers(slotsStatus, currentPage, pageSize,
+                                _searchController.text);
+                          },
+                          child: Container(
+                            width: 10,
+                            padding: const EdgeInsets.all(8),
+                            margin: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: selectedColor == Colors.white
+                                  ? const Color(0xfffed5113)
+                                  : selectedColor,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.search,
+                                color: Colors.white,
+                                size: 20,
                               ),
                             ),
                           ),
                         ),
-                        onSubmitted: (value) {
-                          fetchCustomers(
-                              slotsStatus, currentPage, pageSize, value);
-                        },
                       ),
+                      onSubmitted: (value) {
+                        fetchCustomers(
+                            slotsStatus, currentPage, pageSize, value);
+                      },
                     ),
-                  )
-                ],
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Container(
+                  ),
+                )
+              ],
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Expanded(
+              child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
                   color: Colors.white,
@@ -373,96 +374,58 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                         : const Center(
                             child: Text("Không có dữ liệu để hiển thị")),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 48.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    IconButton(
-                      onPressed:
-                          (currentPage != null && int.parse(currentPage!) > 1)
-                              ? () {
-                                  setState(() {
-                                    currentPage = (int.parse(currentPage!) - 1)
-                                        .toString(); // Giảm trang
-                                  });
-                                  fetchCustomers(
-                                    searchContent,
-                                    slotsStatus,
-                                    currentPage,
-                                    pageSize,
-                                  );
-                                }
-                              : null,
-                      icon: const Icon(
-                        Icons.chevron_left,
-                        color: Colors.grey,
-                      ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 48.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    onPressed:
+                        (currentPage != null && int.parse(currentPage!) > 1)
+                            ? () {
+                                setState(() {
+                                  currentPage = (int.parse(currentPage!) - 1)
+                                      .toString(); // Giảm trang
+                                });
+                                fetchCustomers(
+                                  searchContent,
+                                  slotsStatus,
+                                  currentPage,
+                                  pageSize,
+                                );
+                              }
+                            : null,
+                    icon: const Icon(
+                      Icons.chevron_left,
+                      color: Colors.grey,
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 2.0, horizontal: 10.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                            color: selectedColor == Colors.white
-                                ? const Color(0xfffed5113)
-                                : selectedColor),
-                        borderRadius: BorderRadius.circular(4.0),
-                      ),
-                      child: Text(
-                        currentPage ?? "1",
-                        style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: selectedColor == Colors.white
-                                ? const Color(0xfffed51123)
-                                : selectedColor),
-                      ), // Hiển thị trang hiện tại, mặc định "1"
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 2.0, horizontal: 10.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: selectedColor == Colors.white
+                              ? const Color(0xfffed5113)
+                              : selectedColor),
+                      borderRadius: BorderRadius.circular(4.0),
                     ),
-                    IconButton(
-                      onPressed: hasMoreData
-                          ? () {
-                              setState(() {
-                                currentPage =
-                                    (int.parse(currentPage ?? "1") + 1)
-                                        .toString(); // Tăng trang
-                              });
-                              fetchCustomers(
-                                searchContent,
-                                slotsStatus,
-                                currentPage,
-                                pageSize,
-                              );
-                            }
-                          : null,
-                      icon: const Icon(
-                        Icons.chevron_right,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    Container(
-                      height: 30,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(width: 1, color: Colors.black12),
-                      ),
-                      child: DropdownButton<String>(
-                        value: pageSize,
-                        items: itemsPerPageOptions.map((int value) {
-                          return DropdownMenuItem<String>(
-                            value: value.toString(),
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 2.0),
-                              child: Text('$value/${'trang'}',
-                                  style: GoogleFonts.inter(fontSize: 14)),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          if (newValue != null) {
+                    child: Text(
+                      currentPage ?? "1",
+                      style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: selectedColor == Colors.white
+                              ? const Color(0xfffed51123)
+                              : selectedColor),
+                    ), // Hiển thị trang hiện tại, mặc định "1"
+                  ),
+                  IconButton(
+                    onPressed: hasMoreData
+                        ? () {
                             setState(() {
-                              pageSize = newValue;
-                              currentPage = "1"; // Đặt lại về trang 1
+                              currentPage = (int.parse(currentPage ?? "1") + 1)
+                                  .toString(); // Tăng trang
                             });
                             fetchCustomers(
                               searchContent,
@@ -471,14 +434,51 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                               pageSize,
                             );
                           }
-                        },
-                      ),
+                        : null,
+                    icon: const Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey,
                     ),
-                  ],
-                ),
-              )
-            ],
-          )),
-    );
+                  ),
+                  Container(
+                    height: 30,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(width: 1, color: Colors.black12),
+                    ),
+                    child: DropdownButton<String>(
+                      value: pageSize,
+                      items: itemsPerPageOptions.map((int value) {
+                        return DropdownMenuItem<String>(
+                          value: value.toString(),
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 2.0),
+                            child: Text('$value/${'trang'}',
+                                style: GoogleFonts.inter(fontSize: 14)),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        if (newValue != null) {
+                          setState(() {
+                            pageSize = newValue;
+                            currentPage = "1"; // Đặt lại về trang 1
+                          });
+                          fetchCustomers(
+                            searchContent,
+                            slotsStatus,
+                            currentPage,
+                            pageSize,
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ));
   }
 }

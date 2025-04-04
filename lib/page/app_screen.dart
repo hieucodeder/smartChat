@@ -24,6 +24,7 @@ class AppScreen extends StatefulWidget {
 }
 
 class _AppScreenState extends State<AppScreen> {
+  String packageProductName = "";
   Widget _getPage(
     int index, {
     String history = '',

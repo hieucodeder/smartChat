@@ -340,9 +340,7 @@ class _SettingPageState extends State<SettingPage> {
                 ),
                 const SizedBox(width: 8),
                 TextButton(
-                  onPressed: () {
-                    navigationProvider.setCurrentIndex(5);
-                  },
+                  onPressed: () {},
                   child: Text('Màu sắc:', style: styleText),
                 ),
                 _buildColorSelector(context),

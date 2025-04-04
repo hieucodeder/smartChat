@@ -200,7 +200,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                         decoration: BoxDecoration(
                             border: Border.all(
                                 width: 2, color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(6)),
+                            borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.all(3),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,9 +227,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 15, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: isActive
-                                      ? Colors.green.withOpacity(0.1)
-                                      : Colors.orange.withOpacity(0.1),
+                                  color: Colors.orange.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Column(
@@ -291,7 +289,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                             _buildInfoRow(
                               Icons.check_circle_outline,
                               formatNumber(queries[1]),
-                              "tệp tối đa(max 10M/tệp)",
+                              "tệp tối đa(max 10MB/tệp)",
                               // Lấy giá trị thứ hai
                             ),
                             _buildInfoRow(
@@ -303,8 +301,13 @@ class _PackageProductPageState extends State<PackageProductPage> {
                             _buildInfoRow(
                               Icons.check_circle_outline,
                               formatNumber(queries[3]),
-                              "QA tối đa",
+                              "câu hỏi mẫu tối đa",
                               // Lấy giá trị đầu tiên
+                            ),
+                            _buildInfoRow(
+                              Icons.check_circle_outline,
+                              formatNumber(queries[4]),
+                              "khách hàng tiềm năng tối đa",
                             ),
                             _buildInfoRow(
                               Icons.check_circle_outline,
@@ -313,33 +316,45 @@ class _PackageProductPageState extends State<PackageProductPage> {
                               // Lấy giá trị thứ hai
                             ),
 
-                            ListTile(
-                              leading: const Icon(
-                                Icons.check_circle_outline,
-                                color: Colors.black,
-                                size: 20,
-                              ),
-                              title: Text(
-                                plan["title"] == "Tùy biến"
-                                    ? "Tính năng theo yêu cầu"
-                                    : "${plan["title"] == "Cơ bản" ? 25 : plan["title"] == "Nâng cao" ? 28 : 17} Tính năng thêm",
-                                style: GoogleFonts.inter(
-                                    fontSize: 14, fontWeight: FontWeight.w600),
-                              ),
-
-                              trailing: GestureDetector(
-                                onTap: () {
-                                  _showFeatureDialog(
-                                      context, plan["features"]!.split(", "));
-                                },
-                                child: const Icon(
-                                  Icons.info_outline,
+                            Padding(
+                              padding: const EdgeInsets.all(5.0),
+                              child: ListTile(
+                                leading: const Icon(
+                                  Icons.check_circle_outline,
                                   color: Colors.black,
                                   size: 20,
                                 ),
+                                title: Text(
+                                  plan["title"] == "Tùy biến"
+                                      ? "Tính năng theo yêu cầu"
+                                      : "${plan["title"] == "Cơ bản" ? 25 : plan["title"] == "Nâng cao" ? 28 : 17} Tính năng thêm",
+                                  style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600),
+                                ),
+
+                                trailing: GestureDetector(
+                                  onTap: () {
+                                    _showFeatureDialog(
+                                        context, plan["features"]!.split(", "));
+                                  },
+                                  child: const Icon(
+                                    Icons.info_outline,
+                                    color: Colors.black,
+                                    size: 20,
+                                  ),
+                                ),
+                                horizontalTitleGap:
+                                    8, // Giảm khoảng cách ngang giữa icon và text
+
+                                contentPadding: EdgeInsets.zero,
+                                // Loại bỏ padding hoàn toàn
+                                visualDensity: VisualDensity
+                                    .compact, // Giảm mật độ hiển thị
+                                minVerticalPadding:
+                                    0, // Giảm padding dọc tối thiểu
+                                dense: true, // Kích hoạt chế độ compact
                               ),
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 8.0), // Đồng bộ padding
                             ),
                           ],
                         ),
@@ -354,15 +369,25 @@ class _PackageProductPageState extends State<PackageProductPage> {
     // Kiểm tra nếu value là "99,999,999" thì thay bằng "Không giới hạn"
     String displayValue =
         (value == formatNumber(99999999)) ? "Không giới hạn" : value;
+    if (value == "0" || value.isEmpty) {
+      return SizedBox.shrink(); // Hoặc return Container() nếu muốn
+    }
 
-    return ListTile(
-      leading: Icon(icon, color: Colors.black, size: 20),
-      title: Text(
-        "$displayValue $label",
-        style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 5.0),
+      child: ListTile(
+        leading: Icon(icon, color: Colors.black, size: 20),
+        title: Text(
+          "$displayValue $label",
+          style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+        horizontalTitleGap: 8, // Giảm khoảng cách ngang giữa icon và text
+
+        contentPadding: EdgeInsets.zero, // Loại bỏ padding hoàn toàn
+        visualDensity: VisualDensity.compact, // Giảm mật độ hiển thị
+        minVerticalPadding: 0, // Giảm padding dọc tối thiểu
+        dense: true, // Kích hoạt chế độ compact
       ),
-      contentPadding:
-          EdgeInsets.symmetric(horizontal: 8.0), // Điều chỉnh padding nếu cần
     );
   }
 

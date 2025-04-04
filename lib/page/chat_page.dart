@@ -262,231 +262,67 @@ class _ChatPageState extends State<ChatPage> {
 
         for (var content in contents) {
           List<String> images = [];
+          List<Map<String, dynamic>>? tableData = content['table'];
+          List<String> suggestions =
+              List<String>.from(content['suggestions'] ?? []);
 
-          // Kiểm tra và xử lý dữ liệu ảnh
-          if (content.containsKey('imageStatistic') &&
-              content['imageStatistic'] is List<String>) {
-            images = List<String>.from(content['imageStatistic']);
-            debugPrint('✅ Dữ liệu ảnh hợp lệ: $images');
-          } else {
-            debugPrint(
-                '❌ Dữ liệu ảnh không đúng kiểu: ${content['imageStatistic'].runtimeType}');
+          // Xử lý dữ liệu ảnh nếu có
+          if (content.containsKey('imageStatistic')) {
+            if (content['imageStatistic'] is List) {
+              images = List<String>.from(
+                  content['imageStatistic'].whereType<String>());
+              debugPrint('✅ Dữ liệu ảnh hợp lệ: $images');
+            } else {
+              debugPrint(
+                  '❌ Dữ liệu ảnh không đúng kiểu: ${content['imageStatistic'].runtimeType}');
+            }
           }
 
-          // Xác định loại tin nhắn (user hay bot) từ dữ liệu lịch sử
-          final isUser = content['type'] == 'user';
+          // Xác định loại tin nhắn dựa trên type từ fetchChatHistory
+          final messageType = content['type']; // 'question' hoặc 'answer'
+          final isUser = messageType == 'question'; // Câu hỏi là từ user
 
-          // Thêm tin nhắn vào danh sách với cấu trúc phù hợp
-          _messages.insert(0, {
-            'type': isUser ? 'user' : 'bot', // Phân biệt user và bot
+          // Tạo tin nhắn với cấu trúc đầy đủ
+          Map<String, dynamic> message = {
+            'type': isUser ? 'user' : 'bot',
             'text': content['text'] ?? "",
-            'table': content['table'] as List<Map<String, dynamic>>?,
+            'query':
+                content['query'] ?? "", // Thêm query để có thể sử dụng nếu cần
+            'table': tableData,
             'imageStatistic': images,
-          });
+            'suggestions': suggestions,
+            'originalType':
+                messageType, // Giữ lại loại gốc để xử lý đặc biệt nếu cần
+          };
+
+          _messages.insert(0, message);
         }
       });
 
       // Cuộn xuống cuối cùng sau khi danh sách tin nhắn cập nhật
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
       });
 
       historyidProvider.setChatbotHistoryId(newHistoryId);
     } catch (e, stackTrace) {
       debugPrint("❌ Error in fetchAndUpdateChatHistory: $e");
       debugPrint("🛑 StackTrace: $stackTrace");
+
+      // Hiển thị thông báo lỗi cho người dùng nếu cần
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi khi tải lịch sử chat: ${e.toString()}')),
+        );
+      }
     }
   }
-
-  // List<InlineSpan> _parseMessage(String message) {
-  //   List<InlineSpan> spans = [];
-  //   RegExp regexBold = RegExp(r'\*\*(.*?)\*\*'); // In đậm
-  //   RegExp regexItalic = RegExp(r'##(.*?)##'); // In nghiêng
-  //   RegExp regexBoldLine = RegExp(r'^\s*###\s*(.*?)\s*$', multiLine: true);
-  //   RegExp regexImage = RegExp(r'!\[(.*?)\]\((.*?)\)'); // Ảnh Markdown
-  //   RegExp regexLink = RegExp(r'\[(.*?)\]\((.*?)\)'); // Link dạng Markdown
-
-  //   int lastIndex = 0;
-
-  //   while (lastIndex < message.length) {
-  //     List<RegExpMatch?> matches = [
-  //       regexImage.firstMatch(message.substring(lastIndex)),
-  //       regexLink.firstMatch(message.substring(lastIndex)),
-  //       regexBoldLine.firstMatch(message.substring(lastIndex)),
-  //       regexItalic.firstMatch(message.substring(lastIndex)),
-  //       regexBold.firstMatch(message.substring(lastIndex)),
-  //     ].where((match) => match != null).toList();
-
-  //     if (matches.isEmpty) {
-  //       spans.add(TextSpan(
-  //         text: message.substring(lastIndex),
-  //         style: GoogleFonts.inter(color: Colors.black),
-  //       ));
-  //       break;
-  //     }
-
-  //     matches.sort((a, b) => a!.start.compareTo(b!.start));
-  //     var match = matches.first!;
-
-  //     // Thêm văn bản thường trước phần định dạng
-  //     if (match.start > 0) {
-  //       spans.add(TextSpan(
-  //         text: message.substring(lastIndex, lastIndex + match.start),
-  //         style: GoogleFonts.inter(color: Colors.black),
-  //       ));
-  //     }
-
-  //     if (match.pattern == regexImage) {
-  //       String linkText = match.group(1)!; // Văn bản thay thế
-  //       String linkUrl = match.group(2)!;
-
-  //       // Kiểm tra xem có phải link ảnh không
-  //       bool isImageUrl =
-  //           RegExp(r'\.(jpg|jpeg|png|gif|webp)$', caseSensitive: false)
-  //               .hasMatch(linkUrl);
-
-  //       if (isImageUrl) {
-  //         spans.add(
-  //           WidgetSpan(
-  //             child: GestureDetector(
-  //               onTap: () {
-  //                 showDialog(
-  //                   context: context,
-  //                   barrierDismissible:
-  //                       true, // Cho phép đóng dialog khi nhấn ra ngoài
-  //                   builder: (context) => Dialog(
-  //                     insetPadding: EdgeInsets.zero, // Xóa padding mặc định
-  //                     backgroundColor: Colors.black, // Nền đen để nổi bật ảnh
-  //                     child: SizedBox(
-  //                       width: MediaQuery.of(context)
-  //                           .size
-  //                           .width, // Chiều rộng full màn hình
-  //                       height: MediaQuery.of(context)
-  //                           .size
-  //                           .height, // Chiều cao full màn hình
-  //                       child: Stack(
-  //                         children: [
-  //                           PhotoView(
-  //                             imageProvider: NetworkImage(linkUrl),
-  //                             backgroundDecoration: const BoxDecoration(
-  //                               color: Colors.black,
-  //                             ),
-  //                             minScale: PhotoViewComputedScale.contained,
-  //                             maxScale: PhotoViewComputedScale.covered * 2.0,
-  //                             loadingBuilder: (context, event) => const Center(
-  //                               child: CircularProgressIndicator(),
-  //                             ),
-  //                             errorBuilder: (context, error, stackTrace) =>
-  //                                 const Center(
-  //                               child: Text(
-  //                                 'Không thể tải ảnh',
-  //                                 style: TextStyle(color: Colors.white),
-  //                               ),
-  //                             ),
-  //                           ),
-  //                           // Nút đóng dialog
-  //                           Positioned(
-  //                             top: 40,
-  //                             right: 20,
-  //                             child: IconButton(
-  //                               icon: const Icon(
-  //                                 Icons.close,
-  //                                 color: Colors.white,
-  //                                 size: 30,
-  //                               ),
-  //                               onPressed: () => Navigator.of(context).pop(),
-  //                             ),
-  //                           ),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                   ),
-  //                 );
-  //               },
-  //               child: Padding(
-  //                 padding: const EdgeInsets.symmetric(vertical: 5),
-  //                 child: Image.network(
-  //                   linkUrl,
-  //                   width: double.infinity,
-  //                   fit: BoxFit.cover,
-  //                   loadingBuilder: (context, child, loadingProgress) {
-  //                     if (loadingProgress == null) return child;
-  //                     return const Center(
-  //                       child: CircularProgressIndicator(),
-  //                     );
-  //                   },
-  //                   errorBuilder: (context, error, stackTrace) {
-  //                     return const Text('Không thể tải ảnh');
-  //                   },
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         );
-  //       } else {
-  //         spans.add(TextSpan(
-  //           text: match[0],
-  //           style: GoogleFonts.inter(color: Colors.black),
-  //         ));
-  //       }
-  //     } else if (match.pattern == regexLink) {
-  //       String linkText = match.group(1)!;
-  //       String linkUrl = match.group(2)!;
-
-  //       spans.add(TextSpan(
-  //         text: linkText,
-  //         style: GoogleFonts.inter(
-  //           color: Colors.blue,
-  //           decoration: TextDecoration.underline,
-  //         ),
-  //         recognizer: TapGestureRecognizer()
-  //           ..onTap = () async {
-  //             String url =
-  //                 linkUrl.startsWith('http') ? linkUrl : 'https://$linkUrl';
-  //             if (await canLaunchUrl(Uri.parse(url))) {
-  //               await launchUrl(Uri.parse(url),
-  //                   mode: LaunchMode.externalApplication);
-  //             }
-  //           },
-  //       ));
-  //     } else if (match.pattern == regexBoldLine) {
-  //       spans.add(TextSpan(
-  //         text: "\n${match.group(1)!}",
-  //         style: GoogleFonts.inter(
-  //           fontWeight: FontWeight.bold,
-  //           fontSize: 16,
-  //           color: Colors.black,
-  //         ),
-  //       ));
-  //     } else if (match.pattern == regexItalic) {
-  //       spans.add(TextSpan(
-  //         text: match.group(1)!,
-  //         style: GoogleFonts.inter(
-  //           fontStyle: FontStyle.italic,
-  //           fontSize: 16,
-  //           color: Colors.black,
-  //         ),
-  //       ));
-  //     } else if (match.pattern == regexBold) {
-  //       spans.add(TextSpan(
-  //         text: match.group(1)!,
-  //         style: GoogleFonts.inter(
-  //           fontWeight: FontWeight.bold,
-  //           fontSize: 17,
-  //           color: Colors.black,
-  //         ),
-  //       ));
-  //     }
-
-  //     lastIndex = lastIndex + match.end; // Cập nhật chỉ số chính xác
-  //   }
-
-  //   return spans;
-  // }
 
   List<InlineSpan> _parseMessage(String message, BuildContext context) {
     List<InlineSpan> spans = [];
