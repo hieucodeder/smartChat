@@ -722,7 +722,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                         ? NetworkImage(
                                             "${ApiConfig.baseUrlBasic}$chatbotPicture")
                                         : const AssetImage(
-                                                'resources/logo_smart.png')
+                                                'resources/SmartChat.png')
                                             as ImageProvider,
                                     radius: 30,
                                   ),

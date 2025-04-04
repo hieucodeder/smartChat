@@ -490,8 +490,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                                 10, // Adjust font size
                                                             fontWeight:
                                                                 FontWeight.bold,
-                                                            color: Color(
-                                                                0xFFFef6622),
+                                                            color: color ==
+                                                                    Colors.white
+                                                                ? Color(
+                                                                    0xFFFef6622)
+                                                                : color,
                                                           ),
                                                         ),
                                                       ),
@@ -569,8 +572,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                                 chatbotListData[
                                                                     index]);
                                                           },
-                                                          activeColor: Color(
-                                                              0xFFFef6622)),
+                                                          activeColor: color ==
+                                                                  Colors.white
+                                                              ? Color(
+                                                                  0xFFFef6622)
+                                                              : color),
                                                     ),
                                                   )
                                                 else
