@@ -290,7 +290,7 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final navigationProvider = Provider.of<NavigationProvider>(context);
+    final selectedColor = Provider.of<Providercolor>(context).selectedColor;
     return Container(
       width: double.infinity,
       height: double.infinity,
@@ -302,9 +302,12 @@ class _SettingPageState extends State<SettingPage> {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.account_box,
-                  size: 24,
+                  size: 23,
+                  color: selectedColor == Colors.white
+                      ? Color(0xFFFef6622)
+                      : selectedColor,
                 ),
                 const SizedBox(width: 8),
                 TextButton(
@@ -318,9 +321,12 @@ class _SettingPageState extends State<SettingPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.search,
-                  size: 24,
+                  size: 23,
+                  color: selectedColor == Colors.white
+                      ? Color(0xFFFef6622)
+                      : selectedColor,
                 ),
                 const SizedBox(width: 8),
                 TextButton(
@@ -334,9 +340,12 @@ class _SettingPageState extends State<SettingPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.color_lens,
-                  size: 24,
+                  size: 23,
+                  color: selectedColor == Colors.white
+                      ? Color(0xFFFef6622)
+                      : selectedColor,
                 ),
                 const SizedBox(width: 8),
                 TextButton(
@@ -350,7 +359,13 @@ class _SettingPageState extends State<SettingPage> {
             const Divider(color: Colors.black),
             Row(
               children: [
-                const Icon(Icons.logout_outlined, size: 24),
+                Icon(
+                  Icons.logout_outlined,
+                  size: 23,
+                  color: selectedColor == Colors.white
+                      ? Color(0xFFFef6622)
+                      : selectedColor,
+                ),
                 const SizedBox(
                   width: 10,
                 ),

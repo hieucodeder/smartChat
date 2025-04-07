@@ -27,6 +27,33 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
   String? pageSize = "10";
   final List<int> itemsPerPageOptions = [10, 20, 50, 100];
   bool hasMoreData = true;
+  bool isImageUrl(String url) {
+    if (url.isEmpty) {
+      debugPrint('⚠️ URL rỗng - không phải ảnh');
+      return false;
+    }
+
+    final lowerUrl = url.toLowerCase().trim();
+    debugPrint('\n🔍 Kiểm tra URL: "$lowerUrl"');
+
+    // Kiểm tra các dấu hiệu của URL ảnh
+    final isHttp =
+        lowerUrl.startsWith('http://') || lowerUrl.startsWith('https://');
+    final hasImageExtension =
+        RegExp(r'\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$').hasMatch(lowerUrl);
+    final containsImagePath =
+        RegExp(r'(image|img|picture|pic|photo)').hasMatch(lowerUrl);
+
+    debugPrint('🔎 Kết quả kiểm tra:');
+    debugPrint('- Là URL: $isHttp');
+    debugPrint('- Có đuôi ảnh: $hasImageExtension');
+    debugPrint('- Chứa đường dẫn ảnh: $containsImagePath');
+
+    final result = isHttp && (hasImageExtension || containsImagePath);
+    debugPrint('🎯 Kết luận: ${result ? "✅ Là ảnh" : "❌ Không phải ảnh"}');
+
+    return result;
+  }
 
   String? selectedItem;
   final List<String> items = [
@@ -305,8 +332,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                 ),
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : (dynamicColumns.isNotEmpty &&
-                            customers.isNotEmpty) // Kiểm tra dữ liệu
+                    : (dynamicColumns.isNotEmpty && customers.isNotEmpty)
                         ? SingleChildScrollView(
                             scrollDirection: Axis.vertical,
                             child: SingleChildScrollView(
@@ -320,9 +346,6 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                   ),
-                                  // const DataColumn(
-                                  //     label: Text("Intent Slots",
-                                  //         style: GoogleFonts.inter(fontWeight: FontWeight.bold))),
                                   ...dynamicColumns.map(
                                     (col) => DataColumn(
                                       label: Text(
@@ -352,13 +375,74 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                       DataCell(Center(
                                           child: Text(index.toString()))),
                                       ...dynamicColumns.map((col) {
-                                        return DataCell(
-                                          Center(
-                                            child: Text(
-                                                customer.slotDetails[col] ??
-                                                    ""),
-                                          ),
-                                        ); // Nếu không có thì để trống
+                                        final value = customer.slotDetails[col]
+                                                ?.toString()
+                                                .trim() ??
+                                            "";
+                                        debugPrint('\n📋 Kiểm tra cột: "$col"');
+                                        debugPrint('📌 Giá trị: "$value"');
+
+                                        if (isImageUrl(value)) {
+                                          return DataCell(
+                                            Center(
+                                              child: Container(
+                                                width: 60,
+                                                height: 60,
+                                                padding:
+                                                    const EdgeInsets.all(2),
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                      color:
+                                                          Colors.grey.shade300),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                  child: Image.network(
+                                                    value,
+                                                    fit: BoxFit.cover,
+                                                    loadingBuilder: (context,
+                                                        child, progress) {
+                                                      if (progress == null)
+                                                        return child;
+                                                      return Center(
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                          value: progress
+                                                                      .expectedTotalBytes !=
+                                                                  null
+                                                              ? progress
+                                                                      .cumulativeBytesLoaded /
+                                                                  progress
+                                                                      .expectedTotalBytes!
+                                                              : null,
+                                                        ),
+                                                      );
+                                                    },
+                                                    errorBuilder: (context,
+                                                        error, stackTrace) {
+                                                      debugPrint(
+                                                          '❗ Lỗi tải ảnh: $error');
+                                                      return const Icon(
+                                                          Icons
+                                                              .image_not_supported,
+                                                          size: 30);
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          return DataCell(
+                                            Center(
+                                                child: Text(value.isEmpty
+                                                    ? "-"
+                                                    : value)),
+                                          );
+                                        }
                                       }),
                                       DataCell(
                                         Center(

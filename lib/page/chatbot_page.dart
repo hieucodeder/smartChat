@@ -3,12 +3,12 @@ import 'dart:convert';
 import 'package:chatbotbnn/model/chatbot_info.dart';
 import 'package:chatbotbnn/model/response_get_code.dart';
 import 'package:chatbotbnn/model/resquest_update_chatbot.dart';
-import 'package:chatbotbnn/page/create_chatbot_page.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/chatbotcolors_provider.dart';
 import 'package:chatbotbnn/provider/chatbotname_provider.dart';
 import 'package:chatbotbnn/provider/draw_selected_color_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
+import 'package:chatbotbnn/provider/menu_state_provider.dart';
 import 'package:chatbotbnn/provider/navigation_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/provider/selected_item_provider.dart';
@@ -348,6 +348,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                       return GestureDetector(
                         onTap: () async {
                           final prefs = await SharedPreferences.getInstance();
+                          Provider.of<MenuStateProvider>(context, listen: false)
+                              .setShowPotentialCustomer(true);
 
                           Provider.of<ChatbotcolorsProvider>(context,
                                   listen: false)

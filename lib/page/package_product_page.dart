@@ -118,6 +118,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
   }
 
   Widget getIconForPlan(String? title) {
+    final selectedColor = Provider.of<Providercolor>(context).selectedColor;
     if (title == null || title.isEmpty) {
       return const Icon(Icons.help_outline, size: 23, color: Colors.grey);
     }
@@ -145,7 +146,14 @@ class _PackageProductPageState extends State<PackageProductPage> {
     bool isSvg = assetPath.endsWith('.svg');
 
     return isSvg
-        ? SvgPicture.asset(assetPath, width: 23, height: 23)
+        ? SvgPicture.asset(assetPath,
+            width: 23,
+            height: 23,
+            colorFilter: ColorFilter.mode(
+                selectedColor == Colors.white
+                    ? const Color(0xFFED5113)
+                    : selectedColor,
+                BlendMode.srcIn))
         : Image.asset(assetPath, width: 30, height: 30, fit: BoxFit.contain);
   }
 

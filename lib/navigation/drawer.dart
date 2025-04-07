@@ -9,6 +9,7 @@ import 'package:chatbotbnn/provider/chat_provider.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/draw_selected_color_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
+import 'package:chatbotbnn/provider/menu_state_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/provider/selected_history_provider.dart';
 import 'package:chatbotbnn/provider/selected_item_provider.dart';
@@ -180,14 +181,17 @@ class _DrawerCustomState extends State<DrawerCustom> {
 
   Widget getIconForPackage(String name) {
     double iconSize = 18.0; // Điều chỉnh kích thước tại đây
-
+    final selectedColor =
+        Provider.of<Providercolor>(context, listen: false).selectedColor;
     if (name == "Tùy biến") {
       return SvgPicture.asset(
         'resources/package.svg',
         width: iconSize,
         height: iconSize,
         fit: BoxFit.contain,
-        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(
+            selectedColor == Colors.white ? Colors.white : selectedColor,
+            BlendMode.srcIn),
       );
     }
     if (name == "Cơ bản") {
@@ -196,7 +200,9 @@ class _DrawerCustomState extends State<DrawerCustom> {
         width: iconSize,
         height: iconSize,
         fit: BoxFit.contain,
-        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(
+            selectedColor == Colors.white ? Colors.white : selectedColor,
+            BlendMode.srcIn),
       );
     }
     if (name == "Nâng cao") {
@@ -205,7 +211,9 @@ class _DrawerCustomState extends State<DrawerCustom> {
         width: iconSize,
         height: iconSize,
         fit: BoxFit.contain,
-        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(
+            selectedColor == Colors.white ? Colors.white : selectedColor,
+            BlendMode.srcIn),
       );
     }
     if (name == "Trải nghiệm") {
@@ -214,7 +222,9 @@ class _DrawerCustomState extends State<DrawerCustom> {
         width: iconSize,
         height: iconSize,
         fit: BoxFit.contain,
-        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+        colorFilter: ColorFilter.mode(
+            selectedColor == Colors.white ? Colors.white : selectedColor,
+            BlendMode.srcIn),
       );
     }
 
@@ -583,16 +593,18 @@ class _DrawerCustomState extends State<DrawerCustom> {
                         onTap: () => widget.onItemSelected(4),
                       ),
                     ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildListTile(
-                        context: context,
-                        icon: TablerIcons.message_dots,
-                        index: 0,
-                        title: 'Trải nghiệm thử',
-                        onTap: () => widget.onItemSelected(0),
+                    if (Provider.of<MenuStateProvider>(context)
+                        .showPotentialCustomer)
+                      SizedBox(
+                        width: double.infinity,
+                        child: _buildListTile(
+                          context: context,
+                          icon: TablerIcons.message_dots,
+                          index: 0,
+                          title: 'Trải nghiệm thử',
+                          onTap: () => widget.onItemSelected(0),
+                        ),
                       ),
-                    ),
                     SizedBox(
                       width: double.infinity,
                       child: _buildListTile(
@@ -600,28 +612,40 @@ class _DrawerCustomState extends State<DrawerCustom> {
                         icon: TablerIcons.calendar,
                         title: 'Danh sách Trợ lý AI',
                         index: 1,
-                        onTap: () => widget.onItemSelected(1),
+                        onTap: () {
+                          widget.onItemSelected(1); // Chọn mục 1
+                          Provider.of<MenuStateProvider>(context, listen: false)
+                              .setShowPotentialCustomer(
+                                  false); // Ẩn mục "Khách hàng tiềm năng"
+                        },
                       ),
                     ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildListTile(
-                        context: context,
-                        icon: TablerIcons.user_circle,
-                        title: 'Khách hàng tiềm năng',
-                        index: 6,
-                        onTap: () => widget.onItemSelected(6),
+                    if (Provider.of<MenuStateProvider>(context)
+                        .showPotentialCustomer)
+                      SizedBox(
+                        width: double.infinity,
+                        child: _buildListTile(
+                          context: context,
+                          icon: TablerIcons.user_circle,
+                          title: 'Khách hàng tiềm năng',
+                          index: 6,
+                          onTap: () => widget.onItemSelected(6),
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _buildListTile(
+                    if (Provider.of<MenuStateProvider>(context)
+                        .showServicePackage)
+                      SizedBox(
+                        width: double.infinity,
+                        child: _buildListTile(
                           context: context,
                           icon: TablerIcons.crown,
                           title: 'Gói dịch vụ',
                           index: 5,
-                          onTap: () => widget.onItemSelected(5)),
-                    ),
+                          onTap: () {
+                            widget.onItemSelected(5);
+                          },
+                        ),
+                      ),
                     Divider(
                       color: selectedColor == Colors.white
                           ? const Color(0xFFED8113).withOpacity(0.6)
@@ -722,7 +746,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                         ? NetworkImage(
                                             "${ApiConfig.baseUrlBasic}$chatbotPicture")
                                         : const AssetImage(
-                                                'resources/SmartChat.png')
+                                                'resources/Smartchat.png')
                                             as ImageProvider,
                                     radius: 30,
                                   ),
@@ -742,6 +766,9 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           },
                         ),
                       ],
+                    ),
+                    SizedBox(
+                      height: 5,
                     ),
                     Column(
                       children: [
@@ -1098,6 +1125,8 @@ class _DrawerCustomState extends State<DrawerCustom> {
 
 // _buildUserAccount widget
   Widget _buildUserAccount() {
+    final drawerProvider =
+        Provider.of<DrawSelectedColorProvider>(context, listen: false);
     final loginService = LoginService();
     final selectedColor = Provider.of<Providercolor>(context).selectedColor;
     return FutureBuilder<Map<String, String>?>(
@@ -1120,6 +1149,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
             title: GestureDetector(
               onTap: () {
                 widget.onItemSelected(2);
+                drawerProvider.setSelectedIndex(-1);
               },
               child: Column(
                 children: [
@@ -1180,6 +1210,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
             title: GestureDetector(
               onTap: () {
                 widget.onItemSelected(2);
+                drawerProvider.setSelectedIndex(-1);
               },
               child: Column(
                 children: [
@@ -1236,6 +1267,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
             title: GestureDetector(
               onTap: () {
                 widget.onItemSelected(2);
+                drawerProvider.setSelectedIndex(-1);
               },
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

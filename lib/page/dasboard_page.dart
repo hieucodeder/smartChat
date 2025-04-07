@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:intl/intl.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 
@@ -56,144 +57,104 @@ class _DasboardPageState extends State<DasboardPage> {
   void initState() {
     super.initState();
     _fetchDataTotal("");
-    // Gọi hàm fetch dữ liệu khi khởi tạo widget
-    // logFetchAllInteractionChar("", "", "", (data) {
-    //   setState(() {
-    //     chartData = data;
-    //   });
-    // });
-    // logFetchAllPotential("", "", "", (data1) {
-    //   setState(() {
-    //     charDataPotential = data1;
-    //   });
-    // });
-    // fetchAllPotentialPieChar("", "", "", (data2) {
-    //   setState(() {
-    //     charDataPotentialPieChar = data2;
-    //   });
-    // });
-    // fetchAllInteractionPieChar("", "", "", (data3) {
-    //   setState(() {
-    //     charDataInteractionPieChar = data3;
-    //   });
-    // });
   }
 
-  // Future<void> logFetchAllInteractionChar(
-  //     String? chatbotCode,
-  //     String? startDate,
-  //     String? endDate,
-  //     Function(List<ResponseInteractionChar>) onDataFetched) async {
-  //   print("Fetching interaction char data...");
+  String? startDate; // Biến lưu ngày đầu tháng: "YYYY-MM-DD 00:00:00"
+  String? endDate; // Biến lưu ngày cuối tháng: "YYYY-MM-DD 23:59:59"
 
-  //   List<ResponseInteractionChar> result =
-  //       await fetchAllInteractionChar(chatbotCode, startDate, endDate);
+  Future<void> _selectMonth(BuildContext context) async {
+    DateTime? pickedDate = await showMonthPicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
 
-  //   if (result.isNotEmpty) {
-  //     print("Fetch successful! Number of items: ${result.length}");
-  //     onDataFetched(result);
-  //   } else {
-  //     print("No data found or API error.");
-  //     onDataFetched([]);
-  //   }
-  // }
+    if (pickedDate != null) {
+      DateTime firstDay = DateTime(pickedDate.year, pickedDate.month, 1);
+      DateTime lastDay = DateTime(pickedDate.year, pickedDate.month + 1, 0);
 
-  // Future<void> logFetchAllPotential(
-  //     String? chatbotCode,
-  //     String? startDate,
-  //     String? endDate,
-  //     Function(List<ResponsePotentialCustomer>) onDataFetched) async {
-  //   print("Fetching interaction char data...");
+      setState(() {
+        selectedDate = DateFormat('MM/yyyy').format(pickedDate);
+        startDate = DateFormat('yyyy-MM-dd').format(firstDay);
+        endDate = DateFormat('yyyy-MM-dd').format(lastDay);
+      });
 
-  //   List<ResponsePotentialCustomer> result =
-  //       await fetchAllPotentialCustomerChar(chatbotCode, startDate, endDate);
+      // Get the selected chatbot code if available
+      String? chatbotCode = "";
+      if (selectedCustomer != null && selectedCustomer != "Chọn trợ lý") {
+        final chatbotProvider =
+            Provider.of<ChatbotnameProvider>(context, listen: false);
+        ChatbotInfo? selectedChatbot = chatbotProvider.chatbotList.firstWhere(
+          (chatbot) => chatbot.name == selectedCustomer,
+          orElse: () => ChatbotInfo(
+              name: "", code: "", createdAt: "", updatedAt: "", userId: ""),
+        );
+        chatbotCode = selectedChatbot.code;
+      }
 
-  //   if (result.isNotEmpty) {
-  //     print("Fetch successful! Number of items: ${result.length}");
-  //     onDataFetched(result);
-  //   } else {
-  //     print("No data found or API error.");
-  //     onDataFetched([]);
-  //   }
-  // }
+      _fetchDataTotal(chatbotCode);
+    }
+  }
 
-  // Future<void> fetchAllPotentialPieChar(
-  //     String? chatbotCode,
-  //     String? startDate,
-  //     String? endDate,
-  //     Function(List<ResponsePotentialCustomerpie>) onDataFetched) async {
-  //   List<ResponsePotentialCustomerpie> result =
-  //       await fetchAllTotalPotentialCustomerPieChar(
-  //           chatbotCode, startDate, endDate);
-
-  //   if (result.isNotEmpty) {
-  //     print("Fetch successful! Number of items: ${result.length}");
-  //     onDataFetched(result);
-  //   } else {
-  //     print("No data found or API error.");
-  //     onDataFetched([]);
-  //   }
-  // }
-
-  // Future<void> fetchAllInteractionPieChar(
-  //     String? chatbotCode,
-  //     String? startDate,
-  //     String? endDate,
-  //     Function(List<ResponseInteractionpie>) onDataFetched) async {
-  //   List<ResponseInteractionpie> result =
-  //       await fetchAllInteractionpie(chatbotCode, startDate, endDate);
-
-  //   if (result.isNotEmpty) {
-  //     print("Fetch successful! Number of items: ${result.length}");
-  //     onDataFetched(result);
-  //   } else {
-  //     print("No data found or API error.");
-  //     onDataFetched([]);
-  //   }
-  // }
+  Widget renderDateDropdown() {
+    return buildDropdown(
+      items: [],
+      selectedItem: selectedDate,
+      hint: "Chọn tháng",
+      width: 180,
+      onTap: () => _selectMonth(context),
+      onChanged: (value) {
+        _fetchDataTotal("");
+      },
+    );
+  }
 
   Future<void> _fetchDataTotal(String? chatbotCode) async {
     try {
       final results = await Future.wait([
         fetchAllTotalQuestion(
-                chatbotCode == "" ? null : chatbotCode, null, null)
+                chatbotCode == "" ? null : chatbotCode, startDate, endDate)
             .catchError((e) {
           print("Error in fetchAllTotalQuestion: $e");
           return ResponseTotalQuestion();
         }),
         fetchAllTotalInteraction(
-                chatbotCode == "" ? null : chatbotCode, null, null)
+                chatbotCode == "" ? null : chatbotCode, startDate, endDate)
             .catchError((e) {
           print("Error in fetchAllTotalInteraction: $e");
           return ResponseTotalInteraction();
         }),
-        fetchAllTotalCount(chatbotCode == "" ? null : chatbotCode, null, null)
+        fetchAllTotalCount(
+                chatbotCode == "" ? null : chatbotCode, startDate, endDate)
             .catchError((e) {
           print("Error in fetchAllTotalCount: $e");
           return ResponseTotalCount();
         }),
         fetchAllTotalPotentialCustomer(
-                chatbotCode == "" ? null : chatbotCode, null, null)
+                chatbotCode == "" ? null : chatbotCode, startDate, endDate)
             .catchError((e) {
           print("Error in fetchAllTotalPotentialCustomer: $e");
           return ResponseTotalPotentialCustomers();
         }),
 
         /// Gộp các hàm fetch dữ liệu của bạn vào đây
-        fetchAllInteractionChar(chatbotCode, null, null).catchError((e) {
+        fetchAllInteractionChar(chatbotCode, startDate, endDate)
+            .catchError((e) {
           print("Error in fetchAllInteractionChar: $e");
           return <ResponseInteractionChar>[];
         }),
-        fetchAllPotentialCustomerChar(chatbotCode, null, null).catchError((e) {
+        fetchAllPotentialCustomerChar(chatbotCode, startDate, endDate)
+            .catchError((e) {
           print("Error in fetchAllPotentialCustomerChar: $e");
           return <ResponsePotentialCustomer>[];
         }),
-        fetchAllTotalPotentialCustomerPieChar(chatbotCode, null, null)
+        fetchAllTotalPotentialCustomerPieChar(chatbotCode, startDate, endDate)
             .catchError((e) {
           print("Error in fetchAllTotalPotentialCustomerPieChar: $e");
           return <ResponsePotentialCustomerpie>[];
         }),
-        fetchAllInteractionpie(chatbotCode, null, null).catchError((e) {
+        fetchAllInteractionpie(chatbotCode, startDate, endDate).catchError((e) {
           print("Error in fetchAllInteractionpie: $e");
           return <ResponseInteractionpie>[];
         }),
@@ -233,21 +194,6 @@ class _DasboardPageState extends State<DasboardPage> {
     } catch (e, stacktrace) {
       print("❌ Error fetching data: $e");
       print("🛠 Stacktrace: $stacktrace");
-    }
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        selectedDate = DateFormat('dd/MM/yyyy').format(pickedDate);
-      });
     }
   }
 
@@ -302,17 +248,6 @@ class _DasboardPageState extends State<DasboardPage> {
           onChanged: (String? newValue) {},
         );
       },
-    );
-  }
-
-  Widget renderDateDropdown() {
-    return buildDropdown(
-      items: [],
-      selectedItem: selectedDate,
-      hint: "Chọn ngày",
-      width: 180,
-      onTap: () => _selectDate(context),
-      onChanged: (value) {}, // Không cần sử dụng vì onTap đã xử lý chọn ngày
     );
   }
 
