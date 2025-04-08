@@ -70,7 +70,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
         packageIcon = getIconForPackage(packageProductName);
       });
     } else {
-      setState(() {
+      setState(() { 
         packageProductName = "Gói hết hạn";
       });
 

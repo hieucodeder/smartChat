@@ -532,6 +532,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                     ),
                     child: DropdownButton<String>(
                       value: pageSize,
+                      underline: SizedBox.shrink(),
                       items: itemsPerPageOptions.map((int value) {
                         return DropdownMenuItem<String>(
                           value: value.toString(),

@@ -150,6 +150,7 @@
 			);
 			path = Runner;
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		E24E5BEED25E9796716B8644 /* Pods */ = {
 			isa = PBXGroup;
@@ -161,7 +162,6 @@
 				6D03814D1A303C98775C7796 /* Pods-RunnerTests.release.xcconfig */,
 				239725F71A19C8846C6720D2 /* Pods-RunnerTests.profile.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
