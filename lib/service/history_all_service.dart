@@ -21,18 +21,18 @@ Future<HistoryAllModel> fetchChatHistoryAll(
 
     // Create BodyHistory object
     final bodyHistory = BodyHistoryAll(
-      chatbotCode: chatbotCode,
-      startDate: startDate,
-      endDate: endDate,
-      userId: userId,
-    );
+        chatbotCode: chatbotCode,
+        startDate: startDate,
+        endDate: endDate,
+        platform: "",
+        isRead: "",
+        isStar: "");
 
     // Serialize BodyHistory to JSON
     final String body = jsonEncode(bodyHistory.toJson());
 
     // Get request headers
     final Map<String, String> headers = await ApiConfig.getHeaders();
-
     // Make the POST request
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -48,6 +48,7 @@ Future<HistoryAllModel> fetchChatHistoryAll(
     if (historyAllModel.data != null && historyAllModel.data!.isNotEmpty) {
       final chatbotHistoryId = historyAllModel.data![0].chatbotHistoryId ?? 0;
       await prefs.setInt('chatbot_history_id', chatbotHistoryId);
+      print('Saved chatbot_history_id: $chatbotHistoryId'); // Add this line
     }
 
     // Kiểm tra response thành công

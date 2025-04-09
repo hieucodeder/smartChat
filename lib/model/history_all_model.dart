@@ -25,20 +25,33 @@ class Data {
   int? chatbotHistoryId;
   String? updatedAt;
   String? slots;
+  int? is_read;
+  int? is_start;
+  String? platform;
   List<Messages>? messages;
 
-  Data({this.chatbotHistoryId, this.updatedAt, this.slots, this.messages});
+  Data({
+    this.chatbotHistoryId,
+    this.updatedAt,
+    this.slots,
+    this.is_read,
+    this.is_start,
+    this.platform,
+    this.messages,
+  });
 
-  Data.fromJson(Map<String, dynamic> json) {
-    chatbotHistoryId = json['chatbot_history_id'];
-    updatedAt = json['updated_at'];
-    slots = json['slots'];
-    if (json['messages'] != null) {
-      messages = <Messages>[];
-      json['messages'].forEach((v) {
-        messages!.add(Messages.fromJson(v));
-      });
-    }
+  factory Data.fromJson(Map<String, dynamic> json) {
+    return Data(
+      chatbotHistoryId: json['chatbot_history_id'],
+      updatedAt: json['updated_at'],
+      slots: json['slots'],
+      is_read: json['is_read'],
+      is_start: json['is_start'],
+      platform: json['platform'],
+      messages: json['messages'] != null
+          ? (json['messages'] as List).map((v) => Messages.fromJson(v)).toList()
+          : null,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -46,6 +59,9 @@ class Data {
     data['chatbot_history_id'] = chatbotHistoryId;
     data['updated_at'] = updatedAt;
     data['slots'] = slots;
+    data['is_read'] = is_read;
+    data['is_start'] = is_start;
+    data['platform'] = platform;
     if (messages != null) {
       data['messages'] = messages!.map((v) => v.toJson()).toList();
     }

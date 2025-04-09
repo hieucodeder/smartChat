@@ -8,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PackageProductPage extends StatefulWidget {
   const PackageProductPage({super.key});
@@ -294,6 +295,13 @@ class _PackageProductPageState extends State<PackageProductPage> {
                               formatNumber(plan["numbers_of_bot"]!),
                               "Trợ lý AI",
                             ),
+
+                            _buildInfoRow(
+                              Icons.check_circle_outline,
+                              formatNumber(queries[0]),
+                              "thông điệp hỏi/tháng",
+                              // Lấy giá trị thứ hai
+                            ),
                             _buildInfoRow(
                               Icons.check_circle_outline,
                               formatNumber(queries[1]),
@@ -303,7 +311,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                             _buildInfoRow(
                               Icons.check_circle_outline,
                               formatNumber(queries[2]),
-                              "URL tối đa",
+                              "liên kết (URLs) tối đa",
                               // Lấy giá trị thứ hai
                             ),
                             _buildInfoRow(
@@ -314,37 +322,48 @@ class _PackageProductPageState extends State<PackageProductPage> {
                             ),
                             _buildInfoRow(
                               Icons.check_circle_outline,
-                              formatNumber(queries[4]),
+                              queries.length > 4
+                                  ? formatNumber(queries[4])
+                                  : "0", // or some default value
                               "khách hàng tiềm năng tối đa",
-                            ),
-                            _buildInfoRow(
-                              Icons.check_circle_outline,
-                              formatNumber(queries[0]),
-                              "thông điệp hỏi/tháng",
-                              // Lấy giá trị thứ hai
                             ),
 
                             Padding(
                               padding: const EdgeInsets.all(5.0),
                               child: ListTile(
-                                leading: const Icon(
+                                leading: Icon(
                                   Icons.check_circle_outline,
-                                  color: Colors.black,
+                                  color: selectedColor == Colors.white
+                                      ? const Color(0xffff5814a)
+                                      : selectedColor,
                                   size: 20,
                                 ),
                                 title: Text(
                                   plan["title"] == "Tùy biến"
                                       ? "Tính năng theo yêu cầu"
-                                      : "${plan["title"] == "Cơ bản" ? 25 : plan["title"] == "Nâng cao" ? 28 : 17} Tính năng thêm",
+                                      : "${plan["title"] == "Cơ bản" ? 20 : plan["title"] == "Nâng cao" ? 25 : 11} Tính năng thêm",
                                   style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600),
                                 ),
 
                                 trailing: GestureDetector(
-                                  onTap: () {
-                                    _showFeatureDialog(
-                                        context, plan["features"]!.split(", "));
+                                  onTap: () async {
+                                    const youtubeUrl =
+                                        'https://smartchat.com.vn/vi/pricing'; // Thay link tại đây
+                                    if (await canLaunchUrl(
+                                        Uri.parse(youtubeUrl))) {
+                                      await launchUrl(Uri.parse(youtubeUrl));
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                            content:
+                                                Text('Không thể mở YouTube')),
+                                      );
+                                    }
+                                    // _showFeatureDialog(
+                                    //     context, plan["features"]!.split(", "));
                                   },
                                   child: const Icon(
                                     Icons.info_outline,
@@ -374,17 +393,22 @@ class _PackageProductPageState extends State<PackageProductPage> {
   }
 
   Widget _buildInfoRow(IconData icon, String value, String label) {
-    // Kiểm tra nếu value là "99,999,999" thì thay bằng "Không giới hạn"
+    final selectedcolor = Provider.of<Providercolor>(context)
+        .selectedColor; // Kiểm tra nếu value là "99,999,999" thì thay bằng "Không giới hạn"
     String displayValue =
         (value == formatNumber(99999999)) ? "Không giới hạn" : value;
     if (value == "0" || value.isEmpty) {
-      return SizedBox.shrink(); // Hoặc return Container() nếu muốn
+      return const SizedBox.shrink(); // Hoặc return Container() nếu muốn
     }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5.0),
       child: ListTile(
-        leading: Icon(icon, color: Colors.black, size: 20),
+        leading: Icon(icon,
+            color: selectedcolor == Colors.white
+                ? const Color(0xffff5814a)
+                : selectedcolor,
+            size: 20),
         title: Text(
           "$displayValue $label",
           style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600),

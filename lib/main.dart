@@ -8,6 +8,7 @@ import 'package:chatbotbnn/provider/draw_selected_color_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
 import 'package:chatbotbnn/provider/menu_state_provider.dart';
 import 'package:chatbotbnn/provider/navigation_provider.dart';
+import 'package:chatbotbnn/provider/platform_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/provider/selected_history_provider.dart';
 import 'package:chatbotbnn/provider/selected_item_provider.dart';
@@ -29,7 +30,8 @@ void main() {
       ChangeNotifierProvider(create: (_) => ChatbotnameProvider()),
       ChangeNotifierProvider(create: (_) => DrawSelectedColorProvider()),
       ChangeNotifierProvider(create: (_) => SelectedItemProvider()),
-      ChangeNotifierProvider(create: (_) => MenuStateProvider())
+      ChangeNotifierProvider(create: (_) => MenuStateProvider()),
+      ChangeNotifierProvider(create: (_) => PlatformProvider())
     ],
     child: const MyApp(),
   ));

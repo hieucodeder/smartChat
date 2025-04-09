@@ -10,4 +10,10 @@ class ChatbotnameProvider with ChangeNotifier {
     _chatbotList = newChatbotList;
     notifyListeners();
   }
+
+  // Thêm phương thức này để xóa danh sách
+  void clearChatbotList() {
+    _chatbotList = [];
+    notifyListeners();
+  }
 }

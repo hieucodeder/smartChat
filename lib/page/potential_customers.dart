@@ -1,6 +1,9 @@
 import 'package:chatbotbnn/model/reponse_potential_customer.dart';
+import 'package:chatbotbnn/model/response_bot_config.dart';
+import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/service/app_config.dart';
+import 'package:chatbotbnn/service/bot_config_service.dart';
 import 'package:chatbotbnn/service/potential_customer_sevice.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -25,16 +28,17 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
   String? slotsStatus;
   String? currentPage = "1";
   String? pageSize = "10";
+  String? intentQueue;
   final List<int> itemsPerPageOptions = [10, 20, 50, 100];
   bool hasMoreData = true;
+  List<Map<String, dynamic>> intentSlots = [];
+
   bool isImageUrl(String url) {
     if (url.isEmpty) {
-      debugPrint('⚠️ URL rỗng - không phải ảnh');
       return false;
     }
 
     final lowerUrl = url.toLowerCase().trim();
-    debugPrint('\n🔍 Kiểm tra URL: "$lowerUrl"');
 
     // Kiểm tra các dấu hiệu của URL ảnh
     final isHttp =
@@ -44,13 +48,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
     final containsImagePath =
         RegExp(r'(image|img|picture|pic|photo)').hasMatch(lowerUrl);
 
-    debugPrint('🔎 Kết quả kiểm tra:');
-    debugPrint('- Là URL: $isHttp');
-    debugPrint('- Có đuôi ảnh: $hasImageExtension');
-    debugPrint('- Chứa đường dẫn ảnh: $containsImagePath');
-
     final result = isHttp && (hasImageExtension || containsImagePath);
-    debugPrint('🎯 Kết luận: ${result ? "✅ Là ảnh" : "❌ Không phải ảnh"}');
 
     return result;
   }
@@ -62,11 +60,56 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
     'completed',
     'unreachable'
   ];
-
+  final platformMapping = {
+    'pending': 'Chưa xử lý',
+    'completed': 'Đã xử lý', // Ví dụ thêm
+    'unreachable': 'Chưa liên hệ được',
+  };
   @override
   void initState() {
     super.initState();
-    fetchCustomers(searchContent, slotsStatus, currentPage, pageSize);
+
+    Future.wait([
+      fetchCustomers(
+          searchContent, slotsStatus, currentPage, pageSize, intentQueue),
+      loadChatbotConfig(),
+    ]).then((results) {
+      final chatbotConfig = results[1] as Map<String, dynamic>?;
+      if (chatbotConfig != null) {
+        setState(() {
+          intentSlots =
+              List<Map<String, dynamic>>.from(chatbotConfig['intentSlots']);
+        });
+      }
+    });
+  }
+
+  Future<Map<String, dynamic>?> loadChatbotConfig() async {
+    final chatbotCode =
+        Provider.of<ChatbotProvider>(context, listen: false).currentChatbotCode;
+
+    try {
+      List<Data> chatbotConfig =
+          await fetchChatbotConfigPotential(chatbotCode!, "123");
+
+      if (chatbotConfig.isEmpty) {
+        throw Exception('❌ Không tìm thấy cấu hình chatbot.');
+      }
+
+      final config = chatbotConfig.first;
+
+      // Lấy cả intent slot và count
+      final intentSlotsWithCount = config.getIntentSlotsWithCount();
+      print('Intent slots with count: $intentSlotsWithCount');
+
+      return {
+        'config': config,
+        'intentSlots': intentSlotsWithCount,
+      };
+    } catch (error) {
+      debugPrint("❌ Lỗi khi tải cấu hình chatbot: $error");
+      return null;
+    }
   }
 
   Future<Map<String, String?>> getChatbotInfo() async {
@@ -77,18 +120,30 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
     };
   }
 
-  Future<void> fetchCustomers(String? selectedValue, String? searchValue,
-      String? pageIndex, String? pageSize1) async {
+  Future<void> fetchCustomers(
+    String? selectedValue,
+    String? searchValue,
+    String? pageIndex,
+    String? pageSize1,
+    String? intentQueue1, // Tham số này đã có
+  ) async {
     setState(() {
       isLoading = true;
-      slotsStatus = selectedValue; // Cập nhật giá trị đã chọn vào slotsStatus
+      slotsStatus = selectedValue;
       searchContent = searchValue;
       currentPage = pageIndex;
       pageSize = pageSize1;
+      intentQueue = intentQueue1; // Lưu vào biến state
     });
 
     List<DataPotentialCustomer> data = await fetchAllPotentialCustomer(
-        context, searchContent, slotsStatus, currentPage, pageSize);
+      context,
+      searchContent,
+      slotsStatus,
+      currentPage,
+      intentQueue,
+      pageSize, // Vị trí thứ 6
+    );
 
     Set<String> columnsSet = {};
     for (var customer in data) {
@@ -99,6 +154,21 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
       customers = data;
       dynamicColumns = columnsSet.toList();
       isLoading = false;
+    });
+  }
+
+  void clearSearchContent() {
+    setState(() {
+      _searchController.clear(); // Xóa nội dung trong TextField
+      searchContent = ""; // Reset searchContent về rỗng
+      // Gọi lại hàm fetchCustomers với searchContent rỗng
+      fetchCustomers(
+        slotsStatus,
+        "", // searchValue rỗng
+        currentPage,
+        pageSize,
+        intentQueue,
+      );
     });
   }
 
@@ -139,8 +209,11 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
               return DropdownMenuItem<String>(
                 value: item,
                 child: Text(
-                  item,
-                  style: GoogleFonts.inter(fontSize: 14, color: Colors.black),
+                  item == 'Tất cả trạng thái'
+                      ? item
+                      : platformMapping[item] ??
+                          item, // Hiển thị giá trị ánh xạ
+                  style: GoogleFonts.inter(fontSize: 14),
                 ),
               );
             }).toList(),
@@ -154,6 +227,17 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
   @override
   Widget build(BuildContext context) {
     final selectedColor = Provider.of<Providercolor>(context).selectedColor;
+    String _getStatusText(String status) {
+      final platformMapping = {
+        'pending': 'Chưa xử lý',
+        'completed': 'Đã xử lý',
+        'unreachable': 'Chưa liên hệ được',
+        // Thêm các mapping khác nếu cần
+      };
+
+      return platformMapping[status.toLowerCase()] ?? status;
+    }
+
     return Container(
         height: MediaQuery.of(context).size.height,
         padding: const EdgeInsets.all(8),
@@ -203,18 +287,20 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                             bottom: 0,
                           ),
                           decoration: BoxDecoration(
-                            border: Border.all(width: 2, color: Colors.white),
+                            border: Border.all(
+                                width: 1, color: Colors.grey.shade400),
                             borderRadius: BorderRadius.circular(
                                 25), // Adding rounded corners here
                           ),
                           child: CircleAvatar(
-                            backgroundImage: chatbotPicture != null &&
+                            backgroundColor: Colors.white,
+                            foregroundImage: chatbotPicture != null &&
                                     chatbotPicture.isNotEmpty
                                 ? NetworkImage(
                                     "${ApiConfig.baseUrlBasic}$chatbotPicture")
                                 : const AssetImage('resources/Smartchat.png')
                                     as ImageProvider,
-                            radius: 20,
+                            radius: 30,
                           ),
                         ),
                         const SizedBox(width: 5),
@@ -231,8 +317,92 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                 ),
               ],
             ),
-            const SizedBox(
-              height: 10,
+            Divider(
+              color: Colors.grey.shade400,
+            ),
+            FutureBuilder<Map<String, dynamic>?>(
+              future: loadChatbotConfig(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError || snapshot.data == null) {
+                  return const Center(
+                      child: Text("❌ Lỗi khi tải cấu hình chatbot."));
+                } else {
+                  final intentSlots = snapshot.data!['intentSlots']
+                      as List<Map<String, dynamic>>;
+
+                  return SizedBox(
+                    height: 50,
+                    child: intentSlots.isEmpty
+                        ? const Center(child: Text("Không có intent slots"))
+                        : Center(
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount:
+                                  intentSlots.length + 2, // Thêm 2 để căn giữa
+                              itemBuilder: (context, index) {
+                                // Thêm khoảng trống ở đầu và cuối để căn giữa
+                                if (index == 0 ||
+                                    index == intentSlots.length + 1) {
+                                  return SizedBox(
+                                    width: (MediaQuery.of(context).size.width -
+                                            (intentSlots.length * 100)) /
+                                        2,
+                                  ); // Ước lượng chiều rộng để căn giữa
+                                }
+
+                                final slot = intentSlots[
+                                    index - 1]; // Bù 1 vì có SizedBox ở đầu
+                                final slotName = slot['intentSlot'];
+                                final count = slot['count'];
+
+                                return GestureDetector(
+                                  onTap: () {
+                                    // Lưu trữ slotName vào biến intentQueue
+                                    setState(() {
+                                      intentQueue = slotName;
+                                    });
+                                    // Gọi hàm fetchCustomers với intentQueue mới
+                                    fetchCustomers(
+                                      slotsStatus, // selectedValue
+                                      searchContent, // searchValue
+                                      currentPage, // pageIndex
+                                      pageSize, // pageSize1
+                                      slotName, // intentQueue1 - truyền slotName vào đây
+                                    );
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    margin: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        width: 1,
+                                        color: intentQueue == slotName
+                                            ? const Color(0xfffed5113)
+                                            : Colors.grey.shade400,
+                                      ),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      "$slotName ($count)",
+                                      style: GoogleFonts.inter(
+                                        color: intentQueue == slotName
+                                            ? const Color(0xfffed5113)
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                  );
+                }
+              },
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -251,7 +421,8 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                         newValue == 'Tất cả trạng thái' ? null : newValue,
                         searchContent,
                         currentPage,
-                        pageSize);
+                        pageSize,
+                        intentQueue);
                   },
                 ),
                 const SizedBox(
@@ -286,34 +457,54 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        suffixIcon: GestureDetector(
-                          onTap: () {
-                            fetchCustomers(slotsStatus, currentPage, pageSize,
-                                _searchController.text);
-                          },
-                          child: Container(
-                            width: 10,
-                            padding: const EdgeInsets.all(8),
-                            margin: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: selectedColor == Colors.white
-                                  ? const Color(0xfffed5113)
-                                  : selectedColor,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.search,
-                                color: Colors.white,
-                                size: 20,
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Nút xóa (hiển thị khi có nội dung)
+                            if (_searchController.text.isNotEmpty)
+                              SizedBox(
+                                height: 40,
+                                width: 40,
+                                child: IconButton(
+                                  icon: Icon(Icons.clear, size: 20),
+                                  onPressed: clearSearchContent,
+                                ),
+                              ),
+                            GestureDetector(
+                              onTap: () {
+                                fetchCustomers(
+                                  slotsStatus,
+                                  _searchController.text,
+                                  currentPage,
+                                  pageSize,
+                                  intentQueue,
+                                );
+                              },
+                              child: Container(
+                                width: 40,
+                                padding: const EdgeInsets.all(8),
+                                margin: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: selectedColor == Colors.white
+                                      ? const Color(0xfffed5113)
+                                      : selectedColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.search,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                       onSubmitted: (value) {
-                        fetchCustomers(
-                            slotsStatus, currentPage, pageSize, value);
+                        fetchCustomers(slotsStatus, currentPage, pageSize,
+                            intentQueue, value);
                       },
                     ),
                   ),
@@ -348,10 +539,12 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                   ),
                                   ...dynamicColumns.map(
                                     (col) => DataColumn(
-                                      label: Text(
-                                        col,
-                                        style: GoogleFonts.inter(
-                                            fontWeight: FontWeight.bold),
+                                      label: Center(
+                                        child: Text(
+                                          col,
+                                          style: GoogleFonts.inter(
+                                              fontWeight: FontWeight.bold),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -379,8 +572,6 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                                 ?.toString()
                                                 .trim() ??
                                             "";
-                                        debugPrint('\n📋 Kiểm tra cột: "$col"');
-                                        debugPrint('📌 Giá trị: "$value"');
 
                                         if (isImageUrl(value)) {
                                           return DataCell(
@@ -446,8 +637,8 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                       }),
                                       DataCell(
                                         Center(
-                                            child: Text(
-                                                customer.slotStatus ?? "")),
+                                            child: Text(_getStatusText(
+                                                customer.slotStatus ?? ""))),
                                       ),
                                     ],
                                   );
@@ -472,12 +663,8 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                   currentPage = (int.parse(currentPage!) - 1)
                                       .toString(); // Giảm trang
                                 });
-                                fetchCustomers(
-                                  searchContent,
-                                  slotsStatus,
-                                  currentPage,
-                                  pageSize,
-                                );
+                                fetchCustomers(searchContent, slotsStatus,
+                                    currentPage, intentQueue, pageSize);
                               }
                             : null,
                     icon: const Icon(
@@ -511,12 +698,8 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                               currentPage = (int.parse(currentPage ?? "1") + 1)
                                   .toString(); // Tăng trang
                             });
-                            fetchCustomers(
-                              searchContent,
-                              slotsStatus,
-                              currentPage,
-                              pageSize,
-                            );
+                            fetchCustomers(searchContent, slotsStatus,
+                                currentPage, intentQueue, pageSize);
                           }
                         : null,
                     icon: const Icon(
@@ -531,9 +714,13 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                       border: Border.all(width: 1, color: Colors.black12),
                     ),
                     child: DropdownButton<String>(
-                      value: pageSize,
-                      underline: SizedBox.shrink(),
-                      items: itemsPerPageOptions.map((int value) {
+                      value:
+                          itemsPerPageOptions.contains(int.tryParse(pageSize!))
+                              ? pageSize
+                              : itemsPerPageOptions.first.toString(),
+                      underline: const SizedBox.shrink(),
+                      items:
+                          itemsPerPageOptions.toSet().toList().map((int value) {
                         return DropdownMenuItem<String>(
                           value: value.toString(),
                           child: Padding(
@@ -548,18 +735,14 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                         if (newValue != null) {
                           setState(() {
                             pageSize = newValue;
-                            currentPage = "1"; // Đặt lại về trang 1
+                            currentPage = "1";
                           });
-                          fetchCustomers(
-                            searchContent,
-                            slotsStatus,
-                            currentPage,
-                            pageSize,
-                          );
+                          fetchCustomers(searchContent, slotsStatus,
+                              currentPage, intentQueue, pageSize);
                         }
                       },
                     ),
-                  ),
+                  )
                 ],
               ),
             )

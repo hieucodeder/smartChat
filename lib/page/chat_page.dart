@@ -4,6 +4,7 @@ import 'package:chatbotbnn/model/history_all_model.dart';
 import 'package:chatbotbnn/provider/chat_provider.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
+import 'package:chatbotbnn/provider/platform_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/service/anwser_number.dart';
 import 'package:chatbotbnn/service/chatbot_config_service.dart';
@@ -11,7 +12,6 @@ import 'package:chatbotbnn/service/history_all_service.dart';
 import 'package:chatbotbnn/service/history_service.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
@@ -324,6 +324,8 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+//
+
   List<InlineSpan> _parseMessage(String message, BuildContext context) {
     List<InlineSpan> spans = [];
     RegExp regexBold = RegExp(r'\*\*(.*?)\*\*'); // In đậm
@@ -331,12 +333,16 @@ class _ChatPageState extends State<ChatPage> {
     RegExp regexBoldItalicLine = RegExp(r'^\s*###\s*(.*?)\s*$',
         multiLine: true); // Đậm + nghiêng với ###
     RegExp regexImage = RegExp(r'!\[(.*?)\]\((.*?)\)'); // Ảnh Markdown
-    RegExp regexLink =
-        RegExp(r'(\*\*|##)?\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)(\*\*|##)?');
+    RegExp regexLink = RegExp(
+        r'(\*\*|##)?\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)(\*\*|##)?'); // link ảnh nhấn
+    RegExp regexImageInLink =
+        RegExp(r'\[(!\[.*?\]\(.*?\))](\(.*?\))'); // Nhấn link trong ảnh
+
     int lastIndex = 0;
 
     while (lastIndex < message.length) {
       List<RegExpMatch?> matches = [
+        regexImageInLink.firstMatch(message.substring(lastIndex)),
         regexImage.firstMatch(message.substring(lastIndex)),
         regexLink.firstMatch(message.substring(lastIndex)),
         regexBoldItalicLine.firstMatch(message.substring(lastIndex)),
@@ -362,7 +368,66 @@ class _ChatPageState extends State<ChatPage> {
         ));
       }
 
-      if (match.pattern == regexImage) {
+      if (match.pattern == regexImageInLink) {
+        // Xử lý trường hợp ảnh nằm trong link
+        String imageMarkdown = match.group(1)!;
+        String linkUrl = match
+            .group(2)!
+            .substring(1, match.group(2)!.length - 1); // Bỏ dấu ngoặc đơn
+
+        // Trích xuất thông tin ảnh từ imageMarkdown
+        var imageMatch = regexImage.firstMatch(imageMarkdown);
+        if (imageMatch != null) {
+          String altText = imageMatch.group(1)!;
+          String imageUrl = imageMatch.group(2)!;
+
+          bool isImageUrl =
+              RegExp(r'\.(jpg|jpeg|png|gif|webp)$', caseSensitive: false)
+                      .hasMatch(imageUrl) ||
+                  imageUrl.contains('bizweb.dktcdn.net') ||
+                  imageUrl.startsWith('http');
+
+          if (isImageUrl) {
+            spans.add(
+              WidgetSpan(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  child: GestureDetector(
+                    onTap: () async {
+                      String url = linkUrl.startsWith('http')
+                          ? linkUrl
+                          : 'https://$linkUrl';
+                      if (await canLaunchUrl(Uri.parse(url))) {
+                        await launchUrl(Uri.parse(url),
+                            mode: LaunchMode.externalApplication);
+                      }
+                    },
+                    child: Image.network(
+                      imageUrl,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Text('Không thể tải ảnh');
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            );
+          } else {
+            spans.add(TextSpan(
+              text: match[0],
+              style: GoogleFonts.inter(color: Colors.black),
+            ));
+          }
+        }
+      } else if (match.pattern == regexImage) {
         String altText = match.group(1)!;
         String linkUrl = match.group(2)!;
 
@@ -480,7 +545,7 @@ class _ChatPageState extends State<ChatPage> {
         ));
       } else if (match.pattern == regexBoldItalicLine) {
         String boldItalicText = match.group(1)!;
-        List<InlineSpan> nestedSpans = _parseNested(boldItalicText, context);
+        List<InlineSpan> nestedSpans = _parseMessage(boldItalicText, context);
         spans.add(TextSpan(
           children: nestedSpans,
           style: GoogleFonts.inter(
@@ -516,166 +581,17 @@ class _ChatPageState extends State<ChatPage> {
     return spans;
   }
 
-// Hàm phụ để xử lý định dạng lồng nhau
-  List<InlineSpan> _parseNested(String text, BuildContext context) {
-    List<InlineSpan> spans = [];
-    RegExp regexImage = RegExp(r'!\[(.*?)\]\((.*?)\)');
-    RegExp regexLink =
-        RegExp(r'(\*\*|##)?\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)(\*\*|##)?');
-    RegExp regexItalic = RegExp(r'##(.*?)##');
-    RegExp regexBold = RegExp(r'\*\*(.*?)\*\*');
-
-    int lastIndex = 0;
-
-    while (lastIndex < text.length) {
-      List<RegExpMatch?> matches = [
-        regexImage.firstMatch(text.substring(lastIndex)),
-        regexLink.firstMatch(text.substring(lastIndex)),
-        regexItalic.firstMatch(text.substring(lastIndex)),
-        regexBold.firstMatch(text.substring(lastIndex)),
-      ].where((match) => match != null).toList();
-
-      if (matches.isEmpty) {
-        spans.add(TextSpan(text: text.substring(lastIndex)));
-        break;
-      }
-
-      matches.sort((a, b) => a!.start.compareTo(b!.start));
-      var match = matches.first!;
-
-      if (match.start > 0) {
-        spans.add(
-            TextSpan(text: text.substring(lastIndex, lastIndex + match.start)));
-      }
-
-      if (match.pattern == regexImage) {
-        String altText = match.group(1)!;
-        String linkUrl = match.group(2)!;
-        bool isImageUrl =
-            RegExp(r'\.(jpg|jpeg|png|gif|webp)$', caseSensitive: false)
-                    .hasMatch(linkUrl) ||
-                linkUrl.contains('bizweb.dktcdn.net') ||
-                linkUrl.startsWith('http');
-
-        if (isImageUrl) {
-          spans.add(WidgetSpan(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 5),
-              child: GestureDetector(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: true,
-                    builder: (context) => Dialog(
-                      insetPadding: EdgeInsets.zero,
-                      backgroundColor: Colors.black,
-                      child: SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height,
-                        child: Stack(
-                          children: [
-                            PhotoView(
-                              imageProvider: NetworkImage(linkUrl),
-                              backgroundDecoration: const BoxDecoration(
-                                color: Colors.black,
-                              ),
-                              minScale: PhotoViewComputedScale.contained,
-                              maxScale: PhotoViewComputedScale.covered * 2.0,
-                              loadingBuilder: (context, event) => const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Center(
-                                child: Text(
-                                  'Không thể tải ảnh',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 40,
-                              right: 20,
-                              child: IconButton(
-                                icon: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 30,
-                                ),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-                child: Image.network(
-                  linkUrl,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const Center(child: CircularProgressIndicator());
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Text('Không thể tải ảnh');
-                  },
-                ),
-              ),
-            ),
-          ));
-        } else {
-          spans.add(TextSpan(text: match[0]));
-        }
-      } else if (match.pattern == regexLink) {
-        String linkText = match.group(2)!;
-        String linkUrl = match.group(3)!;
-        String? title = match.group(4);
-        bool isBold = match.group(1) == '**' || match.group(5) == '**';
-        bool isItalic = match.group(1) == '##' || match.group(5) == '##';
-
-        spans.add(TextSpan(
-          text: linkText,
-          style: GoogleFonts.inter(
-            color: Colors.blue,
-            decoration: TextDecoration.underline,
-            fontWeight: isBold ? FontWeight.bold : null,
-            fontStyle: isItalic ? FontStyle.italic : null,
-          ),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () async {
-              String url =
-                  linkUrl.startsWith('http') ? linkUrl : 'https://$linkUrl';
-              if (await canLaunchUrl(Uri.parse(url))) {
-                await launchUrl(Uri.parse(url),
-                    mode: LaunchMode.externalApplication);
-              }
-            },
-        ));
-      } else if (match.pattern == regexItalic) {
-        spans.add(TextSpan(
-          text: match.group(1)!,
-          style: GoogleFonts.inter(fontStyle: FontStyle.italic),
-        ));
-      } else if (match.pattern == regexBold) {
-        spans.add(TextSpan(
-          text: match.group(1)!,
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-        ));
-      }
-
-      lastIndex = lastIndex + match.end;
-    }
-
-    return spans;
-  }
-
   final ScrollController _scrollController = ScrollController();
-
+  final platformMapping = {
+    'playground': 'Trải Nghiệm Thử',
+    'zalo': 'Zalo', // Ví dụ thêm
+    'facebook': 'Facebook',
+  };
   @override
   Widget build(BuildContext context) {
     final selectColors = Provider.of<Providercolor>(context).selectedColor;
+    final platform = Provider.of<PlatformProvider>(context).platform;
+
     final textChatBot = GoogleFonts.inter(
       fontSize: 14,
       color: Colors.black,
@@ -689,6 +605,30 @@ class _ChatPageState extends State<ChatPage> {
       color: Colors.white,
       child: Column(
         children: [
+          Visibility(
+            visible: platform.isNotEmpty,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  height: 30,
+                  margin: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: Colors.grey.withOpacity(0.4)),
+
+                  child: Center(
+                    child: Text(
+                      platformMapping[platform] ?? platform,
+                      style:
+                          GoogleFonts.inter(fontSize: 11, color: Colors.black),
+                    ),
+                  ), // Đặt Text ở giữa nếu cần
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -720,280 +660,300 @@ class _ChatPageState extends State<ChatPage> {
                                     (message['imageStatistic'] as List<dynamic>)
                                         .isNotEmpty),
                             child: isUser
-                                ? Container(
-                                    padding: const EdgeInsets.all(10),
-                                    margin: EdgeInsets.zero,
-                                    decoration: BoxDecoration(
-                                      color: selectColors == Colors.white
-                                          ? (isUser
-                                              ? const Color(
-                                                  0xffed5113) // Orange when white and isUser
-                                              : selectColors) // White when white and not isUser
-                                          : (selectColors ==
-                                                  const Color(0xFF284973)
-                                              ? (isUser
-                                                  ? selectColors
-                                                  : null) // Blue or orange
-                                              : (selectColors ==
-                                                      const Color(0xff48433d)
-                                                  ? (isUser
-                                                      ? const Color(0xff48433d)
-                                                      : null) // Blue or black
-                                                  : selectColors)), // Fallback to selectColors
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(10),
-                                        topRight: Radius.circular(10),
-                                        bottomLeft: Radius.circular(10),
-                                        bottomRight: Radius.zero,
-                                      ),
+                                ? ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth:
+                                          MediaQuery.of(context).size.width *
+                                              0.8,
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        RichText(
-                                          text: TextSpan(
-                                            children: _parseMessage(
-                                                    message['text'] ?? '',
-                                                    context)
-                                                .map((span) {
-                                              if (span is TextSpan) {
-                                                return TextSpan(
-                                                  text: span.text,
-                                                  style: span.style?.copyWith(
-                                                    fontSize: 13,
-                                                    color: Colors
-                                                        .white, // Chữ trắng cho user
-                                                  ),
-                                                  recognizer: span.recognizer,
-                                                );
-                                              } else {
-                                                return span;
-                                              }
-                                            }).toList(),
-                                          ),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      margin: EdgeInsets.zero,
+                                      decoration: BoxDecoration(
+                                        color: selectColors == Colors.white
+                                            ? (isUser
+                                                ? const Color(
+                                                    0xffed5113) // Orange when white and isUser
+                                                : selectColors) // White when white and not isUser
+                                            : (selectColors ==
+                                                    const Color(0xFF284973)
+                                                ? (isUser
+                                                    ? selectColors
+                                                    : null) // Blue or orange
+                                                : (selectColors ==
+                                                        const Color(0xff48433d)
+                                                    ? (isUser
+                                                        ? const Color(
+                                                            0xff48433d)
+                                                        : null) // Blue or black
+                                                    : selectColors)), // Fallback to selectColors
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(10),
+                                          topRight: Radius.circular(10),
+                                          bottomLeft: Radius.circular(10),
+                                          bottomRight: Radius.zero,
                                         ),
-                                        if (message['imageStatistic'] != null &&
-                                            message['imageStatistic']
-                                                is List<String> &&
-                                            (message['imageStatistic']
-                                                    as List<String>)
-                                                .isNotEmpty)
-                                          Wrap(
-                                            spacing: 8,
-                                            runSpacing: 8,
-                                            children: (message['imageStatistic']
-                                                    as List<String>)
-                                                .map((imageUrl) {
-                                              return GestureDetector(
-                                                onTap: () {
-                                                  showDialog(
-                                                    context: context,
-                                                    builder: (context) =>
-                                                        Dialog(
-                                                      backgroundColor:
-                                                          Colors.transparent,
-                                                      child: ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
-                                                        child: SizedBox(
-                                                          width: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .width *
-                                                              0.9,
-                                                          height: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .height *
-                                                              0.7,
-                                                          child: PhotoView(
-                                                            imageProvider:
-                                                                NetworkImage(
-                                                                    imageUrl),
-                                                            backgroundDecoration:
-                                                                const BoxDecoration(
-                                                                    color: Colors
-                                                                        .white),
-                                                            minScale:
-                                                                PhotoViewComputedScale
-                                                                    .contained,
-                                                            maxScale:
-                                                                PhotoViewComputedScale
-                                                                        .covered *
-                                                                    2.0,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          RichText(
+                                            text: TextSpan(
+                                              children: _parseMessage(
+                                                      message['text'] ?? '',
+                                                      context)
+                                                  .map((span) {
+                                                if (span is TextSpan) {
+                                                  return TextSpan(
+                                                    text: span.text,
+                                                    style: span.style?.copyWith(
+                                                        fontSize: 13,
+                                                        color: Colors
+                                                            .white, // Chữ trắng cho user
+                                                        height: 1.5),
+                                                    recognizer: span.recognizer,
+                                                  );
+                                                } else {
+                                                  return span;
+                                                }
+                                              }).toList(),
+                                            ),
+                                          ),
+                                          if (message['imageStatistic'] !=
+                                                  null &&
+                                              message['imageStatistic']
+                                                  is List<String> &&
+                                              (message['imageStatistic']
+                                                      as List<String>)
+                                                  .isNotEmpty)
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
+                                              children:
+                                                  (message['imageStatistic']
+                                                          as List<String>)
+                                                      .map((imageUrl) {
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) =>
+                                                          Dialog(
+                                                        backgroundColor:
+                                                            Colors.transparent,
+                                                        child: ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                          child: SizedBox(
+                                                            width: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width *
+                                                                0.9,
+                                                            height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .height *
+                                                                0.7,
+                                                            child: PhotoView(
+                                                              imageProvider:
+                                                                  NetworkImage(
+                                                                      imageUrl),
+                                                              backgroundDecoration:
+                                                                  const BoxDecoration(
+                                                                      color: Colors
+                                                                          .white),
+                                                              minScale:
+                                                                  PhotoViewComputedScale
+                                                                      .contained,
+                                                              maxScale:
+                                                                  PhotoViewComputedScale
+                                                                          .covered *
+                                                                      2.0,
+                                                            ),
                                                           ),
                                                         ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                                child: Image.network(
-                                                  imageUrl,
-                                                  fit: BoxFit.cover,
-                                                  loadingBuilder: (context,
-                                                      child, loadingProgress) {
-                                                    if (loadingProgress == null)
-                                                      return child;
-                                                    return const SizedBox(
-                                                      child: Center(
-                                                          child:
-                                                              CircularProgressIndicator()),
                                                     );
                                                   },
-                                                  errorBuilder: (context, error,
-                                                      stackTrace) {
-                                                    return const Icon(
-                                                        Icons.error,
-                                                        size: 100,
-                                                        color: Colors.red);
-                                                  },
-                                                ),
-                                              );
-                                            }).toList(),
-                                          ),
-                                      ],
-                                    ),
-                                  )
-                                : Container(
-                                    padding: const EdgeInsets.only(
-                                        right: 10, top: 10, bottom: 10),
-                                    decoration: BoxDecoration(
-                                      color: selectColors == Colors.white
-                                          ? (isUser
-                                              ? const Color(
-                                                  0xffed5113) // Orange when white and isUser
-                                              : selectColors) // White when white and not isUser
-                                          : (selectColors ==
-                                                  const Color(0xFF284973)
-                                              ? (isUser
-                                                  ? selectColors
-                                                  : null) // Blue or orange
-                                              : (selectColors ==
-                                                      const Color(0xff48433d)
-                                                  ? (isUser
-                                                      ? const Color(0xff48433d)
-                                                      : null) // Blue or black
-                                                  : selectColors)), // Fallback to selectColors
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(10),
-                                        topRight: Radius.circular(10),
-                                        bottomLeft: Radius.zero,
-                                        bottomRight: Radius.circular(10),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        RichText(
-                                          text: TextSpan(
-                                            children: _parseMessage(
-                                                    message['text'] ?? '',
-                                                    context)
-                                                .map((span) {
-                                              if (span is TextSpan) {
-                                                return TextSpan(
-                                                  text: span.text,
-                                                  style: span.style?.copyWith(
-                                                    fontSize: 13,
-                                                    color: Colors
-                                                        .black, // Chữ đen cho bot
+                                                  child: Image.network(
+                                                    imageUrl,
+                                                    fit: BoxFit.cover,
+                                                    loadingBuilder: (context,
+                                                        child,
+                                                        loadingProgress) {
+                                                      if (loadingProgress ==
+                                                          null) return child;
+                                                      return const SizedBox(
+                                                        child: Center(
+                                                            child:
+                                                                CircularProgressIndicator()),
+                                                      );
+                                                    },
+                                                    errorBuilder: (context,
+                                                        error, stackTrace) {
+                                                      return const Icon(
+                                                          Icons.error,
+                                                          size: 100,
+                                                          color: Colors.red);
+                                                    },
                                                   ),
-                                                  recognizer: span.recognizer,
                                                 );
-                                              } else {
-                                                return span;
-                                              }
-                                            }).toList(),
-                                          ),
+                                              }).toList(),
+                                            ),
+                                        ],
+                                      ),
+                                    ))
+                                : ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                        maxWidth:
+                                            MediaQuery.of(context).size.width *
+                                                0.9),
+                                    child: Container(
+                                      padding: const EdgeInsets.only(
+                                          right: 10, top: 10, bottom: 10),
+                                      decoration: BoxDecoration(
+                                        color: selectColors == Colors.white
+                                            ? (isUser
+                                                ? const Color(
+                                                    0xffed5113) // Orange when white and isUser
+                                                : selectColors) // White when white and not isUser
+                                            : (selectColors ==
+                                                    const Color(0xFF284973)
+                                                ? (isUser
+                                                    ? selectColors
+                                                    : null) // Blue or orange
+                                                : (selectColors ==
+                                                        const Color(0xff48433d)
+                                                    ? (isUser
+                                                        ? const Color(
+                                                            0xff48433d)
+                                                        : null) // Blue or black
+                                                    : selectColors)), // Fallback to selectColors
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(10),
+                                          topRight: Radius.circular(10),
+                                          bottomLeft: Radius.zero,
+                                          bottomRight: Radius.circular(10),
                                         ),
-                                        if (message['imageStatistic'] != null &&
-                                            message['imageStatistic']
-                                                is List<String> &&
-                                            (message['imageStatistic']
-                                                    as List<String>)
-                                                .isNotEmpty)
-                                          Wrap(
-                                            spacing: 8,
-                                            runSpacing: 8,
-                                            children: (message['imageStatistic']
-                                                    as List<String>)
-                                                .map((imageUrl) {
-                                              return GestureDetector(
-                                                onTap: () {
-                                                  showDialog(
-                                                    context: context,
-                                                    builder: (context) =>
-                                                        Dialog(
-                                                      backgroundColor:
-                                                          Colors.transparent,
-                                                      child: ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10),
-                                                        child: SizedBox(
-                                                          width: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .width *
-                                                              0.9,
-                                                          height: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .height *
-                                                              0.7,
-                                                          child: PhotoView(
-                                                            imageProvider:
-                                                                NetworkImage(
-                                                                    imageUrl),
-                                                            backgroundDecoration:
-                                                                const BoxDecoration(
-                                                                    color: Colors
-                                                                        .white),
-                                                            minScale:
-                                                                PhotoViewComputedScale
-                                                                    .contained,
-                                                            maxScale:
-                                                                PhotoViewComputedScale
-                                                                        .covered *
-                                                                    2.0,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          RichText(
+                                            text: TextSpan(
+                                              children: _parseMessage(
+                                                      message['text'] ?? '',
+                                                      context)
+                                                  .map((span) {
+                                                if (span is TextSpan) {
+                                                  return TextSpan(
+                                                    text: span.text,
+                                                    style: span.style?.copyWith(
+                                                        fontSize: 13,
+                                                        color: Colors
+                                                            .black, // Chữ đen cho bot
+                                                        height: 1.5),
+                                                    recognizer: span.recognizer,
+                                                  );
+                                                } else {
+                                                  return span;
+                                                }
+                                              }).toList(),
+                                            ),
+                                          ),
+                                          if (message['imageStatistic'] !=
+                                                  null &&
+                                              message['imageStatistic']
+                                                  is List<String> &&
+                                              (message['imageStatistic']
+                                                      as List<String>)
+                                                  .isNotEmpty)
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 8,
+                                              children:
+                                                  (message['imageStatistic']
+                                                          as List<String>)
+                                                      .map((imageUrl) {
+                                                return GestureDetector(
+                                                  onTap: () {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) =>
+                                                          Dialog(
+                                                        backgroundColor:
+                                                            Colors.transparent,
+                                                        child: ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                          child: SizedBox(
+                                                            width: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width *
+                                                                0.9,
+                                                            height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .height *
+                                                                0.7,
+                                                            child: PhotoView(
+                                                              imageProvider:
+                                                                  NetworkImage(
+                                                                      imageUrl),
+                                                              backgroundDecoration:
+                                                                  const BoxDecoration(
+                                                                      color: Colors
+                                                                          .white),
+                                                              minScale:
+                                                                  PhotoViewComputedScale
+                                                                      .contained,
+                                                              maxScale:
+                                                                  PhotoViewComputedScale
+                                                                          .covered *
+                                                                      2.0,
+                                                            ),
                                                           ),
                                                         ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                                child: Image.network(
-                                                  imageUrl,
-                                                  width: 100,
-                                                  height: 100,
-                                                  fit: BoxFit.cover,
-                                                  loadingBuilder: (context,
-                                                      child, loadingProgress) {
-                                                    if (loadingProgress == null)
-                                                      return child;
-                                                    return const SizedBox(
-                                                      width: 100,
-                                                      height: 100,
-                                                      child: Center(
-                                                          child:
-                                                              CircularProgressIndicator()),
                                                     );
                                                   },
-                                                  errorBuilder: (context, error,
-                                                      stackTrace) {
-                                                    return const Icon(
-                                                        Icons.error,
-                                                        size: 100,
-                                                        color: Colors.red);
-                                                  },
-                                                ),
-                                              );
-                                            }).toList(),
-                                          ),
-                                      ],
+                                                  child: Image.network(
+                                                    imageUrl,
+                                                    width: 100,
+                                                    height: 100,
+                                                    fit: BoxFit.cover,
+                                                    loadingBuilder: (context,
+                                                        child,
+                                                        loadingProgress) {
+                                                      if (loadingProgress ==
+                                                          null) return child;
+                                                      return const SizedBox(
+                                                        width: 100,
+                                                        height: 100,
+                                                        child: Center(
+                                                            child:
+                                                                CircularProgressIndicator()),
+                                                      );
+                                                    },
+                                                    errorBuilder: (context,
+                                                        error, stackTrace) {
+                                                      return const Icon(
+                                                          Icons.error,
+                                                          size: 100,
+                                                          color: Colors.red);
+                                                    },
+                                                  ),
+                                                );
+                                              }).toList(),
+                                            ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                           ),
@@ -1027,7 +987,8 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
           Container(
-            padding: const EdgeInsets.all(8),
+            height: 85,
+            padding: const EdgeInsets.only(bottom: 10, left: 10),
             color: Colors.grey[200],
             child: Row(
               children: [

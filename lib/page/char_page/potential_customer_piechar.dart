@@ -15,6 +15,20 @@ class PotentialCustomerPieChart extends StatefulWidget {
 class _PotentialCustomerPieChartState extends State<PotentialCustomerPieChart> {
   int? touchedIndex;
 
+  // Map ánh xạ platform với màu cố định
+  static const Map<String, Color> platformColors = {
+    'playground': Color(0xFFee5b24),
+    'zalo': Color(0xFF58daa3),
+    'website': Color(0xFFf5c12b),
+    'facebook': Color(0xFF5e9af7),
+    // Thêm các platform khác nếu cần
+  };
+
+  // Hàm lấy màu theo platform, mặc định màu xám nếu không tìm thấy
+  Color getColorForPlatform(String? platform) {
+    return platformColors[platform] ?? Colors.grey;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -26,17 +40,14 @@ class _PotentialCustomerPieChartState extends State<PotentialCustomerPieChart> {
           width: double.infinity,
           child: PieChart(
             PieChartData(
-              sections: widget.data.asMap().entries.map((entry) {
-                final index = entry.key;
-                final item = entry.value;
-
+              sections: widget.data.map((item) {
                 return PieChartSectionData(
                   value: (item.totalSlot ?? 0).toDouble(),
-                  title: touchedIndex == index ? '${item.totalSlot}' : '',
-                  color: Colors.primaries[index % Colors.primaries.length],
-                  radius: touchedIndex == index
-                      ? 110
-                      : 100, // Làm nổi bật phần được chọn
+                  title: touchedIndex == widget.data.indexOf(item)
+                      ? '${item.totalSlot}'
+                      : '',
+                  color: getColorForPlatform(item.platform),
+                  radius: touchedIndex == widget.data.indexOf(item) ? 110 : 100,
                   titleStyle: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -63,15 +74,13 @@ class _PotentialCustomerPieChartState extends State<PotentialCustomerPieChart> {
           ),
         ),
 
-        const SizedBox(height: 16), // Khoảng cách giữa biểu đồ và chú thích
+        const SizedBox(height: 16),
 
         // Chú thích (Legend)
         Wrap(
           spacing: 10,
           runSpacing: 6,
-          children: widget.data.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
+          children: widget.data.map((item) {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -79,7 +88,7 @@ class _PotentialCustomerPieChartState extends State<PotentialCustomerPieChart> {
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: Colors.primaries[index % Colors.primaries.length],
+                    color: getColorForPlatform(item.platform),
                     shape: BoxShape.circle,
                   ),
                 ),

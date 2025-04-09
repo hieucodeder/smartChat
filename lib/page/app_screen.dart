@@ -11,6 +11,7 @@ import 'package:chatbotbnn/page/setting_page.dart';
 import 'package:chatbotbnn/provider/chat_provider.dart';
 import 'package:chatbotbnn/provider/menu_state_provider.dart';
 import 'package:chatbotbnn/provider/navigation_provider.dart';
+import 'package:chatbotbnn/provider/platform_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -151,6 +152,8 @@ class _AppScreenState extends State<AppScreen> {
                 onPressed: () {
                   Provider.of<ChatProvider>(context, listen: false)
                       .loadInitialMessage(context);
+                  Provider.of<PlatformProvider>(context, listen: false)
+                      .resetPlatform();
                 },
                 icon: const Icon(Icons.replay_outlined),
               ),

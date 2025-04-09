@@ -10,6 +10,7 @@ import 'package:chatbotbnn/provider/draw_selected_color_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
 import 'package:chatbotbnn/provider/menu_state_provider.dart';
 import 'package:chatbotbnn/provider/navigation_provider.dart';
+import 'package:chatbotbnn/provider/platform_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/provider/selected_item_provider.dart';
 import 'package:chatbotbnn/service/app_config.dart';
@@ -172,15 +173,26 @@ class _ChatbotPageState extends State<ChatbotPage> {
 
       if (chatbotList.isNotEmpty) {
         String? savedChatbotName = prefs.getString('chatbot_name');
-        int selectedIndex = chatbotList
-            .indexWhere((chatbot) => chatbot.chatbotName == savedChatbotName);
 
-        if (selectedIndex == -1) selectedIndex = 0;
+        // Xử lý trường hợp savedChatbotName null hoặc rỗng
+        int selectedIndex = -1; // Mặc định chọn index 0
 
-        await Future.wait([
-          prefs.setString('chatbot_name',
-              chatbotList[selectedIndex].chatbotName ?? 'no name'),
-        ]);
+        if (savedChatbotName != null && savedChatbotName.isNotEmpty) {
+          selectedIndex = chatbotList
+              .indexWhere((chatbot) => chatbot.chatbotName == savedChatbotName);
+
+          // Nếu không tìm thấy hoặc index không hợp lệ, chọn mặc định
+          if (selectedIndex == -1 || selectedIndex >= chatbotList.length) {
+            selectedIndex = -1;
+          }
+        }
+
+        // Lưu lại chatbot đã chọn
+        await prefs.setString('chatbot_name',
+            chatbotList[selectedIndex].chatbotName ?? 'no name');
+      } else {
+        await prefs.setString(
+            'chatbot_name', 'default_chatbot'); // Giá trị mặc định
       }
 
       // Run background API calls to fetch progress for each chatbot
@@ -272,7 +284,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
         Provider.of<DrawSelectedColorProvider>(context, listen: false);
     final selectedItemProvider =
         Provider.of<SelectedItemProvider>(context, listen: false);
-
+    Provider.of<PlatformProvider>(context, listen: false).resetPlatform();
     if (chatbotCode != null) {
       setState(() {
         isLoading = true;
@@ -347,29 +359,53 @@ class _ChatbotPageState extends State<ChatbotPage> {
                           hasData ? (chatbotListData[index].isActive ?? 0) : 0;
                       return GestureDetector(
                         onTap: () async {
-                          final prefs = await SharedPreferences.getInstance();
-                          Provider.of<MenuStateProvider>(context, listen: false)
-                              .setShowPotentialCustomer(true);
+                          try {
+                            // Lấy SharedPreferences instance
+                            final prefs = await SharedPreferences.getInstance();
 
-                          Provider.of<ChatbotcolorsProvider>(context,
-                                  listen: false)
-                              .setSelectedIndex(index);
-
-                          setState(() {
-                            selectedIndex = index;
-                          });
-                          await prefs.setString(
-                              'chatbot_name', chatbot.chatbotName ?? '');
-                          await prefs.setString(
-                              'chatbot_picture', chatbot.picture ?? "");
-                          if (chatbot.chatbotCode != null) {
-                            Provider.of<ChatbotProvider>(context, listen: false)
-                                .setChatbotCode(chatbot.chatbotCode!);
-
-                            Provider.of<HistoryidProvider>(context,
+                            // Cập nhật các provider
+                            Provider.of<MenuStateProvider>(context,
                                     listen: false)
-                                .setChatbotHistoryId('');
-                            _fetchAndNavigate();
+                                .setShowPotentialCustomer(true);
+                            Provider.of<ChatbotcolorsProvider>(context,
+                                    listen: false)
+                                .setSelectedIndex(index);
+
+                            // Cập nhật state
+                            setState(() {
+                              selectedIndex = index;
+                            });
+
+                            // Lưu vào SharedPreferences
+                            await prefs.setString(
+                                'chatbot_name', chatbot.chatbotName ?? '');
+                            await prefs.setString(
+                                'chatbot_picture', chatbot.picture ?? "");
+
+                            // Kiểm tra và xử lý chatbotCode
+                            if (chatbot.chatbotCode != null) {
+                              Provider.of<ChatbotProvider>(context,
+                                      listen: false)
+                                  .setChatbotCode(chatbot.chatbotCode!);
+                              Provider.of<HistoryidProvider>(context,
+                                      listen: false)
+                                  .setChatbotHistoryId('');
+
+                              // Gọi hàm fetch và navigate
+                              await _fetchAndNavigate();
+
+                              // Đóng màn hình sau khi hoàn thành
+                              if (context.mounted) {
+                                // Kiểm tra context còn hợp lệ không
+                                Navigator.pop(context);
+                              }
+                            }
+                          } catch (e) {
+                            // Xử lý lỗi nếu có
+                            print('Error in onTap: $e');
+                            if (context.mounted) {
+                              Navigator.pop(context); // Vẫn đóng nếu cần
+                            }
                           }
                         },
                         child: SizedBox(
@@ -387,7 +423,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                 elevation: 1,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  side: BorderSide(
+                                  side: const BorderSide(
                                     color: Colors.grey, // Màu viền
                                     width: 0.5, // Độ dày viền
                                   ),
@@ -471,12 +507,12 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                             Colors.transparent,
                                                         valueColor: AlwaysStoppedAnimation<Color>(
                                                             isSelected
-                                                                ? Color(
+                                                                ? const Color(
                                                                     0xFFFef6622)
                                                                 : color ==
                                                                         Colors
                                                                             .white
-                                                                    ? Color(
+                                                                    ? const Color(
                                                                         0xFFFef6622)
                                                                     : color),
                                                       ),
@@ -494,7 +530,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                                 FontWeight.bold,
                                                             color: color ==
                                                                     Colors.white
-                                                                ? Color(
+                                                                ? const Color(
                                                                     0xFFFef6622)
                                                                 : color,
                                                           ),
@@ -519,7 +555,8 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                 style: GoogleFonts.inter(
                                                     fontSize: 12,
                                                     color: isSelected
-                                                        ? Color(0xFFFef6622)
+                                                        ? const Color(
+                                                            0xFFFef6622)
                                                         : Colors.black),
                                               ),
                                             ),
@@ -576,7 +613,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                                                           },
                                                           activeColor: color ==
                                                                   Colors.white
-                                                              ? Color(
+                                                              ? const Color(
                                                                   0xFFFef6622)
                                                               : color),
                                                     ),

@@ -5,11 +5,15 @@ import 'dart:convert';
 import 'package:chatbotbnn/model/body_history.dart';
 import 'package:chatbotbnn/model/delete_model.dart';
 import 'package:chatbotbnn/model/history_all_model.dart';
+import 'package:chatbotbnn/page/chat_page.dart';
 import 'package:chatbotbnn/provider/chat_provider.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
+import 'package:chatbotbnn/provider/chatbotcolors_provider.dart';
+import 'package:chatbotbnn/provider/chatbotname_provider.dart';
 import 'package:chatbotbnn/provider/draw_selected_color_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
 import 'package:chatbotbnn/provider/menu_state_provider.dart';
+import 'package:chatbotbnn/provider/platform_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/provider/selected_history_provider.dart';
 import 'package:chatbotbnn/provider/selected_item_provider.dart';
@@ -70,7 +74,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
         packageIcon = getIconForPackage(packageProductName);
       });
     } else {
-      setState(() { 
+      setState(() {
         packageProductName = "Gói hết hạn";
       });
 
@@ -247,13 +251,29 @@ class _DrawerCustomState extends State<DrawerCustom> {
     });
   }
 
-  Future<void> _loadChatHistoryAndNavigate(String? historyId) async {
+  Future<void> _loadChatHistoryAndNavigate(
+      String chatId, String platform) async {
     try {
-      if (historyId != null) {
+      if (chatId != null) {
+        // Lưu cả historyId và platform vào các Provider tương ứng
         Provider.of<HistoryidProvider>(context, listen: false)
-            .setChatbotHistoryId(historyId);
-      } else {}
-    } catch (e) {}
+            .setChatbotHistoryId(chatId);
+
+        Provider.of<PlatformProvider>(context, listen: false)
+            .setPlatform(platform);
+
+        // Navigate đến ChatPage
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //       builder: (context) => ChatPage(
+        //             historyId: '',
+        //           )),
+        // );
+      }
+    } catch (e) {
+      print('Error in _loadChatHistoryAndNavigate: $e');
+    }
   }
 
   void _deleteRest() {
@@ -386,27 +406,26 @@ class _DrawerCustomState extends State<DrawerCustom> {
         initialDate: DateTime.now(),
         firstDate: DateTime(2000),
         lastDate: DateTime(2101),
-        helpText: "📅 CHỌN NGÀY BẮT ĐẦU", // Viết hoa toàn bộ để dễ đọc
-
+        helpText: "📅 CHỌN NGÀY BẮT ĐẦU",
         builder: (context, child) {
           return Theme(
             data: Theme.of(context).copyWith(
               colorScheme: const ColorScheme.light(
-                primary: Colors.blue, // Màu chính (nút chọn)
-                onPrimary: Colors.white, // Màu chữ trên nền chính
-                onSurface: Colors.black, // Màu chữ trên nền trắng
+                primary: Colors.blue,
+                onPrimary: Colors.white,
+                onSurface: Colors.black,
               ),
             ),
             child: child == null
-                ? const SizedBox() // Tránh lỗi nếu child null
+                ? const SizedBox()
                 : Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       DefaultTextStyle.merge(
                         style: GoogleFonts.inter(
-                          fontSize: 24, // Kích thước lớn hơn
-                          fontWeight: FontWeight.bold, // Chữ đậm
-                          color: Colors.red, // Màu chữ đỏ
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
                         ),
                         child: child,
                       ),
@@ -442,7 +461,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           style: GoogleFonts.roboto(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue, // Đổi màu chữ
+                            color: Colors.blue,
                           ),
                           child: child,
                         ),
@@ -454,10 +473,21 @@ class _DrawerCustomState extends State<DrawerCustom> {
 
         if (endPicked != null) {
           setState(() {
-            startDate = DateFormat('yyyy-MM-dd').format(startPicked);
-            endDate = DateFormat('yyyy-MM-dd').format(endPicked);
-            _controller.text = '$startDate - $endDate';
+            // Định dạng startDate: "yyyy-MM-dd 00:00:00"
+            startDate =
+                "${DateFormat('yyyy-MM-dd').format(startPicked)} 00:00:00";
+
+            // Định dạng endDate: "yyyy-MM-dd 23:59:59"
+            endDate = "${DateFormat('yyyy-MM-dd').format(endPicked)} 23:59:59";
+
+            // Hiển thị trên TextField (không cần giờ phút giây)
+            _controller.text =
+                '${DateFormat('yyyy-MM-dd').format(startPicked)} - ${DateFormat('yyyy-MM-dd').format(endPicked)}';
           });
+
+          // In ra để kiểm tra
+          print('Start Date: $startDate');
+          print('End Date: $endDate');
 
           await _updateDocumentsByDateRange();
         }
@@ -651,125 +681,98 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           ? const Color(0xFFED8113).withOpacity(0.6)
                           : Colors.white,
                     ),
-
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(
-                    //       horizontal: 10, vertical: 10),
-                    //   child: Row(
-                    //     mainAxisAlignment: MainAxisAlignment.start,
-                    //     children: [
-                    //       CircleAvatar(
-                    //         radius: 12,
-                    //         backgroundColor: selectedColor == Colors.white
-                    //             ? Colors.white
-                    //             : selectedColor,
-                    //         child: Icon(
-                    //           TablerIcons.history,
-                    //           color: selectedColor == Colors.white
-                    //               ? Colors.black
-                    //               : Colors.white,
-                    //           size: 20,
-                    //         ),
-                    //       ),
-                    //       const SizedBox(
-                    //         width: 6,
-                    //       ),
-                    //       Text(
-                    //         'Lịch sử chat',
-                    //         style: GoogleFonts.inter(
-                    //             fontSize: 15,
-                    //             color: selectedColor == Colors.white
-                    //                 ? Colors.black
-                    //                 : Colors.white,
-                    //             fontWeight: FontWeight.w500),
-                    //       ),
-                    //     ],
-                    //   ),
-                    // ),
-                    const SizedBox(
-                      height: 10,
-                    ),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
-                        FutureBuilder<Map<String, String?>>(
-                          future: getChatbotInfo(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const CircularProgressIndicator();
+                        Consumer<ChatbotcolorsProvider>(
+                          builder: (BuildContext context,
+                              ChatbotcolorsProvider provider, Widget? child) {
+                            // Ẩn widget khi selectedIndex = -1
+                            if (provider.selectedIndex == -1) {
+                              return const SizedBox.shrink();
                             }
-                            if (snapshot.hasError || !snapshot.hasData) {
+
+                            // Hiển thị FutureBuilder khi có selectedIndex khác -1
+                            return child!;
+                          },
+                          child: FutureBuilder<Map<String, String?>>(
+                            future: getChatbotInfo(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const CircularProgressIndicator();
+                              }
+                              if (snapshot.hasError || !snapshot.hasData) {
+                                return Row(
+                                  children: [
+                                    const CircleAvatar(
+                                      backgroundImage: AssetImage(
+                                          'resources/logo_smart.png'),
+                                      radius: 20,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'No Name',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 15,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }
+
+                              final chatbotName =
+                                  snapshot.data?['name'] ?? 'No Name';
+                              final chatbotPicture = snapshot.data?['picture'];
+
                               return Row(
                                 children: [
-                                  const CircleAvatar(
-                                    backgroundImage:
-                                        AssetImage('resources/logo_smart.png'),
-                                    radius: 20,
+                                  Container(
+                                    height: 40,
+                                    width: 40,
+                                    padding: const EdgeInsets.only(
+                                      left: 0,
+                                      right: 0,
+                                      top: 0,
+                                      bottom: 0,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          width: 1,
+                                          color: Colors.grey.shade400),
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    child: CircleAvatar(
+                                      backgroundColor: Colors.white,
+                                      foregroundImage: chatbotPicture != null &&
+                                              chatbotPicture.isNotEmpty
+                                          ? NetworkImage(
+                                              "${ApiConfig.baseUrlBasic}$chatbotPicture")
+                                          : const AssetImage(
+                                                  'resources/Smartchat.png')
+                                              as ImageProvider,
+                                      radius: 30,
+                                    ),
                                   ),
-                                  const SizedBox(width: 5),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    'No Name',
+                                    chatbotName,
                                     style: GoogleFonts.inter(
                                       fontSize: 15,
-                                      color: Colors.white,
+                                      color: selectedColor == Colors.white
+                                          ? const Color(0xFFED3113)
+                                          : Colors.white,
                                     ),
                                   ),
                                 ],
                               );
-                            }
-
-                            final chatbotName =
-                                snapshot.data?['name'] ?? 'No Name';
-                            final chatbotPicture = snapshot.data?['picture'];
-
-                            return Row(
-                              children: [
-                                Container(
-                                  height: 40,
-                                  width: 40,
-                                  padding: const EdgeInsets.only(
-                                    left: 0,
-                                    right: 0,
-                                    top: 0,
-                                    bottom: 0,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        width: 1, color: Colors.grey.shade400),
-                                    borderRadius: BorderRadius.circular(
-                                        25), // Adding rounded corners here
-                                  ),
-                                  child: CircleAvatar(
-                                    backgroundColor: Colors.white,
-                                    foregroundImage: chatbotPicture != null &&
-                                            chatbotPicture.isNotEmpty
-                                        ? NetworkImage(
-                                            "${ApiConfig.baseUrlBasic}$chatbotPicture")
-                                        : const AssetImage(
-                                                'resources/Smartchat.png')
-                                            as ImageProvider,
-                                    radius: 30,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  chatbotName,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 15,
-                                    color: selectedColor == Colors.white
-                                        ? const Color(0xFFED3113)
-                                        : Colors.white,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
+                            },
+                          ),
                         ),
                       ],
                     ),
-                    SizedBox(
-                      height: 5,
-                    ),
+                    const SizedBox(height: 5),
                     Column(
                       children: [
                         GestureDetector(
@@ -788,7 +791,8 @@ class _DrawerCustomState extends State<DrawerCustom> {
                               children: [
                                 Expanded(
                                   child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 5),
+                                    padding: const EdgeInsets.only(
+                                        bottom: 5), // Sửa 'custom' thành 'left'
                                     child: TextField(
                                       controller: _controller,
                                       readOnly: true,
@@ -834,9 +838,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                         ),
                       ],
                     ),
-                    const SizedBox(
-                      height: 15,
-                    ),
+                    const SizedBox(height: 15),
                     FutureBuilder<HistoryAllModel>(
                       future: _historyAllModel,
                       builder: (context, snapshot) {
@@ -850,11 +852,13 @@ class _DrawerCustomState extends State<DrawerCustom> {
                         } else if (!snapshot.hasData || snapshot.data == null) {
                           return const Center(child: Text('No data available'));
                         } else {
-                          final List<Map<String, String>> contents =
+                          final List<Map<String, dynamic>> contents =
                               (snapshot.data?.data ?? []).map((history) {
                             final chatbotHistoryId =
                                 history.chatbotHistoryId?.toString() ??
                                     'Không có ID';
+                            final platform =
+                                history.platform ?? "Không có nền tảng";
 
                             final userMessage = (history.messages?.isNotEmpty ??
                                     false)
@@ -871,15 +875,15 @@ class _DrawerCustomState extends State<DrawerCustom> {
                             String content;
                             try {
                               final decoded = jsonDecode(rawContent);
-                              content = decoded['query'] ?? 'Không có dữ liệu';
+                              content = decoded['query'] ?? rawContent;
                             } catch (e) {
-                              content =
-                                  rawContent; // Nếu không phải JSON, giữ nguyên
+                              content = rawContent;
                             }
 
                             return {
                               'key': chatbotHistoryId,
                               'value': content,
+                              'platform': platform,
                             };
                           }).toList();
 
@@ -890,26 +894,29 @@ class _DrawerCustomState extends State<DrawerCustom> {
                             itemBuilder: (context, index) {
                               final String itemKey =
                                   contents[index]['key'] ?? "";
+                              final String platform =
+                                  contents[index]['platform'] ?? "";
                               final bool isSelected =
                                   selectedChatProvider.selectedChatId ==
                                       itemKey;
+
                               return GestureDetector(
                                 onTap: () {
                                   selectedChatProvider
                                       .setSelectedChatId(itemKey);
                                   Provider.of<SelectedItemProvider>(context,
                                           listen: false)
-                                      .setSelectedIndex(
-                                          index); // Lưu index của item được chọn
+                                      .setSelectedIndex(index);
                                   Future.delayed(
                                       const Duration(milliseconds: 100), () {
-                                    _loadChatHistoryAndNavigate(itemKey);
-                                    Navigator.pop(context);
+                                    _loadChatHistoryAndNavigate(
+                                        itemKey, platform);
                                   });
+                                  Navigator.pop(context);
                                 },
                                 child: Container(
                                   width: double.infinity,
-                                  height: 44,
+                                  height: 48,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
                                     color: Provider.of<SelectedItemProvider>(
@@ -918,64 +925,68 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                             index
                                         ? (selectedColor == Colors.white
                                             ? const Color(0xFFEDEDED)
-                                            : Colors.white.withOpacity(
-                                                0.1)) // Màu khi được chọn với nền tối
+                                            : Colors.white.withOpacity(0.1))
                                         : (selectedColor == Colors.white
                                             ? Colors.white
                                             : Colors.transparent),
                                   ),
-                                  padding: const EdgeInsets.only(left: 10),
-                                  child: ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    tileColor: Colors.transparent,
-                                    visualDensity: VisualDensity.compact,
-                                    minVerticalPadding: 0,
-                                    dense: true,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    title: Text(
-                                      contents[index]['value'] ?? '',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 14.0,
-                                        color:
-                                            Provider.of<SelectedItemProvider>(
-                                                            context)
-                                                        .selectedIndex ==
-                                                    index
-                                                ? (selectedColor == Colors.white
-                                                    ? const Color(0xFF000000)
-                                                    : Colors.white)
-                                                : (selectedColor == Colors.white
-                                                    ? const Color(0xFF333333)
-                                                    : Colors.white),
-                                        fontWeight: FontWeight.w400,
+                                  padding: const EdgeInsets.only(
+                                      left: 10, right: 10),
+                                  child: Stack(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: ListTile(
+                                          contentPadding: EdgeInsets.zero,
+                                          tileColor: Colors.transparent,
+                                          visualDensity: VisualDensity.compact,
+                                          minVerticalPadding: 0,
+                                          dense: true,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          title: Text(
+                                            contents[index]['value'] ?? '',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14.0,
+                                              color:
+                                                  Provider.of<SelectedItemProvider>(
+                                                                  context)
+                                                              .selectedIndex ==
+                                                          index
+                                                      ? (selectedColor ==
+                                                              Colors.white
+                                                          ? const Color(
+                                                              0xFF000000)
+                                                          : Colors.white)
+                                                      : (selectedColor ==
+                                                              Colors.white
+                                                          ? const Color(
+                                                              0xFF333333)
+                                                          : Colors.white),
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                          trailing: GestureDetector(
+                                            onTap: () {
+                                              deleteChatHistory(context,
+                                                  contents[index]['key']);
+                                            },
+                                            child: Icon(
+                                              Icons.more_horiz,
+                                              color:
+                                                  selectedColor == Colors.white
+                                                      ? Colors.black
+                                                      : Colors.white,
+                                              size: 20.0,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                    trailing: GestureDetector(
-                                      onTap: () {
-                                        deleteChatHistory(
-                                            context, contents[index]['key']);
-                                      },
-                                      child: Icon(
-                                        Icons.more_horiz,
-                                        color: selectedColor == Colors.white
-                                            ? Colors.black
-                                            : Colors.white,
-                                        size: 20.0,
-                                      ),
-                                    ),
-                                    onTap: () {
-                                      Provider.of<SelectedItemProvider>(context,
-                                              listen: false)
-                                          .setSelectedIndex(
-                                              index); // Cập nhật index khi tap vào ListTile
-                                      _loadChatHistoryAndNavigate(
-                                          contents[index]['key']);
-                                      Navigator.pop(context);
-                                    },
+                                    ],
                                   ),
                                 ),
                               );
@@ -1274,21 +1285,29 @@ class _DrawerCustomState extends State<DrawerCustom> {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        userName,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          userName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: selectedColor == Colors.white
+                                ? Colors.black
+                                : Colors.white,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10,
+                        width: 15,
+                        child: Icon(
+                          Icons.arrow_drop_down,
                           color: selectedColor == Colors.white
                               ? Colors.black
                               : Colors.white,
                         ),
-                      ),
-                      Icon(
-                        Icons.arrow_drop_down,
-                        color: selectedColor == Colors.white
-                            ? Colors.black
-                            : Colors.white,
                       ),
                     ],
                   ),

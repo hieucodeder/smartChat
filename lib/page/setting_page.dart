@@ -1,7 +1,6 @@
 import 'package:chatbotbnn/model/body_forget_password.dart';
 import 'package:chatbotbnn/model/respone_forgetpassword.dart';
 import 'package:chatbotbnn/page/login_page.dart';
-import 'package:chatbotbnn/provider/navigation_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/service/forget_password_service.dart';
 import 'package:flutter/material.dart';
@@ -32,9 +31,9 @@ class _SettingPageState extends State<SettingPage> {
 
   Widget _buildColorSelector(BuildContext context) {
     final colors = [
+      Colors.white, // Màu trắng
       const Color(0xFF284973),
       const Color(0xff48433d),
-      Colors.white, // Màu trắng
     ];
 
     return Consumer<Providercolor>(
@@ -80,6 +79,10 @@ class _SettingPageState extends State<SettingPage> {
   TextEditingController oldPasswordController = TextEditingController();
   TextEditingController newPasswordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
+
+  bool _obscureOldPassword = true;
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
   void showChangePasswordDialog(BuildContext context) {
     final selectedColors =
         Provider.of<Providercolor>(context, listen: false).selectedColor;
@@ -101,8 +104,22 @@ class _SettingPageState extends State<SettingPage> {
                   labelText: "Nhập mật khẩu cũ",
                   hintStyle: textStyles,
                   border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureOldPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.grey,
+                      size: 23,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureOldPassword = !_obscureOldPassword;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscureOldPassword,
               ),
               const SizedBox(height: 10),
               TextField(
@@ -111,8 +128,22 @@ class _SettingPageState extends State<SettingPage> {
                   labelText: "Nhập mật khẩu mới",
                   hintStyle: textStyles,
                   border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureNewPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.grey,
+                      size: 23,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureNewPassword = !_obscureNewPassword;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscureNewPassword,
               ),
               const SizedBox(height: 10),
               TextField(
@@ -121,8 +152,22 @@ class _SettingPageState extends State<SettingPage> {
                   labelText: "Xác nhận mật khẩu mới",
                   hintStyle: textStyles,
                   border: OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.grey,
+                      size: 23,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: _obscureConfirmPassword,
               ),
             ],
           ),

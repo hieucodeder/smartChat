@@ -20,7 +20,6 @@ import 'package:chatbotbnn/service/total_count_service.dart';
 import 'package:chatbotbnn/service/total_potential_customers_service.dart';
 import 'package:chatbotbnn/service/total_question_service.dart';
 import 'package:chatbotbnn/service/total_sessions_service.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -42,7 +41,6 @@ class _DasboardPageState extends State<DasboardPage> {
   List<String> chatbotNames = [];
   String? selectedCustomer;
   String? selectedDate;
-  String? selectedChatbotName;
   int totalQuestions = 0; // Biến để hiển thị số lượng câu hỏi
   int totalInteraction = 0;
   int totalCount = 0;
@@ -57,6 +55,7 @@ class _DasboardPageState extends State<DasboardPage> {
   void initState() {
     super.initState();
     _fetchDataTotal("");
+    _initializeCurrentMonthData();
   }
 
   String? startDate; // Biến lưu ngày đầu tháng: "YYYY-MM-DD 00:00:00"
@@ -76,30 +75,43 @@ class _DasboardPageState extends State<DasboardPage> {
 
       setState(() {
         selectedDate = DateFormat('MM/yyyy').format(pickedDate);
-        startDate = DateFormat('yyyy-MM-dd').format(firstDay);
-        endDate = DateFormat('yyyy-MM-dd').format(lastDay);
+        startDate =
+            "${DateFormat('yyyy-MM-dd').format(firstDay)} 0:0:0"; // Định dạng chuẩn
+        endDate =
+            "${DateFormat('yyyy-MM-dd').format(lastDay)} 23:59:59"; // Định dạng chuẩn
       });
 
-      // Get the selected chatbot code if available
-      String? chatbotCode = "";
-      if (selectedCustomer != null && selectedCustomer != "Chọn trợ lý") {
-        final chatbotProvider =
-            Provider.of<ChatbotnameProvider>(context, listen: false);
-        ChatbotInfo? selectedChatbot = chatbotProvider.chatbotList.firstWhere(
-          (chatbot) => chatbot.name == selectedCustomer,
-          orElse: () => ChatbotInfo(
-              name: "", code: "", createdAt: "", updatedAt: "", userId: ""),
-        );
-        chatbotCode = selectedChatbot.code;
-      }
-
-      _fetchDataTotal(chatbotCode);
+      // Gọi lại API với tháng mới
+      _fetchDataTotal(""); // Hoặc truyền chatbotCode
     }
   }
 
+  void _initializeCurrentMonthData() {
+    final now = DateTime.now();
+    final firstDay = DateTime(now.year, now.month, 1); // Ngày đầu tháng
+    final lastDay = DateTime(now.year, now.month + 1, 0); // Ngày cuối tháng
+
+    setState(() {
+      selectedDate = DateFormat('MM/yyyy').format(now); // Hiển thị "04/2025"
+      startDate =
+          "${DateFormat('yyyy-MM-dd').format(firstDay)} 0:0:0"; // "2025-04-01 0:0:0"
+      endDate =
+          "${DateFormat('yyyy-MM-dd').format(lastDay)} 23:59:59"; // "2025-04-30 23:59:59"
+    });
+
+    // Gọi API ngay sau khi khởi tạo
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchDataTotal(""); // Hoặc truyền chatbotCode nếu có
+    });
+  }
+
   Widget renderDateDropdown() {
+    List<String> monthItems = List.generate(12, (index) {
+      return (index + 1).toString().padLeft(2, '0');
+    });
+
     return buildDropdown(
-      items: [],
+      items: monthItems,
       selectedItem: selectedDate,
       hint: "Chọn tháng",
       width: 180,

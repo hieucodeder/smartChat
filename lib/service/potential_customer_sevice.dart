@@ -14,6 +14,7 @@ Future<List<DataPotentialCustomer>> fetchAllPotentialCustomer(
     String? searchContent,
     String? slotsStatus,
     String? pageIndex,
+    String? intentQueue,
     String? pageSize) async {
   final String apiUrl = '${ApiConfig.baseUrl}/search-slots-by-intent';
 
@@ -37,7 +38,7 @@ Future<List<DataPotentialCustomer>> fetchAllPotentialCustomer(
     // Tạo object request
     final requestBody = BodySlotIntent(
       chatbotCode: chatbotCode,
-      intentQueue: "",
+      intentQueue: intentQueue,
       pageIndex: pageIndex,
       pageSize: pageSize,
       searchContent: searchContent,
@@ -60,7 +61,6 @@ Future<List<DataPotentialCustomer>> fetchAllPotentialCustomer(
 
     if (response.statusCode == 200) {
       final jsonResponse = jsonDecode(response.body);
-      print("API Response: $jsonResponse");
 
       if (jsonResponse is Map<String, dynamic>) {
         // Kiểm tra nếu response chứa danh sách data

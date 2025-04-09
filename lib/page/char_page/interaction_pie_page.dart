@@ -13,6 +13,19 @@ class InteractionPiePage extends StatefulWidget {
 
 class _InteractionPiePageState extends State<InteractionPiePage> {
   int? touchedIndex;
+  // Map ánh xạ platform với màu cố định
+  static const Map<String, Color> platformColors = {
+    'playground': Color(0xFFee5b24),
+    'zalo': Color(0xFF58daa3),
+    'website': Color(0xFFf5c12b),
+    'facebook': Color(0xFF5e9af7),
+    // Thêm các platform khác nếu cần
+  };
+
+  // Hàm lấy màu theo platform, mặc định màu xám nếu không tìm thấy
+  Color getColorForPlatform(String? platform) {
+    return platformColors[platform] ?? Colors.grey;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +45,7 @@ class _InteractionPiePageState extends State<InteractionPiePage> {
                 return PieChartSectionData(
                   value: (item.totalMessages ?? 0).toDouble(),
                   title: touchedIndex == index ? '${item.totalMessages}' : '',
-                  color: Colors.primaries[index % Colors.primaries.length],
+                  color: getColorForPlatform(item.platform),
                   radius: touchedIndex == index
                       ? 110
                       : 100, // Làm nổi bật phần được chọn
@@ -78,7 +91,7 @@ class _InteractionPiePageState extends State<InteractionPiePage> {
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: Colors.primaries[index % Colors.primaries.length],
+                    color: getColorForPlatform(item.platform),
                     shape: BoxShape.circle,
                   ),
                 ),
