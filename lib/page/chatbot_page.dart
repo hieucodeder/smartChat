@@ -366,7 +366,7 @@ class _ChatbotPageState extends State<ChatbotPage> {
                             // Cập nhật các provider
                             Provider.of<MenuStateProvider>(context,
                                     listen: false)
-                                .setShowPotentialCustomer(true);
+                                .setPotentialCustomer(true);
                             Provider.of<ChatbotcolorsProvider>(context,
                                     listen: false)
                                 .setSelectedIndex(index);

@@ -14,9 +14,11 @@ import 'package:chatbotbnn/provider/navigation_provider.dart';
 import 'package:chatbotbnn/provider/platform_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tabler_icons/tabler_icons.dart';
 
 class AppScreen extends StatefulWidget {
   const AppScreen({super.key});
@@ -155,7 +157,7 @@ class _AppScreenState extends State<AppScreen> {
                   Provider.of<PlatformProvider>(context, listen: false)
                       .resetPlatform();
                 },
-                icon: const Icon(Icons.replay_outlined),
+                icon: const Icon(TablerIcons.reload),
               ),
             ),
         ],
@@ -164,7 +166,7 @@ class _AppScreenState extends State<AppScreen> {
         ),
         centerTitle: true,
         backgroundColor: selectedColor == Colors.white
-            ? Color(0xFFFef6622)
+            ? const Color(0xFFFef6622)
             : selectedColor, // 🌟 Thay đổi màu toàn bộ AppBar
       ),
       body: _getPage(currentIndex),

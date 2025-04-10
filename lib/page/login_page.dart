@@ -207,12 +207,12 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                       hintText: 'Tài khoản',
                                       hintStyle: GoogleFonts.inter(
-                                        fontSize: 16,
-                                        color: const Color(0xFF064265),
-                                      ),
+                                          fontSize: 15,
+                                          color: const Color(0xFF064265),
+                                          fontWeight: FontWeight.w300),
                                       prefixIcon: const Icon(
                                         Icons.account_box_outlined,
-                                        size: 24,
+                                        size: 23,
                                         color: Color(0xFF064265),
                                       ),
                                       contentPadding:
@@ -260,9 +260,10 @@ class _LoginPageState extends State<LoginPage> {
                                             decoration: InputDecoration(
                                               hintText: 'Mật khẩu',
                                               hintStyle: GoogleFonts.inter(
-                                                fontSize: 16,
-                                                color: const Color(0xFF064265),
-                                              ),
+                                                  fontSize: 15,
+                                                  color:
+                                                      const Color(0xFF064265),
+                                                  fontWeight: FontWeight.w300),
                                               filled: true,
                                               fillColor: const Color.fromARGB(
                                                   237, 250, 248, 248),
@@ -286,7 +287,7 @@ class _LoginPageState extends State<LoginPage> {
                                               ),
                                               prefixIcon: const Icon(
                                                 Icons.lock_outline,
-                                                size: 24,
+                                                size: 23,
                                                 color: Color(0xFF064265),
                                               ),
                                               suffixIcon: IconButton(

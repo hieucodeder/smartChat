@@ -494,7 +494,7 @@ class _SettingPageState extends State<SettingPage> {
                         context,
                         MaterialPageRoute(
                             builder: (context) => const LoginPage()),
-                        (Route<dynamic> route) => false);
+                        (route) => false);
                   },
                   child: Text(
                     'Xác nhận',

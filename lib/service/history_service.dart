@@ -43,6 +43,7 @@ Future<List<Map<String, dynamic>>> fetchChatHistory(String historyId) async {
           'query': lastQuery,
           'table': null,
           'suggestions': [],
+          'imageStatistic': []
         });
       } else if (e.messageType == 'answer') {
         final contentJson = jsonDecode(e.content ?? '{}');
@@ -56,6 +57,13 @@ Future<List<Map<String, dynamic>>> fetchChatHistory(String historyId) async {
             suggestions = List<String>.from(contentJson['suggestions']);
           }
         }
+        // Xử lý hình ảnh nếu có
+        List<String> images = [];
+        if (contentJson.containsKey('images')) {
+          if (contentJson['images'] is List) {
+            images = List<String>.from(contentJson['images']);
+          }
+        }
 
         // Thêm cặp query-answer vào result
         result.add({
@@ -66,6 +74,7 @@ Future<List<Map<String, dynamic>>> fetchChatHistory(String historyId) async {
               ?.map((item) => (item as Map<String, dynamic>))
               .toList(),
           'suggestions': suggestions,
+          'imageStatistic': images
         });
       }
     }

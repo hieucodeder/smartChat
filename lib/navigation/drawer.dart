@@ -648,12 +648,21 @@ class _DrawerCustomState extends State<DrawerCustom> {
                     SizedBox(
                       width: double.infinity,
                       child: _buildListTile(
-                        context: context,
-                        icon: TablerIcons.dashboard,
-                        title: 'Bảng điều khiển',
-                        index: 4,
-                        onTap: () => widget.onItemSelected(4),
-                      ),
+                          context: context,
+                          icon: TablerIcons.dashboard,
+                          title: 'Bảng điều khiển',
+                          index: 4,
+                          onTap: () {
+                            Provider.of<ChatbotcolorsProvider>(context,
+                                    listen: false)
+                                .setSelectedIndex(-1);
+                            // Toggle hiển thị Gói dịch vụ
+                            Provider.of<MenuStateProvider>(context,
+                                    listen: false)
+                                .toggleMenuItems();
+
+                            widget.onItemSelected(4);
+                          }),
                     ),
                     if (Provider.of<MenuStateProvider>(context)
                         .showPotentialCustomer)
@@ -677,8 +686,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                         onTap: () {
                           widget.onItemSelected(1); // Chọn mục 1
                           Provider.of<MenuStateProvider>(context, listen: false)
-                              .setShowPotentialCustomer(
-                                  false); // Ẩn mục "Khách hàng tiềm năng"
+                              .setPotentialCustomer(false);
                           // Thêm dòng này để cập nhật selectedIndex
                           Provider.of<ChatbotcolorsProvider>(context,
                                   listen: false)
@@ -1094,27 +1102,39 @@ class _DrawerCustomState extends State<DrawerCustom> {
             onPressed: () => Navigator.pop(context),
           ),
           SizedBox(
-              width: 100,
-              height: 50,
-              child: Image.asset(
-                'resources/Smartchat-1.png',
-                fit: BoxFit.contain,
-              )),
-          IconButton(
-              onPressed: () {
-                Provider.of<ChatProvider>(context, listen: false)
-                    .loadInitialMessage(context);
-                Navigator.pop(context);
-              },
-              icon: SvgPicture.asset(
-                'resources/icon_reload.svg',
-                fit: BoxFit.cover,
-                width: 23,
-                height: 23,
-                color: selectedColor == Colors.white
-                    ? const Color(0xfffe64f13)
-                    : Colors.white,
-              ))
+            width: 100,
+            height: 50,
+            child: Image.asset(
+              'resources/Smartchat-1.png',
+              fit: BoxFit.contain,
+            ),
+          ),
+          Consumer<ChatbotcolorsProvider>(
+            builder: (BuildContext context, ChatbotcolorsProvider provider,
+                Widget? child) {
+              // Hide widget when selectedIndex = -1
+              if (provider.selectedIndex == -1) {
+                return const SizedBox(width: 48); // Maintain consistent spacing
+              }
+
+              // Show button when selectedIndex is not -1
+              return IconButton(
+                onPressed: () {
+                  Provider.of<ChatProvider>(context, listen: false)
+                      .loadInitialMessage(context);
+                  // widget.onItemSelected(0);
+                  Navigator.pop(context);
+                },
+                icon: Icon(
+                  TablerIcons.pencil_plus,
+                  color: selectedColor == Colors.white
+                      ? const Color(0xfffe64f13)
+                      : Colors.white,
+                ),
+                iconSize: 23,
+              );
+            },
+          ),
         ],
       ),
     );
@@ -1173,8 +1193,7 @@ class _DrawerCustomState extends State<DrawerCustom> {
                       fontWeight: FontWeight.w500,
                     )),
                 onTap: () {
-                  provider.setSelectedIndex(
-                      index); // Cập nhật trạng thái trong Provider
+                  provider.setSelectedIndex(index);
                   onTap(); // Gọi hàm onTap gốc
                 },
               ),

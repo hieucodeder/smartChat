@@ -91,7 +91,7 @@ class _SlapsPageState extends State<SlapsPage> with TickerProviderStateMixin {
                             color: Colors.white,
                             fontSize: 30,
                             fontWeight: FontWeight.bold)),
-                    Text('với trợ lý AI',
+                    Text('với Trợ lý AI',
                         style: GoogleFonts.inter(
                             color: Colors.white,
                             fontSize: 30,

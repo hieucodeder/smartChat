@@ -305,7 +305,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                             _buildInfoRow(
                               Icons.check_circle_outline,
                               formatNumber(queries[1]),
-                              "tệp tối đa(max 10MB/tệp)",
+                              "tệp tối đa (max 10MB/tệp)",
                               // Lấy giá trị thứ hai
                             ),
                             _buildInfoRow(
