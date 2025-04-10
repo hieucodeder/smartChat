@@ -39,6 +39,8 @@ class _ChatPageState extends State<ChatPage> {
   ChatProvider? _chatProvider;
   List<String> _suggestions = [];
   late Future<HistoryAllModel> _historyAllModel;
+
+  String platform = ''; // Khởi tạo platform rỗng
   @override
   void initState() {
     super.initState();
@@ -99,6 +101,11 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _sendMessage() async {
+    setState(() {
+      _isLoading = true;
+      platform = ''; // Xóa platform khi bắt đầu gửi
+    });
+
     final chatbotCode =
         Provider.of<ChatbotProvider>(context, listen: false).currentChatbotCode;
     final historyId =
@@ -325,13 +332,159 @@ class _ChatPageState extends State<ChatPage> {
   }
 
 //
+  // List<InlineSpan> _parseMessage(String message, BuildContext context) {
+  //   List<InlineSpan> spans = [];
 
+  //   // Cập nhật regex để bắt đúng format từ API
+  //   RegExp regexBold = RegExp(r'\*\*(.*?)\*\*');
+  //   RegExp regexItalic = RegExp(r'\*(.*?)\*');
+  //   RegExp regexBoldItalic = RegExp(r'\*\*\*(.*?)\*\*\*');
+  //   RegExp regexListItem = RegExp(r'^\s*(\d+\.|\*)\s+(.*)', multiLine: true);
+  //   RegExp regexImage = RegExp(r'!\[(.*?)\]\((.*?)\)');
+  //   RegExp regexLink = RegExp(r'\[(.*?)\]\((.*?)\)');
+
+  //   // Thêm regex cho các trường hợp đặc biệt từ API
+  //   RegExp regexApiBold = RegExp(r'\s\*\*(.*?)\*\*\s');RegExp(r'^###\s+(.+)$', multiLine: true);
+  //   RegExp regexApiItalic = RegExp(r'\s\*(.*?)\*\s');
+
+  //   int lastIndex = 0;
+
+  //   // Hàm helper để thêm text thường
+  //   void addNormalText(int start, int end) {
+  //     if (start < end) {
+  //       spans.add(TextSpan(
+  //         text: message.substring(start, end),
+  //         style: GoogleFonts.inter(color: Colors.black),
+  //       ));
+  //     }
+  //   }
+
+  //   while (lastIndex < message.length) {
+  //     // Ưu tiên các pattern phức tạp trước
+  //     final imageMatch = regexImage.firstMatch(message.substring(lastIndex));
+  //     final linkMatch = regexLink.firstMatch(message.substring(lastIndex));
+  //     final boldItalicMatch =
+  //         regexBoldItalic.firstMatch(message.substring(lastIndex));
+  //     final boldMatch = regexBold.firstMatch(message.substring(lastIndex));
+  //     final italicMatch = regexItalic.firstMatch(message.substring(lastIndex));
+  //     final listItemMatch =
+  //         regexListItem.firstMatch(message.substring(lastIndex));
+  //     final apiBoldMatch =
+  //         regexApiBold.firstMatch(message.substring(lastIndex));
+  //     final apiItalicMatch =
+  //         regexApiItalic.firstMatch(message.substring(lastIndex));
+
+  //     // Xác định match gần nhất
+  //     RegExpMatch? firstMatch;
+  //     int firstPos = message.length;
+
+  //     void checkMatch(RegExpMatch? match) {
+  //       if (match != null && match.start < firstPos) {
+  //         firstMatch = match;
+  //         firstPos = match.start;
+  //       }
+  //     }
+
+  //     checkMatch(imageMatch);
+  //     checkMatch(linkMatch);
+  //     checkMatch(boldItalicMatch);
+  //     checkMatch(boldMatch);
+  //     checkMatch(italicMatch);
+  //     checkMatch(listItemMatch);
+  //     checkMatch(apiBoldMatch);
+  //     checkMatch(apiItalicMatch);
+
+  //     if (firstMatch == null) {
+  //       // Không còn pattern nào, thêm phần còn lại
+  //       addNormalText(lastIndex, message.length);
+  //       break;
+  //     }
+
+  //     // Thêm text bình thường trước match
+  //     addNormalText(lastIndex, lastIndex + firstMatch!.start);
+
+  //     // Xử lý từng loại match
+  //     if (firstMatch!.pattern == regexImage) {
+  //       // Xử lý ảnh (giữ nguyên như code cũ)
+  //       String altText = firstMatch!.group(1)!;
+  //       String imageUrl = firstMatch!.group(2)!;
+
+  //       spans.add(
+  //         WidgetSpan(
+  //           child: Image.network(
+  //             imageUrl,
+  //             width: double.infinity,
+  //             fit: BoxFit.cover,
+  //           ),
+  //         ),
+  //       );
+  //     } else if (firstMatch!.pattern == regexLink) {
+  //       // Xử lý link
+  //       String text = firstMatch!.group(1)!;
+  //       String url = firstMatch!.group(2)!;
+
+  //       spans.add(TextSpan(
+  //         text: text,
+  //         style: GoogleFonts.inter(
+  //           color: Colors.blue,
+  //           decoration: TextDecoration.underline,
+  //         ),
+  //         recognizer: TapGestureRecognizer()
+  //           ..onTap = () async {
+  //             if (await canLaunchUrl(Uri.parse(url))) {
+  //               await launchUrl(Uri.parse(url));
+  //             }
+  //           },
+  //       ));
+  //     } else if (firstMatch!.pattern == regexBoldItalic ||
+  //         firstMatch!.pattern == regexApiBold) {
+  //       // Xử lý in đậm
+  //       String boldText = firstMatch!.group(1)!;
+  //       spans.add(TextSpan(
+  //         text: boldText,
+  //         style: GoogleFonts.inter(
+  //           fontWeight: FontWeight.bold,
+  //           color: Colors.black,
+  //         ),
+  //       ));
+  //     } else if (firstMatch!.pattern == regexItalic ||
+  //         firstMatch!.pattern == regexApiItalic) {
+  //       // Xử lý in nghiêng
+  //       String italicText = firstMatch!.group(1)!;
+  //       spans.add(TextSpan(
+  //         text: italicText,
+  //         style: GoogleFonts.inter(
+  //           fontStyle: FontStyle.italic,
+  //           color: Colors.black,
+  //         ),
+  //       ));
+  //     } else if (firstMatch!.pattern == regexListItem) {
+  //       // Xử lý danh sách
+  //       String listText = firstMatch!.group(2)!;
+  //       spans.add(WidgetSpan(
+  //         child: Padding(
+  //           padding: const EdgeInsets.only(left: 8.0),
+  //           child: Text(
+  //             '• $listText',
+  //             style: GoogleFonts.inter(color: Colors.black),
+  //           ),
+  //         ),
+  //       ));
+  //     }
+
+  //     lastIndex += firstMatch!.end;
+  //   }
+
+  //   return spans;
+  // }
   List<InlineSpan> _parseMessage(String message, BuildContext context) {
     List<InlineSpan> spans = [];
     RegExp regexBold = RegExp(r'\*\*(.*?)\*\*'); // In đậm
     RegExp regexItalic = RegExp(r'##(.*?)##'); // In nghiêng
     RegExp regexBoldItalicLine = RegExp(r'^\s*###\s*(.*?)\s*$',
-        multiLine: true); // Đậm + nghiêng với ###
+        multiLine: true); // Đậm + nghiêng với ### ở đầu dòng
+    RegExp regexBoldItalic =
+        RegExp(r'\*\*##(.*?)##\*\*|##\*\*(.*?)\*\*##'); // Vừa đậm vừa nghiêng
     RegExp regexImage = RegExp(r'!\[(.*?)\]\((.*?)\)'); // Ảnh Markdown
     RegExp regexLink = RegExp(
         r'(\*\*|##)?\[(.*?)\]\((.*?)(?:\s+"(.*?)")?\)(\*\*|##)?'); // link ảnh nhấn
@@ -345,6 +498,7 @@ class _ChatPageState extends State<ChatPage> {
         regexImageInLink.firstMatch(message.substring(lastIndex)),
         regexImage.firstMatch(message.substring(lastIndex)),
         regexLink.firstMatch(message.substring(lastIndex)),
+        regexBoldItalic.firstMatch(message.substring(lastIndex)),
         regexBoldItalicLine.firstMatch(message.substring(lastIndex)),
         regexItalic.firstMatch(message.substring(lastIndex)),
         regexBold.firstMatch(message.substring(lastIndex)),
@@ -542,6 +696,18 @@ class _ChatPageState extends State<ChatPage> {
                     mode: LaunchMode.externalApplication);
               }
             },
+        ));
+      } else if (match.pattern == regexBoldItalic) {
+        // Xử lý trường hợp vừa in đậm vừa in nghiêng
+        String boldItalicText = match.group(1) ?? match.group(2)!;
+        spans.add(TextSpan(
+          text: boldItalicText,
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.bold,
+            fontStyle: FontStyle.italic,
+            fontSize: 16,
+            color: Colors.black,
+          ),
         ));
       } else if (match.pattern == regexBoldItalicLine) {
         String boldItalicText = match.group(1)!;
