@@ -681,7 +681,7 @@ class _ChatPageState extends State<ChatPage> {
                                                   return TextSpan(
                                                     text: span.text,
                                                     style: span.style?.copyWith(
-                                                        fontSize: 13,
+                                                        fontSize: 14,
                                                         color: Colors
                                                             .white, // Chữ trắng cho user
                                                         height: 1.5),
@@ -747,7 +747,7 @@ class _ChatPageState extends State<ChatPage> {
                                                         text: span.text,
                                                         style: span.style
                                                             ?.copyWith(
-                                                          fontSize: 13,
+                                                          fontSize: 14,
                                                           color: Colors.black,
                                                           height: 1.5,
                                                         ),

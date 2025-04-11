@@ -5,11 +5,9 @@ import 'dart:convert';
 import 'package:chatbotbnn/model/body_history.dart';
 import 'package:chatbotbnn/model/delete_model.dart';
 import 'package:chatbotbnn/model/history_all_model.dart';
-import 'package:chatbotbnn/page/chat_page.dart';
 import 'package:chatbotbnn/provider/chat_provider.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
 import 'package:chatbotbnn/provider/chatbotcolors_provider.dart';
-import 'package:chatbotbnn/provider/chatbotname_provider.dart';
 import 'package:chatbotbnn/provider/draw_selected_color_provider.dart';
 import 'package:chatbotbnn/provider/historyid_provider.dart';
 import 'package:chatbotbnn/provider/menu_state_provider.dart';
@@ -22,15 +20,16 @@ import 'package:chatbotbnn/service/delete_service.dart';
 import 'package:chatbotbnn/service/get_package_product_service.dart';
 import 'package:chatbotbnn/service/history_all_service.dart';
 import 'package:chatbotbnn/service/login_service.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class DrawerCustom extends StatefulWidget {
   final BodyHistory bodyHistory;
@@ -653,19 +652,28 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           title: 'Bảng điều khiển',
                           index: 4,
                           onTap: () {
-                            Provider.of<ChatbotcolorsProvider>(context,
-                                    listen: false)
-                                .setSelectedIndex(-1);
-                            // Toggle hiển thị Gói dịch vụ
-                            Provider.of<MenuStateProvider>(context,
-                                    listen: false)
-                                .toggleMenuItems();
+                            final chatbotProvider =
+                                Provider.of<ChatbotcolorsProvider>(context,
+                                    listen: false);
+
+                            final menuProvider = Provider.of<MenuStateProvider>(
+                                context,
+                                listen: false);
+
+                            // Đặt selectedIndex = -1 và cập nhật menu tương ứng
+                            chatbotProvider.setSelectedIndex(-1);
+                            menuProvider.updateBasedOnSelectedIndex(-1);
 
                             widget.onItemSelected(4);
                           }),
                     ),
-                    if (Provider.of<MenuStateProvider>(context)
-                        .showPotentialCustomer)
+                    // Hiển thị "Trải nghiệm thử" khi selectedIndex != -1 và showPotentialCustomer == true
+                    if (Provider.of<ChatbotcolorsProvider>(context,
+                                    listen: true)
+                                .selectedIndex !=
+                            -1 &&
+                        Provider.of<MenuStateProvider>(context, listen: true)
+                            .showPotentialCustomer)
                       SizedBox(
                         width: double.infinity,
                         child: _buildListTile(
@@ -695,8 +703,13 @@ class _DrawerCustomState extends State<DrawerCustom> {
                         },
                       ),
                     ),
-                    if (Provider.of<MenuStateProvider>(context)
-                        .showPotentialCustomer)
+                    // Hiển thị "Trải nghiệm thử" khi selectedIndex != -1 và showPotentialCustomer == true
+                    if (Provider.of<ChatbotcolorsProvider>(context,
+                                    listen: true)
+                                .selectedIndex !=
+                            -1 &&
+                        Provider.of<MenuStateProvider>(context, listen: true)
+                            .showPotentialCustomer)
                       SizedBox(
                         width: double.infinity,
                         child: _buildListTile(
@@ -704,11 +717,24 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           icon: TablerIcons.user_circle,
                           title: 'Khách hàng tiềm năng',
                           index: 6,
-                          onTap: () => widget.onItemSelected(6),
+                          onTap: () {
+                            // // 1. Cập nhật selectedIndex
+                            // Provider.of<ChatbotcolorsProvider>(context,
+                            //         listen: false)
+                            //     .setSelectedIndex(6);
+
+                            // // 2. Chỉ ẩn IconButton reload bằng cách set showPotentialCustomer = false
+                            // Provider.of<MenuStateProvider>(context,
+                            //         listen: false)
+                            //     .setPotentialCustomer(false);
+                            widget.onItemSelected(6);
+                          },
                         ),
                       ),
-                    if (Provider.of<MenuStateProvider>(context)
-                        .showServicePackage)
+                    if (Provider.of<ChatbotcolorsProvider>(context,
+                                listen: true)
+                            .selectedIndex ==
+                        -1)
                       SizedBox(
                         width: double.infinity,
                         child: _buildListTile(
@@ -913,6 +939,8 @@ class _DrawerCustomState extends State<DrawerCustom> {
                     FutureBuilder<HistoryAllModel>(
                       future: _historyAllModel,
                       builder: (context, snapshot) {
+// Kiểm tra kết nối mạng
+
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
@@ -1123,6 +1151,8 @@ class _DrawerCustomState extends State<DrawerCustom> {
                   Provider.of<ChatProvider>(context, listen: false)
                       .loadInitialMessage(context);
                   // widget.onItemSelected(0);
+                  Provider.of<PlatformProvider>(context, listen: false)
+                      .resetPlatform();
                   Navigator.pop(context);
                 },
                 icon: Icon(

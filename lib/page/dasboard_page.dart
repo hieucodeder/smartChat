@@ -346,7 +346,7 @@ class _DasboardPageState extends State<DasboardPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 5, vertical: 5),
                               width: maxWidth * 0.47,
                               height: maxWidth * 0.16,
@@ -394,7 +394,7 @@ class _DasboardPageState extends State<DasboardPage> {
                             Container(
                               width: maxWidth * 0.47,
                               height: maxWidth * 0.16,
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 5, vertical: 5),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
@@ -447,7 +447,7 @@ class _DasboardPageState extends State<DasboardPage> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 5, vertical: 5),
                               width: maxWidth * 0.47,
                               height: maxWidth * 0.16,
@@ -493,7 +493,7 @@ class _DasboardPageState extends State<DasboardPage> {
                             Container(
                               width: maxWidth * 0.47,
                               height: maxWidth * 0.16,
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 5, vertical: 5),
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
@@ -555,7 +555,7 @@ class _DasboardPageState extends State<DasboardPage> {
                         margin: const EdgeInsets.symmetric(horizontal: 5),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               TablerIcons.chart_histogram,
                               size: 20,
                             ),
@@ -677,13 +677,18 @@ class _DasboardPageState extends State<DasboardPage> {
                                     shape: BoxShape.circle,
                                     color: Colors.grey[300], // Màu tượng trưng
                                   ),
-                                  child: Center(
-                                    child: Text(
-                                      "Không có dữ liệu",
-                                      style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.center,
+                                  child: const Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(TablerIcons.database_off,
+                                            size: 50, color: Colors.grey),
+                                        SizedBox(height: 8),
+                                        Text('Trống',
+                                            style:
+                                                TextStyle(color: Colors.grey)),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -746,13 +751,18 @@ class _DasboardPageState extends State<DasboardPage> {
                                     shape: BoxShape.circle,
                                     color: Colors.grey[300], // Màu tượng trưng
                                   ),
-                                  child: Center(
-                                    child: Text(
-                                      "Không có dữ liệu",
-                                      style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
-                                      textAlign: TextAlign.center,
+                                  child: const Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(TablerIcons.database_off,
+                                            size: 50, color: Colors.grey),
+                                        SizedBox(height: 8),
+                                        Text('Trống',
+                                            style:
+                                                TextStyle(color: Colors.grey)),
+                                      ],
                                     ),
                                   ),
                                 ),

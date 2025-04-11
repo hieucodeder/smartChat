@@ -44,6 +44,10 @@ class DataPotentialCustomer {
   final String intentSlots;
   final Map<String, dynamic> slotDetails;
   final String? slotStatus;
+  final int? activity;
+  final String? createdAt;
+  final String? updatedAt;
+  final String? platform;
   final int? recordCount;
 
   DataPotentialCustomer({
@@ -53,6 +57,10 @@ class DataPotentialCustomer {
     required this.intentSlots,
     required this.slotDetails,
     required this.slotStatus,
+    required this.activity,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.platform,
     this.recordCount,
   });
 
@@ -64,6 +72,10 @@ class DataPotentialCustomer {
       intentSlots: json["intent_slots"] ?? "",
       slotStatus: json["slot_status"] ?? "",
       slotDetails: Map<String, dynamic>.from(json["slot_details"] ?? {}),
+      activity: json['active'] ?? 0,
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+      platform: json['platform'],
       recordCount: json["RecordCount"] ?? 0,
     );
   }
@@ -76,6 +88,10 @@ class DataPotentialCustomer {
       "intent_slots": intentSlots,
       "slot_status": slotStatus,
       "slot_details": slotDetails,
+      "active": activity,
+      "created_at": createdAt,
+      "updated_at": updatedAt,
+      'platform': platform,
       "RecordCount": recordCount,
     };
   }

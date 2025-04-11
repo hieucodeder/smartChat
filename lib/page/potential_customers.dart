@@ -7,8 +7,10 @@ import 'package:chatbotbnn/service/bot_config_service.dart';
 import 'package:chatbotbnn/service/potential_customer_sevice.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tabler_icons/tabler_icons.dart';
 
 class PotentialCustomers extends StatefulWidget {
   const PotentialCustomers({super.key});
@@ -28,7 +30,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
   String? slotsStatus;
   String? currentPage = "1";
   String? pageSize = "10";
-  String? intentQueue;
+  String? intentQueue = "Khách hàng";
   final List<int> itemsPerPageOptions = [10, 20, 50, 100];
   bool hasMoreData = true;
   List<Map<String, dynamic>> intentSlots = [];
@@ -65,6 +67,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
     'completed': 'Đã xử lý', // Ví dụ thêm
     'unreachable': 'Chưa liên hệ được',
   };
+
   @override
   void initState() {
     super.initState();
@@ -227,17 +230,22 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
   @override
   Widget build(BuildContext context) {
     final selectedColor = Provider.of<Providercolor>(context).selectedColor;
-    String _getStatusText(String status) {
-      final platformMapping = {
+    String getStatusText(String status) {
+      final statusmMapping = {
         'pending': 'Chưa xử lý',
         'completed': 'Đã xử lý',
         'unreachable': 'Chưa liên hệ được',
         // Thêm các mapping khác nếu cần
       };
 
-      return platformMapping[status.toLowerCase()] ?? status;
+      return statusmMapping[status.toLowerCase()] ?? status;
     }
 
+    final platformMapping = {
+      'playground': 'Trải Nghiệm Thử',
+      'zalo': 'Zalo', // Ví dụ thêm
+      'facebook': 'Facebook',
+    };
     return Container(
         height: MediaQuery.of(context).size.height,
         padding: const EdgeInsets.all(8),
@@ -348,7 +356,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                   return SizedBox(
                                     width: (MediaQuery.of(context).size.width -
                                             (intentSlots.length * 100)) /
-                                        2,
+                                        3,
                                   ); // Ước lượng chiều rộng để căn giữa
                                 }
 
@@ -362,6 +370,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                     // Lưu trữ slotName vào biến intentQueue
                                     setState(() {
                                       intentQueue = slotName;
+                                      print(slotName);
                                     });
                                     // Gọi hàm fetchCustomers với intentQueue mới
                                     fetchCustomers(
@@ -516,139 +525,193 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
             ),
             Expanded(
               child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.white,
-                  border: Border.all(width: 2, color: Colors.grey),
-                ),
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : (dynamicColumns.isNotEmpty && customers.isNotEmpty)
-                        ? SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                columns: [
-                                  DataColumn(
-                                    label: Text(
-                                      "STT",
-                                      style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.bold),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.white,
+                    border: Border.all(width: 2, color: Colors.grey),
+                  ),
+                  child: isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : (dynamicColumns.isNotEmpty && customers.isNotEmpty)
+                          ? SingleChildScrollView(
+                              scrollDirection: Axis.vertical,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
+                                  columns: [
+                                    DataColumn(
+                                      label: Text(
+                                        "STT",
+                                        style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.bold),
+                                      ),
                                     ),
-                                  ),
-                                  ...dynamicColumns.map(
-                                    (col) => DataColumn(
-                                      label: Center(
-                                        child: Text(
-                                          col,
-                                          style: GoogleFonts.inter(
-                                              fontWeight: FontWeight.bold),
+                                    ...dynamicColumns.map(
+                                      (col) => DataColumn(
+                                        label: Center(
+                                          child: Text(
+                                            col,
+                                            style: GoogleFonts.inter(
+                                                fontWeight: FontWeight.bold),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      "Trạng thái",
-                                      style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.bold),
+                                    DataColumn(
+                                      label: Text(
+                                        "Kênh thông tin",
+                                        style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.bold),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                                rows: customers
-                                    .asMap()
-                                    .entries
-                                    .map<DataRow>((entry) {
-                                  int index = entry.key + 1;
-                                  DataPotentialCustomer customer = entry.value;
+                                    DataColumn(
+                                      label: Text(
+                                        "Thời gian tạo",
+                                        style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        "Cập nhật lần cuối",
+                                        style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        "Trạng thái",
+                                        style: GoogleFonts.inter(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                  rows: customers
+                                      .asMap()
+                                      .entries
+                                      .map<DataRow>((entry) {
+                                    int index = entry.key + 1;
+                                    DataPotentialCustomer customer =
+                                        entry.value;
 
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(Center(
-                                          child: Text(index.toString()))),
-                                      ...dynamicColumns.map((col) {
-                                        final value = customer.slotDetails[col]
-                                                ?.toString()
-                                                .trim() ??
-                                            "";
+                                    return DataRow(
+                                      cells: [
+                                        DataCell(Center(
+                                            child: Text(index.toString()))),
+                                        ...dynamicColumns.map((col) {
+                                          final value = customer
+                                                  .slotDetails[col]
+                                                  ?.toString()
+                                                  .trim() ??
+                                              "";
 
-                                        if (isImageUrl(value)) {
-                                          return DataCell(
-                                            Center(
-                                              child: Container(
-                                                width: 60,
-                                                height: 60,
-                                                padding:
-                                                    const EdgeInsets.all(2),
-                                                decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                      color:
-                                                          Colors.grey.shade300),
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                ),
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                  child: Image.network(
-                                                    value,
-                                                    fit: BoxFit.cover,
-                                                    loadingBuilder: (context,
-                                                        child, progress) {
-                                                      if (progress == null)
-                                                        return child;
-                                                      return Center(
-                                                        child:
-                                                            CircularProgressIndicator(
-                                                          value: progress
-                                                                      .expectedTotalBytes !=
-                                                                  null
-                                                              ? progress
-                                                                      .cumulativeBytesLoaded /
-                                                                  progress
-                                                                      .expectedTotalBytes!
-                                                              : null,
-                                                        ),
-                                                      );
-                                                    },
-                                                    errorBuilder: (context,
-                                                        error, stackTrace) {
-                                                      debugPrint(
-                                                          '❗ Lỗi tải ảnh: $error');
-                                                      return const Icon(
-                                                          Icons
-                                                              .image_not_supported,
-                                                          size: 30);
-                                                    },
+                                          if (isImageUrl(value)) {
+                                            return DataCell(
+                                              Center(
+                                                child: Container(
+                                                  width: 60,
+                                                  height: 60,
+                                                  padding:
+                                                      const EdgeInsets.all(2),
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                        color: Colors
+                                                            .grey.shade300),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4),
+                                                  ),
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            4),
+                                                    child: Image.network(
+                                                      value,
+                                                      fit: BoxFit.cover,
+                                                      loadingBuilder: (context,
+                                                          child, progress) {
+                                                        if (progress == null)
+                                                          return child;
+                                                        return Center(
+                                                          child:
+                                                              CircularProgressIndicator(
+                                                            value: progress
+                                                                        .expectedTotalBytes !=
+                                                                    null
+                                                                ? progress
+                                                                        .cumulativeBytesLoaded /
+                                                                    progress
+                                                                        .expectedTotalBytes!
+                                                                : null,
+                                                          ),
+                                                        );
+                                                      },
+                                                      errorBuilder: (context,
+                                                          error, stackTrace) {
+                                                        debugPrint(
+                                                            '❗ Lỗi tải ảnh: $error');
+                                                        return const Icon(
+                                                            Icons
+                                                                .image_not_supported,
+                                                            size: 30);
+                                                      },
+                                                    ),
                                                   ),
                                                 ),
                                               ),
+                                            );
+                                          } else {
+                                            return DataCell(
+                                              Center(
+                                                  child: Text(value.isEmpty
+                                                      ? "-"
+                                                      : value)),
+                                            );
+                                          }
+                                        }),
+                                        DataCell(
+                                          Center(
+                                            child: Text(
+                                              platformMapping[
+                                                      customer.platform] ??
+                                                  customer.platform ??
+                                                  "",
                                             ),
-                                          );
-                                        } else {
-                                          return DataCell(
-                                            Center(
-                                                child: Text(value.isEmpty
-                                                    ? "-"
-                                                    : value)),
-                                          );
-                                        }
-                                      }),
-                                      DataCell(
-                                        Center(
-                                            child: Text(_getStatusText(
-                                                customer.slotStatus ?? ""))),
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
+                                          ),
+                                        ),
+                                        DataCell(
+                                          Center(
+                                              child: Text(
+                                                  customer.createdAt ?? "")),
+                                        ),
+                                        DataCell(
+                                          Center(
+                                              child: Text(
+                                                  customer.updatedAt ?? "")),
+                                        ),
+                                        DataCell(
+                                          Center(
+                                              child: Text(getStatusText(
+                                                  customer.slotStatus ?? ""))),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
                               ),
-                            ),
-                          )
-                        : const Center(
-                            child: Text("Không có dữ liệu để hiển thị")),
-              ),
+                            )
+                          : const Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(TablerIcons.database_off,
+                                      size: 50, color: Colors.grey),
+                                  SizedBox(height: 8),
+                                  Text('Trống',
+                                      style: TextStyle(color: Colors.grey)),
+                                ],
+                              ),
+                            )),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 48.0),
