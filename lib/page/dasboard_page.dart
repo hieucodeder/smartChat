@@ -570,7 +570,8 @@ class _DasboardPageState extends State<DasboardPage> {
                       ),
                       const Divider(color: Colors.grey),
                       Container(
-                        padding: const EdgeInsets.only(right: 30, top: 8),
+                        padding:
+                            const EdgeInsets.only(right: 30, top: 8, left: 10),
                         width: double.infinity,
                         child: chartData.isNotEmpty
                             ? InteractionCharPage(data: chartData)
@@ -614,7 +615,8 @@ class _DasboardPageState extends State<DasboardPage> {
                       ),
                       const Divider(color: Colors.grey),
                       Container(
-                        padding: const EdgeInsets.only(right: 30, top: 8),
+                        padding:
+                            const EdgeInsets.only(right: 30, top: 8, left: 10),
                         width: double.infinity,
                         child: charDataPotential.isNotEmpty
                             ? PotentialCustomerChar(data: charDataPotential)

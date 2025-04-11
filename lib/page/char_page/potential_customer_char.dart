@@ -1,12 +1,20 @@
-import 'package:chatbotbnn/model/char/response_interaction_char.dart';
 import 'package:chatbotbnn/model/char/response_potential_customer.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PotentialCustomerChar extends StatelessWidget {
   final List<ResponsePotentialCustomer> data;
+  final List<Color> barColors = [
+    const Color(0xFFFFCEBBC),
+    const Color(0xFF7566FB),
+    const Color(0xFF65DAAB),
+    const Color(0xFFFD0F4E6),
+    const Color(0xFF657798),
+    const Color(0xFF76CBED),
+  ];
 
-  const PotentialCustomerChar({super.key, required this.data});
+  PotentialCustomerChar({super.key, required this.data});
 
   @override
   Widget build(BuildContext context) {
@@ -25,48 +33,91 @@ class PotentialCustomerChar extends StatelessWidget {
                         1)
                     .toDouble()
                 : 10,
-            barGroups: data
-                .asMap()
-                .entries
-                .map(
-                  (entry) => BarChartGroupData(
-                    x: entry.key,
-                    barRods: [
-                      BarChartRodData(
-                        toY: (entry.value.totalSlot ?? 0).toDouble(),
-                        color: Colors.blue,
-                        width: 16,
-                        borderRadius: BorderRadius.circular(4),
+            barGroups: data.asMap().entries.map(
+              (entry) {
+                final colorIndex = entry.key % barColors.length;
+                return BarChartGroupData(
+                  x: entry.key,
+                  barRods: [
+                    BarChartRodData(
+                      toY: (entry.value.totalSlot ?? 0).toDouble(),
+                      color: barColors[colorIndex],
+                      width: 16,
+                      borderRadius: BorderRadius.circular(4),
+                      gradient: LinearGradient(
+                        colors: [
+                          barColors[colorIndex],
+                          barColors[colorIndex],
+                        ],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
                       ),
-                    ],
-                  ),
-                )
-                .toList(),
+                    ),
+                  ],
+                );
+              },
+            ).toList(),
             titlesData: FlTitlesData(
-              topTitles: AxisTitles(
-                sideTitles:
-                    SideTitles(showTitles: false), // Ẩn giá trị phía trên
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
               ),
-              rightTitles: AxisTitles(
-                sideTitles:
-                    SideTitles(showTitles: false), // Ẩn giá trị bên phải
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
               ),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
                   getTitlesWidget: (value, meta) {
                     int index = value.toInt();
-                    if (index % 4 == 1 && index >= 0 && index < data.length) {
+                    if (index >= 0 && index < data.length) {
                       String date = data[index].interactionDate ?? '';
-                      return Text(
-                        date.length >= 5 ? date.substring(5) : date,
-                        style: const TextStyle(fontSize: 10),
-                      );
+                      String day = date.split('-').last;
+                      if (day.isNotEmpty && int.tryParse(day) != null) {
+                        int dayNumber = int.parse(day);
+                        if (dayNumber % 2 == 1) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Text(
+                              day.padLeft(2, '0'),
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                color: Colors.black,
+                              ),
+                            ),
+                          );
+                        }
+                      }
                     }
                     return const Text('');
                   },
+                  interval: 1,
+                  reservedSize: 20,
                 ),
               ),
+              leftTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    return Text(
+                      value.toInt().toString(),
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: Colors.black,
+                      ),
+                    );
+                  },
+                  reservedSize: 25,
+                ),
+              ),
+            ),
+            gridData: FlGridData(
+              show: true,
+              getDrawingHorizontalLine: (value) {
+                return FlLine(
+                  color: Colors.grey.withOpacity(0.3),
+                  strokeWidth: 1,
+                );
+              },
             ),
           ),
         ),
