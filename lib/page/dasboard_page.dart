@@ -54,12 +54,11 @@ class _DasboardPageState extends State<DasboardPage> {
   @override
   void initState() {
     super.initState();
-    _fetchDataTotal("");
     _initializeCurrentMonthData();
   }
 
-  String? startDate; // Biến lưu ngày đầu tháng: "YYYY-MM-DD 00:00:00"
-  String? endDate; // Biến lưu ngày cuối tháng: "YYYY-MM-DD 23:59:59"
+  String? startDate;
+  String? endDate;
 
   Future<void> _selectMonth(BuildContext context) async {
     DateTime? pickedDate = await showMonthPicker(

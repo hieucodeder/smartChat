@@ -561,6 +561,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                       label: Text(
                                         "Kênh thông tin",
                                         style: GoogleFonts.inter(
+                                            fontSize: 13,
                                             fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -568,6 +569,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                       label: Text(
                                         "Thời gian tạo",
                                         style: GoogleFonts.inter(
+                                            fontSize: 13,
                                             fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -575,6 +577,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                       label: Text(
                                         "Cập nhật lần cuối",
                                         style: GoogleFonts.inter(
+                                            fontSize: 13,
                                             fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -582,6 +585,7 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                       label: Text(
                                         "Trạng thái",
                                         style: GoogleFonts.inter(
+                                            fontSize: 13,
                                             fontWeight: FontWeight.bold),
                                       ),
                                     ),
@@ -597,7 +601,12 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                     return DataRow(
                                       cells: [
                                         DataCell(Center(
-                                            child: Text(index.toString()))),
+                                            child: Text(
+                                          index.toString(),
+                                          style: GoogleFonts.inter(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold),
+                                        ))),
                                         ...dynamicColumns.map((col) {
                                           final value = customer
                                                   .slotDetails[col]
@@ -663,9 +672,13 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                           } else {
                                             return DataCell(
                                               Center(
-                                                  child: Text(value.isEmpty
-                                                      ? "-"
-                                                      : value)),
+                                                  child: Text(
+                                                value.isEmpty ? "-" : value,
+                                                style: GoogleFonts.inter(
+                                                    fontSize: 13,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              )),
                                             );
                                           }
                                         }),
@@ -676,23 +689,35 @@ class _PotentialCustomersState extends State<PotentialCustomers> {
                                                       customer.platform] ??
                                                   customer.platform ??
                                                   "",
+                                              style: GoogleFonts.inter(
+                                                  fontSize: 13),
                                             ),
                                           ),
                                         ),
                                         DataCell(
                                           Center(
                                               child: Text(
-                                                  customer.createdAt ?? "")),
+                                            customer.createdAt ?? "",
+                                            style:
+                                                GoogleFonts.inter(fontSize: 13),
+                                          )),
                                         ),
                                         DataCell(
                                           Center(
                                               child: Text(
-                                                  customer.updatedAt ?? "")),
+                                            customer.updatedAt ?? "",
+                                            style:
+                                                GoogleFonts.inter(fontSize: 13),
+                                          )),
                                         ),
                                         DataCell(
                                           Center(
-                                              child: Text(getStatusText(
-                                                  customer.slotStatus ?? ""))),
+                                              child: Text(
+                                            getStatusText(
+                                                customer.slotStatus ?? ""),
+                                            style:
+                                                GoogleFonts.inter(fontSize: 13),
+                                          )),
                                         ),
                                       ],
                                     );
