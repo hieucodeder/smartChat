@@ -3,6 +3,8 @@ import 'package:chatbotbnn/page/app_screen.dart';
 import 'package:chatbotbnn/page/forgot_password_page.dart';
 import 'package:chatbotbnn/page/register_page.dart';
 import 'package:chatbotbnn/service/login_service.dart';
+import 'package:chatbotbnn/service/user_singin_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -430,7 +432,74 @@ class _LoginPageState extends State<LoginPage> {
                           height: 25,
                         ),
                         GestureDetector(
-                          onTap: _login,
+                          onTap: () async {
+                            try {
+                              // Hiển thị vòng xoay loading ngay khi bắt đầu đăng nhập
+                              showDialog(
+                                context: context,
+                                barrierDismissible:
+                                    false, // Ngăn người dùng tắt dialog bằng cách chạm ra ngoài
+                                builder: (context) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+
+                              final user =
+                                  await UserSigninService.loginWithGoogle();
+
+                              if (user != null && mounted) {
+                                // Tự động chuyển trang sau 3 giây
+                                Future.delayed(const Duration(seconds: 3), () {
+                                  if (mounted) {
+                                    Navigator.pop(
+                                        context); // Đóng dialog loading thành công
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const AppScreen()),
+                                    );
+                                  }
+                                });
+                              }
+                            } on FirebaseAuthException catch (error) {
+                              // Đóng dialog loading nếu có lỗi
+                              if (mounted) Navigator.pop(context);
+
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Lỗi'),
+                                  content:
+                                      Text('Lỗi đăng nhập: ${error.message}'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } catch (e) {
+                              // Đóng dialog loading nếu có lỗi
+                              if (mounted) Navigator.pop(context);
+
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Lỗi'),
+                                  content:
+                                      const Text('Có lỗi xảy ra khi đăng nhập'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
                           child: Container(
                             decoration: BoxDecoration(
                                 color: Colors.white,

@@ -3,8 +3,10 @@ import 'package:chatbotbnn/model/respone_forgetpassword.dart';
 import 'package:chatbotbnn/page/login_page.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/service/forget_password_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -103,7 +105,7 @@ class _SettingPageState extends State<SettingPage> {
                 decoration: InputDecoration(
                   labelText: "Nhập mật khẩu cũ",
                   hintStyle: textStyles,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureOldPassword
@@ -127,7 +129,7 @@ class _SettingPageState extends State<SettingPage> {
                 decoration: InputDecoration(
                   labelText: "Nhập mật khẩu mới",
                   hintStyle: textStyles,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureNewPassword
@@ -151,7 +153,7 @@ class _SettingPageState extends State<SettingPage> {
                 decoration: InputDecoration(
                   labelText: "Xác nhận mật khẩu mới",
                   hintStyle: textStyles,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword
@@ -327,7 +329,7 @@ class _SettingPageState extends State<SettingPage> {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
       ),
     );
@@ -351,7 +353,7 @@ class _SettingPageState extends State<SettingPage> {
                   Icons.account_box,
                   size: 23,
                   color: selectedColor == Colors.white
-                      ? Color(0xFFFef6622)
+                      ? const Color(0xFFFef6622)
                       : selectedColor,
                 ),
                 const SizedBox(width: 8),
@@ -370,7 +372,7 @@ class _SettingPageState extends State<SettingPage> {
                   Icons.search,
                   size: 23,
                   color: selectedColor == Colors.white
-                      ? Color(0xFFFef6622)
+                      ? const Color(0xFFFef6622)
                       : selectedColor,
                 ),
                 const SizedBox(width: 8),
@@ -389,7 +391,7 @@ class _SettingPageState extends State<SettingPage> {
                   Icons.color_lens,
                   size: 23,
                   color: selectedColor == Colors.white
-                      ? Color(0xFFFef6622)
+                      ? const Color(0xFFFef6622)
                       : selectedColor,
                 ),
                 const SizedBox(width: 8),
@@ -408,7 +410,7 @@ class _SettingPageState extends State<SettingPage> {
                   Icons.logout_outlined,
                   size: 23,
                   color: selectedColor == Colors.white
-                      ? Color(0xFFFef6622)
+                      ? const Color(0xFFFef6622)
                       : selectedColor,
                 ),
                 const SizedBox(
@@ -442,12 +444,10 @@ class _SettingPageState extends State<SettingPage> {
                 child: Center(
                   child: Text(
                     'Thông báo!',
-                    style: TextStyle(
+                    style: GoogleFonts.inter(
                         fontWeight: FontWeight.bold,
                         fontSize: 24,
-                        color: selectedColor == Colors.white
-                            ? Color(0xFFFef6622)
-                            : selectedColor),
+                        color: Colors.black),
                   ),
                 )),
             content: Text(
@@ -455,7 +455,7 @@ class _SettingPageState extends State<SettingPage> {
               style: GoogleFonts.inter(
                   fontSize: 14,
                   color: selectedColor == Colors.white
-                      ? Color(0xFFFef6622)
+                      ? const Color(0xFFFef6622)
                       : selectedColor),
             ),
             actions: [
@@ -476,33 +476,60 @@ class _SettingPageState extends State<SettingPage> {
                       'Hủy',
                       style: GoogleFonts.inter(
                           color: selectedColor == Colors.white
-                              ? Color(0xFFFef6622)
+                              ? const Color(0xFFFef6622)
                               : selectedColor),
                     )),
               ),
               ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedColor == Colors.white
-                        ? Colors.transparent
-                        : selectedColor,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        side: BorderSide.none),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: selectedColor == Colors.white
+                      ? const Color(0xFFFef6622)
+                      : selectedColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide.none,
                   ),
-                  onPressed: () {
+                ),
+                onPressed: () async {
+                  try {
+                    // Thực hiện đăng xuất bằng cách xóa token
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.remove('token'); // Xóa token hiện tại
+// Thêm vào trước khi xóa token
+                    await FirebaseAuth.instance.signOut();
+// Thêm vào trước khi xóa token
+                    await GoogleSignIn().signOut();
+                    // Chuyển đến trang đăng nhập và xóa hết lịch sử navigation
                     Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const LoginPage()),
-                        (route) => false);
-                  },
-                  child: Text(
-                    'Xác nhận',
-                    style: TextStyle(
-                        color: selectedColor == Colors.white
-                            ? Color(0xFFFef6622)
-                            : Colors.white),
-                  ))
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
+                      (route) => false,
+                    );
+
+                    // (Tùy chọn) Thêm thông báo đăng xuất thành công
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đăng xuất thành công'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  } catch (e) {
+                    print('Lỗi khi đăng xuất: $e');
+                    // (Tùy chọn) Thông báo lỗi nếu cần
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Có lỗi xảy ra khi đăng xuất'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+                child: Text(
+                  'Xác nhận',
+                  style: GoogleFonts.inter(color: Colors.white),
+                ),
+              )
             ],
           );
         });

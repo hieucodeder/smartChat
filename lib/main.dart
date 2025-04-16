@@ -1,3 +1,4 @@
+import 'package:chatbotbnn/firebase_options.dart';
 import 'package:chatbotbnn/page/slaps_page.dart';
 import 'package:chatbotbnn/provider/chat_provider.dart';
 import 'package:chatbotbnn/provider/chatbot_provider.dart';
@@ -12,10 +13,23 @@ import 'package:chatbotbnn/provider/platform_provider.dart';
 import 'package:chatbotbnn/provider/provider_color.dart';
 import 'package:chatbotbnn/provider/selected_history_provider.dart';
 import 'package:chatbotbnn/provider/selected_item_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Kiểm tra trạng thái đăng nhập
+  FirebaseAuth.instance.authStateChanges().listen((user) {
+    if (user == null) {
+      print('User is currently signed out!');
+    } else {
+      print('User is signed in!');
+    }
+  });
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => Providercolor()),

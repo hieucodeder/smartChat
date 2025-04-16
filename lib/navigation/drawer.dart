@@ -1252,147 +1252,84 @@ class _DrawerCustomState extends State<DrawerCustom> {
     );
   }
 
-// _buildUserAccount widget
   Widget _buildUserAccount() {
     final drawerProvider =
         Provider.of<DrawSelectedColorProvider>(context, listen: false);
     final loginService = LoginService();
     final selectedColor = Provider.of<Providercolor>(context).selectedColor;
+
     return FutureBuilder<Map<String, String>?>(
-      future:
-          loginService.getAccountFullNameAndUsername(), // Fetch the user data
+      future: loginService.getAccountFullNameAndUsername(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData || snapshot.data == null) {
-          return const Text(
-              "Không có dữ liệu người dùng"); // Xử lý khi không có dữ liệu
-        }
-        final data = snapshot.data!;
-        final imageUrl = data['picture'] ?? '';
+        // Xử lý trạng thái loading
         if (snapshot.connectionState == ConnectionState.waiting) {
           return ListTile(
             leading: ClipRRect(
               borderRadius: BorderRadius.circular(100),
-              child:
-                  const CircularProgressIndicator(), // Show loading indicator
+              child: const CircularProgressIndicator(),
             ),
-            title: GestureDetector(
-              onTap: () {
-                widget.onItemSelected(2);
-                drawerProvider.setSelectedIndex(-1);
-              },
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Loading...', // Placeholder text
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: selectedColor == Colors.white
-                              ? Colors.black
-                              : Colors.white,
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_drop_down,
-                        color: selectedColor == Colors.white
-                            ? Colors.black
-                            : Colors.white,
-                      ),
-                    ],
-                  ),
-                  Text(
-                    'Loading...', // Placeholder text
-                    style: GoogleFonts.inter(
-                        color: selectedColor == Colors.white
-                            ? Colors.black
-                            : Colors.white,
+            title: Column(
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Loading...',
+                      style: GoogleFonts.inter(
                         fontSize: 16,
-                        fontStyle: FontStyle.italic),
+                        fontWeight: FontWeight.bold,
+                        color: selectedColor == Colors.white
+                            ? Colors.black
+                            : Colors.white,
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: selectedColor == Colors.white
+                          ? Colors.black
+                          : Colors.white,
+                    ),
+                  ],
+                ),
+                Text(
+                  'Loading...',
+                  style: GoogleFonts.inter(
+                    color: selectedColor == Colors.white
+                        ? Colors.black
+                        : Colors.white,
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         }
-        // Error state
-        else if (snapshot.hasError) {
+
+        // Xử lý lỗi
+        if (snapshot.hasError) {
           return ListTile(
-            leading: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(
-                    color: Colors.grey.shade400, width: 1), // Viền trắng
-              ),
-              child: CircleAvatar(
-                backgroundColor: Colors.white,
-                radius: 23,
-                foregroundImage: (imageUrl.isNotEmpty)
-                    ? NetworkImage("${ApiConfig.baseUrlBasic}$imageUrl")
-                    : const AssetImage('resources/profile.png')
-                        as ImageProvider,
-              ),
-            ),
-            contentPadding: EdgeInsets.zero,
-            title: GestureDetector(
-              onTap: () {
-                widget.onItemSelected(2);
-                drawerProvider.setSelectedIndex(-1);
-              },
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Error loading user info', // Display error message
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: selectedColor == Colors.white
-                              ? Colors.black
-                              : Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    '',
-                    style: GoogleFonts.inter(
-                        color: selectedColor == Colors.white
-                            ? Colors.black
-                            : Colors.white,
-                        fontSize: 16,
-                        fontStyle: FontStyle.italic),
-                  ),
-                ],
+            leading: _buildAvatar(null, selectedColor),
+            title: Text(
+              'Error loading user info',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color:
+                    selectedColor == Colors.white ? Colors.black : Colors.white,
               ),
             ),
           );
         }
-        // Data successfully fetched
-        else if (snapshot.hasData && snapshot.data != null) {
-          final userName = snapshot.data?['full_name'] ?? 'Không có tên';
-          final email = snapshot.data?['email'] ?? 'Không có email';
+
+        // Xử lý khi có dữ liệu
+        if (snapshot.hasData && snapshot.data != null) {
+          final data = snapshot.data!;
+          final userName = data['full_name'] ?? 'Không có tên';
+          final email = data['email'] ?? 'Không có email';
+          final imageUrl = data['picture'] ?? '';
 
           return ListTile(
-            leading: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(
-                    color: Colors.grey.shade400, width: 1), // Viền trắng
-              ),
-              child: CircleAvatar(
-                backgroundColor: Colors.white,
-                radius: 23,
-                foregroundImage: (imageUrl.isNotEmpty)
-                    ? NetworkImage("${ApiConfig.baseUrlBasic}$imageUrl")
-                    : const AssetImage('resources/profile.png')
-                        as ImageProvider,
-              ),
-            ),
+            leading: _buildAvatar(imageUrl, selectedColor),
             contentPadding: EdgeInsets.zero,
             title: GestureDetector(
               onTap: () {
@@ -1418,20 +1355,16 @@ class _DrawerCustomState extends State<DrawerCustom> {
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 10,
-                        width: 15,
-                        child: Icon(
-                          Icons.arrow_drop_down,
-                          color: selectedColor == Colors.white
-                              ? Colors.black
-                              : Colors.white,
-                        ),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: selectedColor == Colors.white
+                            ? Colors.black
+                            : Colors.white,
                       ),
                     ],
                   ),
                   Text(
-                    email, // Display fetched email
+                    email,
                     style: GoogleFonts.inter(
                       color: selectedColor == Colors.white
                           ? Colors.black
@@ -1445,8 +1378,47 @@ class _DrawerCustomState extends State<DrawerCustom> {
           );
         }
 
-        return Container(); // Return an empty container if no data or error
+        // Trường hợp không có dữ liệu
+        return ListTile(
+          leading: _buildAvatar(null, selectedColor),
+          title: Text(
+            'Không có dữ liệu người dùng',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color:
+                  selectedColor == Colors.white ? Colors.black : Colors.white,
+            ),
+          ),
+        );
       },
+    );
+  }
+
+// Hàm phụ trợ để xây dựng avatar
+  Widget _buildAvatar(String? imageUrl, Color selectedColor) {
+    final isGoogleImage =
+        imageUrl?.startsWith('https://lh3.googleusercontent.com') ?? false;
+
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.grey.shade400,
+          width: 1,
+        ),
+      ),
+      child: CircleAvatar(
+        backgroundColor: Colors.white,
+        radius: 23,
+        foregroundImage: (imageUrl != null && imageUrl.isNotEmpty)
+            ? isGoogleImage
+                ? NetworkImage(imageUrl) // Sử dụng trực tiếp URL từ Google
+                : NetworkImage(
+                    "${ApiConfig.baseUrlBasic}$imageUrl") // URL từ server của bạn
+            : const AssetImage('resources/profile.png') as ImageProvider,
+      ),
     );
   }
 }

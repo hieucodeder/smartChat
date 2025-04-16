@@ -544,7 +544,7 @@ class _DasboardPageState extends State<DasboardPage> {
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
-                      border: Border.all(width: 2, color: Colors.grey)),
+                      border: Border.all(width: 1, color: Colors.grey)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -588,7 +588,7 @@ class _DasboardPageState extends State<DasboardPage> {
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
-                      border: Border.all(width: 2, color: Colors.grey)),
+                      border: Border.all(width: 1, color: Colors.grey)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -633,7 +633,7 @@ class _DasboardPageState extends State<DasboardPage> {
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
-                      border: Border.all(width: 2, color: Colors.grey)),
+                      border: Border.all(width: 1, color: Colors.grey)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -707,7 +707,7 @@ class _DasboardPageState extends State<DasboardPage> {
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
                       color: Colors.white,
-                      border: Border.all(width: 2, color: Colors.grey)),
+                      border: Border.all(width: 1, color: Colors.grey)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

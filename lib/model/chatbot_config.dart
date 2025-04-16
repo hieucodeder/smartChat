@@ -271,7 +271,7 @@ class DataConfig {
         userIndustry: json['user_industry'],
         queryRewrite: json['query_rewrite'],
         modelRerank: json['model_rerank'],
-        modelGenerate: json['model_generate'],
+        modelGenerate: json['model_generate'] ?? 'gpt-4o-mini',
         fallbackResponse: json['fallback_response'],
         systemPrompt: json['system_prompt'],
         query: json['query'],

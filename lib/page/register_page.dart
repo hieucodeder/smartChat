@@ -128,7 +128,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                       }
                                       return null;
                                     },
-                                    style: const TextStyle(color: Colors.black),
+                                    style:
+                                        GoogleFonts.inter(color: Colors.black),
                                     // controller: _usernameController,
                                     decoration: InputDecoration(
                                       filled: true,
@@ -143,7 +144,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                           fontSize: 16,
                                           color: const Color(0xFF064265)),
                                       prefixIcon: const Icon(
-                                        Icons.account_box_outlined,
+                                        Icons.person_2_outlined,
                                         size: 23,
                                         color: Color(0xFF064265),
                                       ),
@@ -185,12 +186,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                               }
                                               return null;
                                             },
-                                            style: const TextStyle(
+                                            style: GoogleFonts.inter(
                                                 color: Colors.black),
                                             controller: _passwordController,
                                             obscureText: !_isPasswordVisible,
                                             decoration: InputDecoration(
-                                              hintText: 'Email',
+                                              hintText: 'Tài khoản',
                                               hintStyle: GoogleFonts.inter(
                                                 fontSize: 16,
                                                 color: const Color(0xFF064265),
@@ -203,7 +204,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                                       BorderRadius.circular(8),
                                                   borderSide: BorderSide.none),
                                               prefixIcon: const Icon(
-                                                Icons.email_outlined,
+                                                Icons.account_box_outlined,
                                                 size: 24,
                                                 color: Color(0xFF064265),
                                               ),
@@ -243,11 +244,139 @@ class _RegisterPageState extends State<RegisterPage> {
                                               validator: (value) {
                                                 if (value == null ||
                                                     value.isEmpty) {
+                                                  return 'Vui lòng nhập Email';
+                                                }
+                                                return null;
+                                              },
+                                              style: GoogleFonts.inter(
+                                                  color: Colors.black),
+                                              // controller: _usernameController,
+                                              decoration: InputDecoration(
+                                                filled: true,
+                                                fillColor: const Color.fromARGB(
+                                                    237, 250, 248, 248),
+                                                border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    borderSide:
+                                                        BorderSide.none),
+                                                hintText: 'Email',
+                                                hintStyle: GoogleFonts.inter(
+                                                    fontSize: 16,
+                                                    color: const Color(
+                                                        0xFF064265)),
+                                                prefixIcon: const Icon(
+                                                  Icons.email_outlined,
+                                                  size: 24,
+                                                  color: Color(0xFF064265),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 10,
+                                                        horizontal: 12),
+                                                errorBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(
+                                                    color: Colors.red,
+                                                    width: 1.5,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.0),
+                                                ),
+                                                focusedErrorBorder:
+                                                    OutlineInputBorder(
+                                                  borderSide: const BorderSide(
+                                                    color: Colors.red,
+                                                    width: 1.5,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.0),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 20,
+                                          ),
+                                          Expanded(
+                                            child: TextFormField(
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
+                                                  return 'Vui lòng nhập số điện thoại';
+                                                }
+                                                return null;
+                                              },
+                                              style: GoogleFonts.inter(
+                                                  color: Colors.black),
+                                              // controller: _usernameController,
+                                              decoration: InputDecoration(
+                                                filled: true,
+                                                fillColor: const Color.fromARGB(
+                                                    237, 250, 248, 248),
+                                                border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                    borderSide:
+                                                        BorderSide.none),
+                                                hintText: 'Điện thoại',
+                                                hintStyle: GoogleFonts.inter(
+                                                    fontSize: 16,
+                                                    color: const Color(
+                                                        0xFF064265)),
+                                                prefixIcon: const Icon(
+                                                  Icons.phone_enabled_outlined,
+                                                  size: 24,
+                                                  color: Color(0xFF064265),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 10,
+                                                        horizontal: 12),
+                                                errorBorder: OutlineInputBorder(
+                                                  borderSide: const BorderSide(
+                                                    color: Colors.red,
+                                                    width: 1.5,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.0),
+                                                ),
+                                                focusedErrorBorder:
+                                                    OutlineInputBorder(
+                                                  borderSide: const BorderSide(
+                                                    color: Colors.red,
+                                                    width: 1.5,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.0),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Expanded(
+                                            child: TextFormField(
+                                              validator: (value) {
+                                                if (value == null ||
+                                                    value.isEmpty) {
                                                   return 'Vui lòng nhập mật khẩu';
                                                 }
                                                 return null;
                                               },
-                                              style: const TextStyle(
+                                              style: GoogleFonts.inter(
                                                   color: Colors.black),
                                               // controller: _usernameController,
                                               decoration: InputDecoration(
@@ -297,7 +426,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                             ),
                                           ),
                                           SizedBox(
-                                            width: 20,
+                                            width: 10,
                                           ),
                                           Expanded(
                                             child: TextFormField(
@@ -308,7 +437,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                                 }
                                                 return null;
                                               },
-                                              style: const TextStyle(
+                                              style: GoogleFonts.inter(
                                                   color: Colors.black),
                                               // controller: _usernameController,
                                               decoration: InputDecoration(

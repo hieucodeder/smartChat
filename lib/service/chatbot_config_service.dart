@@ -11,19 +11,16 @@ Future<List<DataConfig>> fetchChatbotConfig(String chatbotCode) async {
       headers: await ApiConfig.getHeaders(),
       body: jsonEncode({'chatbot_code': chatbotCode}),
     );
-   
-    if (response.statusCode == 200) {
-      String responseBody = response.body.trim(); // Xóa khoảng trắng đầu/cuối
-      debugPrint("📥 JSON từ API: ${responseBody.length} ký tự");
 
-      // Kiểm tra nếu dữ liệu phản hồi bị rỗng hoặc là HTML lỗi từ server
+    if (response.statusCode == 200) {
+      String responseBody = response.body.trim();
+
       if (responseBody.isEmpty ||
           responseBody.startsWith('<!DOCTYPE') ||
           responseBody.startsWith('<html')) {
         throw Exception('❌ Phản hồi không hợp lệ hoặc lỗi từ server.');
       }
 
-      // Kiểm tra JSON có dấu kết thúc hợp lệ
       if (!(responseBody.startsWith('{') || responseBody.startsWith('['))) {
         throw Exception('❌ Dữ liệu không phải JSON hợp lệ.');
       }
@@ -36,9 +33,15 @@ Future<List<DataConfig>> fetchChatbotConfig(String chatbotCode) async {
         }
 
         final chatbotConfig = ChatbotConfig.fromJson(decodedJson);
-        final result = chatbotConfig.data ?? [];
+        final dataList = chatbotConfig.data;
 
-        return result;
+        // Trường hợp "data": [] hoặc null
+        if (dataList == null || dataList.isEmpty) {
+          debugPrint("⚠️ Không có dữ liệu chatbot được trả về.");
+          return [];
+        }
+
+        return dataList;
       } on FormatException catch (jsonError) {
         debugPrint("❌ JSON không hợp lệ: $jsonError");
         debugPrint("📄 Nội dung JSON lỗi: $responseBody");

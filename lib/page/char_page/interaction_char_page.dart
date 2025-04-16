@@ -33,6 +33,14 @@ class InteractionCharPage extends StatelessWidget {
                         1)
                     .toDouble()
                 : 10,
+            // Thêm viền cho biểu đồ
+            borderData: FlBorderData(
+              show: true,
+              border: Border.all(
+                color: Colors.grey, // Màu viền
+                width: 1, // Độ dày viền
+              ),
+            ),
             barGroups: data.asMap().entries.map(
               (entry) {
                 final colorIndex = entry.key % barColors.length;
@@ -40,7 +48,7 @@ class InteractionCharPage extends StatelessWidget {
                   x: entry.key,
                   barRods: [
                     BarChartRodData(
-                      toY: (entry.value.totalSessions ?? 0).toDouble(),
+                      toY: (entry.value.totalSessions ?? 0).toInt().toDouble(),
                       color: barColors[colorIndex],
                       width: 16,
                       borderRadius: BorderRadius.circular(4),
@@ -99,7 +107,7 @@ class InteractionCharPage extends StatelessWidget {
                   showTitles: true,
                   getTitlesWidget: (value, meta) {
                     return Text(
-                      value.toInt().toString(),
+                      value.toInt().toString(), // Hiển thị số nguyên
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         color: Colors.black,

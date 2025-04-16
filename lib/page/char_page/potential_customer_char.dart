@@ -33,6 +33,14 @@ class PotentialCustomerChar extends StatelessWidget {
                         1)
                     .toDouble()
                 : 10,
+            // Thêm viền cho biểu đồ
+            borderData: FlBorderData(
+              show: true,
+              border: Border.all(
+                color: Colors.grey, // Màu viền
+                width: 1, // Độ dày viền
+              ),
+            ),
             barGroups: data.asMap().entries.map(
               (entry) {
                 final colorIndex = entry.key % barColors.length;

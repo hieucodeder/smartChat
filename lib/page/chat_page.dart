@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:chatbotbnn/model/body_chatbot_answer.dart';
 import 'package:chatbotbnn/model/chatbot_config.dart';
 import 'package:chatbotbnn/model/history_all_model.dart';
@@ -85,11 +87,17 @@ class _ChatPageState extends State<ChatPage> {
     final chatbotCode =
         Provider.of<ChatbotProvider>(context, listen: false).currentChatbotCode;
 
+    if (chatbotCode == null || chatbotCode.isEmpty) {
+      debugPrint("⚠️ chatbotCode bị null hoặc rỗng.");
+      return null;
+    }
+
     try {
-      List<DataConfig> chatbotConfig = await fetchChatbotConfig(chatbotCode!);
+      List<DataConfig> chatbotConfig = await fetchChatbotConfig(chatbotCode);
 
       if (chatbotConfig.isEmpty) {
-        throw Exception('❌ Không tìm thấy cấu hình chatbot.');
+        debugPrint('⚠️ Không có cấu hình chatbot nào được trả về.');
+        return null;
       }
 
       final config = chatbotConfig.first;
@@ -137,41 +145,76 @@ class _ChatPageState extends State<ChatPage> {
     // Lấy cấu hình chatbot
     DataConfig? chatbotConfig = await loadChatbotConfig();
 
-    if (chatbotConfig == null) {
-      debugPrint("⚠️ Không thể tải cấu hình chatbot.");
-      return;
-    }
-
+    // Kiểm tra phiên
     bool isNewSession = historyId.isEmpty;
 
-    BodyChatbotAnswer chatbotRequest = BodyChatbotAnswer(
-      chatbotCode: chatbotConfig.chatbotCode ?? '',
-      chatbotName: chatbotConfig.chatbotName ?? '',
-      collectionName: chatbotConfig.collectionName ?? '',
-      customizePrompt: chatbotConfig.promptContent ?? '',
-      fallbackResponse: chatbotConfig.fallbackResponse ?? '',
-      genModel: chatbotConfig.modelGenerate ?? '',
-      history: (chatbotConfig.history == null || chatbotConfig.history!.isEmpty)
-          ? ''
-          : "",
-      historyId: isNewSession ? "" : historyId,
-      intentQueue: [],
-      // isNewSession: isNewSession,
-      language: "Vietnamese",
-      platform: "",
-      query: userQuery,
-      rerankModel: chatbotConfig.modelRerank ?? '',
-      rewriteModel: chatbotConfig.queryRewrite ?? '',
-      slots: [],
-      slotsConfig: [],
-      systemPrompt: chatbotConfig.systemPrompt ?? '',
-      temperature: chatbotConfig.temperature ?? 0,
-      threadHold: chatbotConfig.threadHold ?? 0.8,
-      topCount: chatbotConfig.topCount ?? 3,
-      type: "normal",
-      userId: userId,
-      userIndustry: "",
-    );
+    BodyChatbotAnswer chatbotRequest;
+
+    if (chatbotConfig != null) {
+      // 👉 Dùng config thật
+      chatbotRequest = BodyChatbotAnswer(
+        chatbotCode: chatbotConfig.chatbotCode ?? '',
+        chatbotName: chatbotConfig.chatbotName ?? '',
+        collectionName: chatbotConfig.collectionName ?? '',
+        customizePrompt: chatbotConfig.promptContent ?? '',
+        fallbackResponse: chatbotConfig.fallbackResponse ?? '',
+        genModel: chatbotConfig.modelGenerate ?? '',
+        history:
+            (chatbotConfig.history == null || chatbotConfig.history!.isEmpty)
+                ? ''
+                : "",
+        historyId: isNewSession ? "" : historyId,
+        intentQueue: [],
+        // isNewSession: isNewSession,
+        language: "Vietnamese",
+        platform: "",
+        query: userQuery,
+        rerankModel: chatbotConfig.modelRerank ?? '',
+        rewriteModel: chatbotConfig.queryRewrite ?? '',
+        slots: [],
+        slotsConfig: [],
+        systemPrompt: chatbotConfig.systemPrompt ?? '',
+        temperature: chatbotConfig.temperature ?? 0,
+        threadHold: chatbotConfig.threadHold ?? 0.8,
+        topCount: chatbotConfig.topCount ?? 3,
+        type: "normal",
+        userId: userId,
+        userIndustry: "",
+      );
+      print(JsonEncoder.withIndent('  ').convert(chatbotRequest.toJson()));
+    } else {
+      debugPrint("⚠️ Không thể tải cấu hình chatbot. Dùng cấu hình mặc định.");
+      final chatbotCode = Provider.of<ChatbotProvider>(context, listen: false)
+          .currentChatbotCode;
+
+      // 👉 Dùng dữ liệu cứng
+      chatbotRequest = BodyChatbotAnswer(
+        chatbotCode: chatbotCode ?? "",
+        chatbotName: "",
+        collectionName: chatbotCode ?? "",
+        customizePrompt: "",
+        fallbackResponse: "",
+        genModel: "gpt-4o-mini",
+        history: "",
+        historyId: isNewSession ? "" : historyId,
+        intentQueue: [],
+        language: "English",
+        platform: "",
+        query: userQuery,
+        rerankModel: "gpt-4o-mini",
+        rewriteModel: "gpt-4o-mini",
+        slots: [],
+        slotsConfig: [],
+        systemPrompt: "",
+        temperature: 0,
+        threadHold: 0.8,
+        topCount: 3,
+        type: "normal",
+        userId: userId,
+        userIndustry: "",
+      );
+      print(JsonEncoder.withIndent('  ').convert(chatbotRequest.toJson()));
+    }
 
     String? response;
 
