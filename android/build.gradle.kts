@@ -4,8 +4,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.google.gms:google-services:4.3.15") // Đúng cú pháp Kotlin DSL
+        classpath("com.google.gms:google-services:4.3.15") // Corrected to use parentheses
     }
+
 }
 
 allprojects {
