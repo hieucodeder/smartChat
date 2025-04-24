@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_forget_password.dart';
-import 'package:chatbotbnn/model/respone_forgetpassword.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_forget_password.dart';
+import 'package:smart_chat/model/respone_forgetpassword.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 
 Future<ResponeForgetpassword> forgetPassword(BodyForgetPassword body) async {

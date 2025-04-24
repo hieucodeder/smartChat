@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_history_all.dart';
-import 'package:chatbotbnn/model/history_all_model.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_history_all.dart';
+import 'package:smart_chat/model/history_all_model.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,7 +50,7 @@ Future<HistoryAllModel> fetchChatHistoryAll(
       await prefs.setInt('chatbot_history_id', chatbotHistoryId);
       print('Saved chatbot_history_id: $chatbotHistoryId'); // Add this line
     }
-
+    print('KQ ${response.body}');
     // Kiểm tra response thành công
     if (response.statusCode == 200) {
       return historyAllModel;

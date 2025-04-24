@@ -1,4 +1,4 @@
-import 'package:chatbotbnn/model/char/response_interactionpie.dart';
+import 'package:smart_chat/model/char/response_interactionpie.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 

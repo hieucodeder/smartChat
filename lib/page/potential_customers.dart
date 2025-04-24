@@ -1,10 +1,10 @@
-import 'package:chatbotbnn/model/reponse_potential_customer.dart';
-import 'package:chatbotbnn/model/response_bot_config.dart';
-import 'package:chatbotbnn/provider/chatbot_provider.dart';
-import 'package:chatbotbnn/provider/provider_color.dart';
-import 'package:chatbotbnn/service/app_config.dart';
-import 'package:chatbotbnn/service/bot_config_service.dart';
-import 'package:chatbotbnn/service/potential_customer_sevice.dart';
+import 'package:smart_chat/model/reponse_potential_customer.dart';
+import 'package:smart_chat/model/response_bot_config.dart';
+import 'package:smart_chat/provider/chatbot_provider.dart';
+import 'package:smart_chat/provider/provider_color.dart';
+import 'package:smart_chat/service/app_config.dart';
+import 'package:smart_chat/service/bot_config_service.dart';
+import 'package:smart_chat/service/potential_customer_sevice.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';

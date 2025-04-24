@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_potential_customers.dart';
-import 'package:chatbotbnn/model/response_total_potential_customers.dart';
-import 'package:chatbotbnn/model/resquest_total_question.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_potential_customers.dart';
+import 'package:smart_chat/model/response_total_potential_customers.dart';
+import 'package:smart_chat/model/resquest_total_question.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

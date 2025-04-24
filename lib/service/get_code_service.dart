@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:chatbotbnn/model/response_get_code.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/response_get_code.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 
 Future<ResponseGetCode?> fetchGetChatBotCode(String? chatbotCode) async {

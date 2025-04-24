@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_role.dart';
-import 'package:chatbotbnn/model/response_get_code.dart';
-import 'package:chatbotbnn/model/role_model.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_role.dart';
+import 'package:smart_chat/model/response_get_code.dart';
+import 'package:smart_chat/model/role_model.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

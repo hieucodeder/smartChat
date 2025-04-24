@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/char/body_char.dart';
-import 'package:chatbotbnn/model/char/response_interactionpie.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/char/body_char.dart';
+import 'package:smart_chat/model/char/response_interactionpie.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

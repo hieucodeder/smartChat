@@ -2,24 +2,28 @@
 
 import 'dart:convert';
 
-import 'package:chatbotbnn/model/body_history.dart';
-import 'package:chatbotbnn/model/delete_model.dart';
-import 'package:chatbotbnn/model/history_all_model.dart';
-import 'package:chatbotbnn/provider/chat_provider.dart';
-import 'package:chatbotbnn/provider/chatbot_provider.dart';
-import 'package:chatbotbnn/provider/chatbotcolors_provider.dart';
-import 'package:chatbotbnn/provider/draw_selected_color_provider.dart';
-import 'package:chatbotbnn/provider/historyid_provider.dart';
-import 'package:chatbotbnn/provider/menu_state_provider.dart';
-import 'package:chatbotbnn/provider/platform_provider.dart';
-import 'package:chatbotbnn/provider/provider_color.dart';
-import 'package:chatbotbnn/provider/selected_history_provider.dart';
-import 'package:chatbotbnn/provider/selected_item_provider.dart';
-import 'package:chatbotbnn/service/app_config.dart';
-import 'package:chatbotbnn/service/delete_service.dart';
-import 'package:chatbotbnn/service/get_package_product_service.dart';
-import 'package:chatbotbnn/service/history_all_service.dart';
-import 'package:chatbotbnn/service/login_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:smart_chat/model/body_history.dart';
+import 'package:smart_chat/model/delete_model.dart';
+import 'package:smart_chat/model/history_all_model.dart';
+import 'package:smart_chat/page/login_page.dart';
+import 'package:smart_chat/provider/chat_provider.dart';
+import 'package:smart_chat/provider/chatbot_provider.dart';
+import 'package:smart_chat/provider/chatbotcolors_provider.dart';
+import 'package:smart_chat/provider/draw_selected_color_provider.dart';
+import 'package:smart_chat/provider/historyid_provider.dart';
+import 'package:smart_chat/provider/menu_state_provider.dart';
+import 'package:smart_chat/provider/platform_provider.dart';
+import 'package:smart_chat/provider/provider_color.dart';
+import 'package:smart_chat/provider/selected_history_provider.dart';
+import 'package:smart_chat/provider/selected_item_provider.dart';
+import 'package:smart_chat/service/app_config.dart';
+import 'package:smart_chat/service/delete_service.dart';
+import 'package:smart_chat/service/get_package_product_service.dart';
+import 'package:smart_chat/service/history_all_service.dart';
+import 'package:smart_chat/service/login_service.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -67,104 +71,135 @@ class _DrawerCustomState extends State<DrawerCustom> {
     final response = await fetchGetPackageProduct();
     if (!_isMounted) return;
 
-    if (response != null && response.packageProductName != null) {
+    if (response != null && response.status == 'active') {
       setState(() {
-        packageProductName = response.packageProductName!;
-        packageIcon = getIconForPackage(packageProductName);
-      });
-    } else {
-      setState(() {
-        packageProductName = "Gói hết hạn";
-      });
-
-      // Hiển thị thông báo và mở drawer
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scaffoldKey.currentState != null) {
-          _scaffoldKey.currentState!.openDrawer(); // Mở drawer
+        final name = response.packageProductName ?? 'Gói không xác định';
+        // Chỉ thêm "(Còn hạn)" nếu đúng gói "Trải nghiệm"
+        if (name == 'Trải nghiệm') {
+          packageProductName = '$name (Còn hạn)';
+        } else {
+          packageProductName = name;
         }
+        packageIcon = getIconForPackage(response.packageProductName!);
+      });
+      return;
+    }
 
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+    // Còn lại (null hoặc expired)
+    setState(() {
+      // Hiển thị hết hạn
+      packageProductName = 'Hết hạn';
+      packageIcon = getIconForPackage('expired'); // hoặc icon mặc định
+    });
+
+    // Mở drawer + show dialog báo hết hạn
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scaffoldKey.currentState?.openDrawer();
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Gói sử dụng của bạn đã hết hạn!',
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Row(
                   children: [
-                    Text(
-                      'Gói sử dụng của bạn đã hết hạn!',
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
+                    SizedBox(
+                      width: 50,
+                      height: 50,
+                      child: Image.asset(
+                        'resources/rocket.png',
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 50,
-                          height: 50,
-                          child: Image.asset(
-                            'resources/rocket.png',
-                            width: 40,
-                            height: 40,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            'Để sử dụng tính năng / dịch vụ, hãy đăng ký gói bên dưới hoặc liên hệ trực tiếp với chúng tôi!',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(fontSize: 14),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            widget.onItemSelected(5);
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            'Xem gói khác',
-                            style: GoogleFonts.inter(fontSize: 14),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () async {
-                            final url = Uri.parse('https://profile.com.vn/');
-                            if (await canLaunchUrl(url)) {
-                              await launchUrl(url);
-                            } else {
-                              throw 'Could not launch $url';
-                            }
-                          },
-                          child: Text(
-                            'Liên hệ',
-                            style: GoogleFonts.inter(fontSize: 14),
-                          ),
-                        ),
-                      ],
+                    Expanded(
+                      child: Text(
+                        'Để sử dụng tính năng / dịch vụ, hãy đăng ký gói bên dưới hoặc liên hệ trực tiếp với chúng tôi!',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(fontSize: 14),
+                      ),
                     ),
                   ],
                 ),
-              ),
-            );
-          },
-        );
-      });
-    }
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      onPressed: () async {
+                        try {
+                          // Thực hiện đăng xuất bằng cách xóa token
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.remove('token'); // Xóa token hiện tại
+// Thêm vào trước khi xóa token
+                          await FirebaseAuth.instance.signOut();
+// Thêm vào trước khi xóa token
+                          await GoogleSignIn().signOut();
+                          // Chuyển đến trang đăng nhập và xóa hết lịch sử navigation
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const LoginPage()),
+                            (route) => false,
+                          );
+
+                          // (Tùy chọn) Thêm thông báo đăng xuất thành công
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Đăng xuất thành công'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        } catch (e) {
+                          print('Lỗi khi đăng xuất: $e');
+                          // (Tùy chọn) Thông báo lỗi nếu cần
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Có lỗi xảy ra khi đăng xuất'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      child: Text('Đăng xuất',
+                          style: GoogleFonts.inter(fontSize: 14)),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        final url = Uri.parse('https://profile.com.vn/');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          throw 'Could not launch $url';
+                        }
+                      },
+                      child: Text('Liên hệ',
+                          style: GoogleFonts.inter(fontSize: 14)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   String parseMessageContent(String rawContent) {
@@ -958,6 +993,8 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                     'Không có ID';
                             final platform =
                                 history.platform ?? "Không có nền tảng";
+                            final userName = history.userName ?? "";
+                            print('UserName: ${userName}');
 
                             final userMessage = (history.messages?.isNotEmpty ??
                                     false)
@@ -969,13 +1006,14 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                 : Messages(content: 'Không có dữ liệu');
 
                             final rawContent = userMessage.content ?? '';
-                            print('Raw ${rawContent}');
+
                             final content = parseMessageContent(rawContent);
 
                             return {
                               'key': chatbotHistoryId,
                               'value': content,
                               'platform': platform,
+                              'user_name': userName
                             };
                           }).toList();
 
@@ -999,101 +1037,162 @@ class _DrawerCustomState extends State<DrawerCustom> {
                                     contents[index]['key'] ?? "";
                                 final String platform =
                                     contents[index]['platform'] ?? "";
+                                final String userName =
+                                    contents[index]['user_name'] ?? "";
                                 final bool isSelected =
                                     selectedChatProvider.selectedChatId ==
                                         itemKey;
 
                                 return GestureDetector(
-                                  onTap: () {
-                                    selectedChatProvider
-                                        .setSelectedChatId(itemKey);
-                                    Provider.of<SelectedItemProvider>(context,
-                                            listen: false)
-                                        .setSelectedIndex(index);
-                                    Future.delayed(
-                                        const Duration(milliseconds: 100), () {
-                                      _loadChatHistoryAndNavigate(
-                                          itemKey, platform);
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: Provider.of<SelectedItemProvider>(
-                                                      context)
-                                                  .selectedIndex ==
-                                              index
-                                          ? (selectedColor == Colors.white
-                                              ? const Color(0xFFEDEDED)
-                                              : Colors.white.withOpacity(0.1))
-                                          : (selectedColor == Colors.white
-                                              ? Colors.white
-                                              : Colors.transparent),
-                                    ),
-                                    padding: const EdgeInsets.only(
-                                        left: 10, right: 10),
-                                    child: Stack(
-                                      children: [
-                                        Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: ListTile(
-                                            contentPadding: EdgeInsets.zero,
-                                            tileColor: Colors.transparent,
-                                            visualDensity:
-                                                VisualDensity.compact,
-                                            minVerticalPadding: 0,
-                                            dense: true,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            title: Text(
-                                              contents[index]['value'] ?? '',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.inter(
-                                                fontSize: 14.0,
-                                                color:
-                                                    Provider.of<SelectedItemProvider>(
-                                                                    context)
-                                                                .selectedIndex ==
-                                                            index
-                                                        ? (selectedColor ==
-                                                                Colors.white
-                                                            ? const Color(
-                                                                0xFF000000)
-                                                            : Colors.white)
-                                                        : (selectedColor ==
-                                                                Colors.white
-                                                            ? const Color(
-                                                                0xFF333333)
-                                                            : Colors.white),
-                                                fontWeight: FontWeight.w400,
+                                    onTap: () {
+                                      selectedChatProvider
+                                          .setSelectedChatId(itemKey);
+                                      Provider.of<SelectedItemProvider>(context,
+                                              listen: false)
+                                          .setSelectedIndex(index);
+                                      Future.delayed(
+                                          const Duration(milliseconds: 100),
+                                          () {
+                                        _loadChatHistoryAndNavigate(
+                                            itemKey, platform);
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                    child: Container(
+                                      width: double.infinity,
+                                      height:
+                                          60, // Increased height for better spacing
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(
+                                            12), // Slightly round corners
+                                        color:
+                                            Provider.of<SelectedItemProvider>(
+                                                            context)
+                                                        .selectedIndex ==
+                                                    index
+                                                ? (selectedColor == Colors.white
+                                                    ? const Color(0xFFEDEDED)
+                                                    : Colors.white
+                                                        .withOpacity(0.1))
+                                                : (selectedColor == Colors.white
+                                                    ? Colors.white
+                                                    : Colors.transparent),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6), // Adjust padding
+                                      child: Stack(
+                                        children: [
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: ListTile(
+                                              contentPadding: EdgeInsets.zero,
+                                              tileColor: Colors.transparent,
+                                              visualDensity:
+                                                  VisualDensity.compact,
+                                              minVerticalPadding: 0,
+                                              dense: true,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        12), // Rounded corners
                                               ),
-                                            ),
-                                            trailing: GestureDetector(
-                                              onTap: () {
-                                                deleteChatHistory(context,
-                                                    contents[index]['key']);
-                                              },
-                                              child: Icon(
-                                                Icons.more_horiz,
-                                                color: selectedColor ==
-                                                        Colors.white
-                                                    ? Colors.black
-                                                    : Colors.white,
-                                                size: 20.0,
+                                              title: Text(
+                                                contents[index]['value'] ?? '',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 14.0,
+                                                  color: Provider.of<SelectedItemProvider>(
+                                                                  context)
+                                                              .selectedIndex ==
+                                                          index
+                                                      ? (selectedColor ==
+                                                              Colors.white
+                                                          ? const Color(
+                                                              0xFF000000)
+                                                          : Colors.white)
+                                                      : (selectedColor ==
+                                                              Colors.white
+                                                          ? const Color(
+                                                              0xFF333333)
+                                                          : Colors.white),
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                              trailing: GestureDetector(
+                                                onTap: () {
+                                                  deleteChatHistory(context,
+                                                      contents[index]['key']);
+                                                },
+                                                child: Icon(
+                                                  Icons.more_horiz,
+                                                  color: selectedColor ==
+                                                          Colors.white
+                                                      ? Colors.black
+                                                      : Colors.white,
+                                                  size: 20.0,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
+                                          // Padding(
+                                          //   padding: const EdgeInsets.all(1.0),
+                                          //   child: Row(
+                                          //     crossAxisAlignment:
+                                          //         CrossAxisAlignment.center,
+                                          //     children: [
+                                          //       // Conditional Icon based on platform value
+                                          //       if (platform == "zalo")
+                                          //         Icon(
+                                          //           FontAwesomeIcons
+                                          //               .commentDots,
+                                          //           color: Colors.black,
+                                          //           size:
+                                          //               16, // Adjusted icon size
+                                          //         ) // Zalo icon
+                                          //       else if (platform == "facebook")
+                                          //         const Icon(
+                                          //           Icons.facebook,
+                                          //           color: Colors.black,
+                                          //           size:
+                                          //               16, // Adjusted icon size
+                                          //         ) // Facebook icon
+                                          //       else
+                                          //         const Icon(
+                                          //           TablerIcons.message_dots,
+                                          //           color: Colors.black,
+                                          //           size:
+                                          //               16, // Adjusted icon size
+                                          //         ), // Default icon for other platforms
+
+                                          //       const SizedBox(
+                                          //           width:
+                                          //               8), // Added space between icon and text
+
+                                          //       Expanded(
+                                          //         child: Text(
+                                          //           contents[index]
+                                          //                   ['user_name'] ??
+                                          //               '',
+                                          //           maxLines: 1,
+                                          //           overflow:
+                                          //               TextOverflow.ellipsis,
+                                          //           style: GoogleFonts.inter(
+                                          //             fontSize:
+                                          //                 12, // Increased text size for better readability
+                                          //             color: Colors.black,
+                                          //             fontWeight:
+                                          //                 FontWeight.bold,
+                                          //           ),
+                                          //         ),
+                                          //       ),
+                                          //     ],
+                                          //   ),
+                                          // ),
+                                        ],
+                                      ),
+                                    ));
                               },
                             ),
                           );

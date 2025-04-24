@@ -28,6 +28,7 @@ class Data {
   int? is_read;
   int? is_start;
   String? platform;
+  String? userName;
   List<Messages>? messages;
 
   Data({
@@ -37,6 +38,7 @@ class Data {
     this.is_read,
     this.is_start,
     this.platform,
+    this.userName,
     this.messages,
   });
 
@@ -48,6 +50,7 @@ class Data {
       is_read: json['is_read'],
       is_start: json['is_start'],
       platform: json['platform'],
+      userName: json['user_name'],
       messages: json['messages'] != null
           ? (json['messages'] as List).map((v) => Messages.fromJson(v)).toList()
           : null,
@@ -62,6 +65,7 @@ class Data {
     data['is_read'] = is_read;
     data['is_start'] = is_start;
     data['platform'] = platform;
+    data['user_name']=userName;
     if (messages != null) {
       data['messages'] = messages!.map((v) => v.toJson()).toList();
     }

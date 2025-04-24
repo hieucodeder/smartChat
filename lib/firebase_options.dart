@@ -41,53 +41,51 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDqQxuhz8v3KmxQ2J6Ot1ntDWEbbVBbBS0',
-    appId: '1:926840923325:web:4368f56b4bb394482c83d4',
-    messagingSenderId: '926840923325',
-    projectId: 'smartchat-ba3ae',
-    authDomain: 'smartchat-ba3ae.firebaseapp.com',
-    storageBucket: 'smartchat-ba3ae.firebasestorage.app',
-    measurementId: 'G-81JVPB6ZHC',
+    apiKey: 'AIzaSyDwEM0oSHUsYfsto_2ner0jNW-eJmhBXd4',
+    appId: '1:214943613320:web:fa32049f13c1eebbfafa3d',
+    messagingSenderId: '214943613320',
+    projectId: 'hallowed-chain-457509-g7',
+    authDomain: 'hallowed-chain-457509-g7.firebaseapp.com',
+    storageBucket: 'hallowed-chain-457509-g7.firebasestorage.app',
+    measurementId: 'G-HJX3K3CNL8',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAKMlaTzsT5TwQyReYcBa-zUZforbUi-Ds',
-    appId: '1:926840923325:android:98760d7879d6c37d2c83d4',
-    messagingSenderId: '926840923325',
-    projectId: 'smartchat-ba3ae',
-    storageBucket: 'smartchat-ba3ae.firebasestorage.app',
+    apiKey: 'AIzaSyC_oUQJzt31LAwouqhXWtwZ-BT1CE5oCuw',
+    appId: '1:214943613320:android:1391fccafa5be331fafa3d',
+    messagingSenderId: '214943613320',
+    projectId: 'hallowed-chain-457509-g7',
+    storageBucket: 'hallowed-chain-457509-g7.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyA5liGd4n65y0OgSnzCvKHW3u7xaAOiUWs',
-    appId: '1:926840923325:ios:80cb4c7959e03b3b2c83d4',
-    messagingSenderId: '926840923325',
-    projectId: 'smartchat-ba3ae',
-    storageBucket: 'smartchat-ba3ae.firebasestorage.app',
-    androidClientId: '926840923325-64csqfcj4kf9dfsoq84thr8re0qnlstk.apps.googleusercontent.com',
-    iosClientId: '926840923325-kknjp2ck36at90r4r9mupmcjdcjt4i72.apps.googleusercontent.com',
+    apiKey: 'AIzaSyCVNU_FsrZ3-_xDY0iwgTUx0SMdcb-DPWg',
+    appId: '1:214943613320:ios:26072d52ba99d5fdfafa3d',
+    messagingSenderId: '214943613320',
+    projectId: 'hallowed-chain-457509-g7',
+    storageBucket: 'hallowed-chain-457509-g7.firebasestorage.app',
+    iosClientId: '214943613320-hakmpn9opabe69cgudll2qc6puv8le8t.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartChat',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyA5liGd4n65y0OgSnzCvKHW3u7xaAOiUWs',
-    appId: '1:926840923325:ios:80cb4c7959e03b3b2c83d4',
-    messagingSenderId: '926840923325',
-    projectId: 'smartchat-ba3ae',
-    storageBucket: 'smartchat-ba3ae.firebasestorage.app',
-    androidClientId: '926840923325-64csqfcj4kf9dfsoq84thr8re0qnlstk.apps.googleusercontent.com',
-    iosClientId: '926840923325-kknjp2ck36at90r4r9mupmcjdcjt4i72.apps.googleusercontent.com',
+    apiKey: 'AIzaSyCVNU_FsrZ3-_xDY0iwgTUx0SMdcb-DPWg',
+    appId: '1:214943613320:ios:26072d52ba99d5fdfafa3d',
+    messagingSenderId: '214943613320',
+    projectId: 'hallowed-chain-457509-g7',
+    storageBucket: 'hallowed-chain-457509-g7.firebasestorage.app',
+    iosClientId: '214943613320-hakmpn9opabe69cgudll2qc6puv8le8t.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartChat',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDqQxuhz8v3KmxQ2J6Ot1ntDWEbbVBbBS0',
-    appId: '1:926840923325:web:65b5a599e9c3c0712c83d4',
-    messagingSenderId: '926840923325',
-    projectId: 'smartchat-ba3ae',
-    authDomain: 'smartchat-ba3ae.firebaseapp.com',
-    storageBucket: 'smartchat-ba3ae.firebasestorage.app',
-    measurementId: 'G-3HDTM00YKX',
+    apiKey: 'AIzaSyDwEM0oSHUsYfsto_2ner0jNW-eJmhBXd4',
+    appId: '1:214943613320:web:a227f93647433c65fafa3d',
+    messagingSenderId: '214943613320',
+    projectId: 'hallowed-chain-457509-g7',
+    authDomain: 'hallowed-chain-457509-g7.firebaseapp.com',
+    storageBucket: 'hallowed-chain-457509-g7.firebasestorage.app',
+    measurementId: 'G-N7GRH0S1LN',
   );
 
 }

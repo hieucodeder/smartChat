@@ -1,9 +1,9 @@
 import 'dart:ui';
 
-import 'package:chatbotbnn/provider/provider_color.dart';
+import 'package:smart_chat/provider/provider_color.dart';
 import 'package:flutter/material.dart';
-import 'package:chatbotbnn/model/package_product_response.dart';
-import 'package:chatbotbnn/service/package_product_service.dart';
+import 'package:smart_chat/model/package_product_response.dart';
+import 'package:smart_chat/service/package_product_service.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -305,7 +305,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                             _buildInfoRow(
                               Icons.check_circle_outline,
                               formatNumber(queries[1]),
-                              "tệp tối đa (max 10MB/tệp)",
+                              "tệp tối đa (tối đa 10MB/tệp)",
                               // Lấy giá trị thứ hai
                             ),
                             _buildInfoRow(

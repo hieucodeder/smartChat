@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_history_delete.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_history_delete.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
-import 'package:chatbotbnn/model/delete_model.dart';
+import 'package:smart_chat/model/delete_model.dart';
 
 Future<DeleteModel> fetchChatHistoryDelete(int historyId) async {
   final String apiUrl = '${ApiConfig.baseUrlHistory}delete-chatbot-history';

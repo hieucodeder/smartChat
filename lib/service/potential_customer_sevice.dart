@@ -1,13 +1,13 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_potential_customers.dart';
-import 'package:chatbotbnn/model/body_slot_intent.dart';
-import 'package:chatbotbnn/model/reponse_potential_customer.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_potential_customers.dart';
+import 'package:smart_chat/model/body_slot_intent.dart';
+import 'package:smart_chat/model/reponse_potential_customer.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:chatbotbnn/provider/chatbot_provider.dart';
+import 'package:smart_chat/provider/chatbot_provider.dart';
 
 Future<List<DataPotentialCustomer>> fetchAllPotentialCustomer(
     BuildContext context,

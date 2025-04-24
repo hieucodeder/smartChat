@@ -1,5 +1,5 @@
-import 'package:chatbotbnn/model/chatbot_config.dart';
-import 'package:chatbotbnn/service/chatbot_config_service.dart';
+import 'package:smart_chat/model/chatbot_config.dart';
+import 'package:smart_chat/service/chatbot_config_service.dart';
 import 'package:flutter/material.dart';
 
 class ConfigChatProvider extends ChangeNotifier {
@@ -14,7 +14,8 @@ class ConfigChatProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      List<DataConfig> chatbotConfigList = await fetchChatbotConfig(chatbotCode);
+      List<DataConfig> chatbotConfigList =
+          await fetchChatbotConfig(chatbotCode);
 
       if (chatbotConfigList.isEmpty) {
         throw Exception('❌ Không tìm thấy cấu hình chatbot.');

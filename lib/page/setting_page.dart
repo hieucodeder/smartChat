@@ -1,8 +1,9 @@
-import 'package:chatbotbnn/model/body_forget_password.dart';
-import 'package:chatbotbnn/model/respone_forgetpassword.dart';
-import 'package:chatbotbnn/page/login_page.dart';
-import 'package:chatbotbnn/provider/provider_color.dart';
-import 'package:chatbotbnn/service/forget_password_service.dart';
+import 'package:smart_chat/model/body_forget_password.dart';
+import 'package:smart_chat/model/respone_forgetpassword.dart';
+import 'package:smart_chat/page/login_page.dart';
+import 'package:smart_chat/provider/navigation_provider.dart';
+import 'package:smart_chat/provider/provider_color.dart';
+import 'package:smart_chat/service/forget_password_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -500,6 +501,10 @@ class _SettingPageState extends State<SettingPage> {
 // Thêm vào trước khi xóa token
                     await GoogleSignIn().signOut();
                     // Chuyển đến trang đăng nhập và xóa hết lịch sử navigation
+                    Provider.of<NavigationProvider>(context, listen: false)
+                        .setCurrentIndex(1);
+
+                    // Quay về LoginPage, xóa mọi trang trước đó
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(

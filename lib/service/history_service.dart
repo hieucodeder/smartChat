@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
-import 'package:chatbotbnn/model/body_history.dart';
-import 'package:chatbotbnn/model/history_model.dart';
+import 'package:smart_chat/model/body_history.dart';
+import 'package:smart_chat/model/history_model.dart';
 
 List<Map<String, dynamic>> tempHistory = []; // Mảng toàn cục lưu history
 

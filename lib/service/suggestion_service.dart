@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_suggestion.dart';
-import 'package:chatbotbnn/model/suggestion_respone_model.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_suggestion.dart';
+import 'package:smart_chat/model/suggestion_respone_model.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 
 Future<List<String>?> fetchSuggestions(BodySuggestion body) async {

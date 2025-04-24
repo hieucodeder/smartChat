@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:chatbotbnn/model/body_create_chatbot.dart';
-import 'package:chatbotbnn/model/chatbot_config.dart';
-import 'package:chatbotbnn/model/response_createchatbot.dart';
-import 'package:chatbotbnn/provider/chatbot_provider.dart';
-import 'package:chatbotbnn/service/chatbot_config_service.dart';
-import 'package:chatbotbnn/service/create_chatbot_service.dart';
+import 'package:smart_chat/model/body_create_chatbot.dart';
+import 'package:smart_chat/model/chatbot_config.dart';
+import 'package:smart_chat/model/response_createchatbot.dart';
+import 'package:smart_chat/provider/chatbot_provider.dart';
+import 'package:smart_chat/service/chatbot_config_service.dart';
+import 'package:smart_chat/service/create_chatbot_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';

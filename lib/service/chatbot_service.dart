@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/get_code_model.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/get_code_model.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 
 Future<GetCodeModel?> fetchGetCodeModel(String code) async {

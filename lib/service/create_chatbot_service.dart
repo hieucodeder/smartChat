@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_create_chatbot.dart';
-import 'package:chatbotbnn/model/response_createchatbot.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_create_chatbot.dart';
+import 'package:smart_chat/model/response_createchatbot.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 
 Future<ResponseCreatechatbot?> fetchApiResponseCreateChatbot(

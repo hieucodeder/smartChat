@@ -1,6 +1,6 @@
-import 'package:chatbotbnn/provider/chatbot_provider.dart';
-import 'package:chatbotbnn/provider/historyid_provider.dart'; // Import HistoryidProvider
-import 'package:chatbotbnn/service/chatbot_service.dart';
+import 'package:smart_chat/provider/chatbot_provider.dart';
+import 'package:smart_chat/provider/historyid_provider.dart'; // Import HistoryidProvider
+import 'package:smart_chat/service/chatbot_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

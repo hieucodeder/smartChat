@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:chatbotbnn/model/get_historyid.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/get_historyid.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

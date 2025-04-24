@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_package_product.dart';
-import 'package:chatbotbnn/model/package_product_response.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_package_product.dart';
+import 'package:smart_chat/model/package_product_response.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:http/http.dart' as http;
 
 Future<PackageProductResponse?> fetchAllPackageProduct(

@@ -1,9 +1,10 @@
-import 'package:chatbotbnn/model/body_login.dart';
-import 'package:chatbotbnn/page/app_screen.dart';
-import 'package:chatbotbnn/page/forgot_password_page.dart';
-import 'package:chatbotbnn/page/register_page.dart';
-import 'package:chatbotbnn/service/login_service.dart';
-import 'package:chatbotbnn/service/user_singin_service.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:smart_chat/model/body_login.dart';
+import 'package:smart_chat/page/app_screen.dart';
+import 'package:smart_chat/page/forgot_password_page.dart';
+import 'package:smart_chat/page/register_page.dart';
+import 'package:smart_chat/service/login_service.dart';
+import 'package:smart_chat/service/user_singin_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -24,6 +25,47 @@ class _LoginPageState extends State<LoginPage> {
   final _loginService = LoginService();
 
   bool _isLoading = false; // Trạng thái đang tải
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   checkFirebaseConnection();
+  // }
+
+  // Future<void> checkFirebaseConnection() async {
+  //   try {
+  //     // Khởi tạo GoogleSignIn
+  //     final GoogleSignIn googleSignIn = GoogleSignIn();
+
+  //     // Bắt đầu quá trình đăng nhập với Google
+  //     final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+  //     if (googleUser == null) {
+  //       // Người dùng hủy bỏ đăng nhập
+  //       print("Đăng nhập Google bị hủy bỏ.");
+  //       return;
+  //     }
+
+  //     // Lấy mã xác thực từ Google
+  //     final GoogleSignInAuthentication googleAuth =
+  //         await googleUser.authentication;
+
+  //     // Tạo thông tin đăng nhập Firebase từ Google
+  //     final AuthCredential credential = GoogleAuthProvider.credential(
+  //       accessToken: googleAuth.accessToken,
+  //       idToken: googleAuth.idToken,
+  //     );
+
+  //     // Đăng nhập vào Firebase với thông tin xác thực từ Google
+  //     UserCredential userCredential =
+  //         await FirebaseAuth.instance.signInWithCredential(credential);
+
+  //     // Kiểm tra thông tin người dùng đã đăng nhập
+  //     print('Firebase Auth connected: ${userCredential.user}');
+  //   } catch (e) {
+  //     print('Error connecting to Firebase Auth: $e');
+  //   }
+  // }
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
@@ -433,6 +475,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         GestureDetector(
                           onTap: () async {
+                            // Gọi phương thức đăng nhập với Google từ dịch vụ
                             try {
                               // Hiển thị vòng xoay loading ngay khi bắt đầu đăng nhập
                               showDialog(
@@ -445,11 +488,11 @@ class _LoginPageState extends State<LoginPage> {
                               );
 
                               final user =
-                                  await UserSigninService.loginWithGoogle();
+                                  await UserSinginService.loginWithGoogle();
 
                               if (user != null && mounted) {
-                                // Tự động chuyển trang sau 3 giây
-                                Future.delayed(const Duration(seconds: 3), () {
+                                // Tự động chuyển trang sau 2 giây
+                                Future.delayed(const Duration(seconds: 2), () {
                                   if (mounted) {
                                     Navigator.pop(
                                         context); // Đóng dialog loading thành công

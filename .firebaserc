@@ -1,5 +1,11 @@
 {
   "projects": {
-    "default": "smartchat-ba3ae"
-  }
+    "default": "hallowed-chain-457509-g7",
+    "no": "android-457002",
+    "prod": "android-457002",
+    "  ": "android-457002",
+    "staging": "hallowed-chain-457509-g7"
+  },
+  "targets": {},
+  "etags": {}
 }

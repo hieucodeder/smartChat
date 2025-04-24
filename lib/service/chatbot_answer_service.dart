@@ -1,7 +1,7 @@
 // import 'dart:convert';
-// import 'package:chatbotbnn/model/body_chatbot_answer.dart';
-// import 'package:chatbotbnn/model/chatbot_answer_model.dart';
-// import 'package:chatbotbnn/service/app_config.dart';
+// import 'package:smart_chat/model/body_chatbot_answer.dart';
+// import 'package:smart_chat/model/chatbot_answer_model.dart';
+// import 'package:smart_chat/service/app_config.dart';
 // import 'package:http/http.dart' as http;
 
 // Future<ChatbotAnswerModel?> fetchApiResponse(

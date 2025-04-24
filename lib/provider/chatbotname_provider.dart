@@ -1,4 +1,4 @@
-import 'package:chatbotbnn/model/chatbot_info.dart';
+import 'package:smart_chat/model/chatbot_info.dart';
 import 'package:flutter/material.dart';
 
 class ChatbotnameProvider with ChangeNotifier {

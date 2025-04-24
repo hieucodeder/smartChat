@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:chatbotbnn/model/body_chatbot_answer.dart';
-import 'package:chatbotbnn/service/app_config.dart';
+import 'package:smart_chat/model/body_chatbot_answer.dart';
+import 'package:smart_chat/service/app_config.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 

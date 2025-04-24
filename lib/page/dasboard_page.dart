@@ -1,25 +1,25 @@
-import 'package:chatbotbnn/model/char/response_interaction_char.dart';
-import 'package:chatbotbnn/model/char/response_interactionpie.dart';
-import 'package:chatbotbnn/model/char/response_potential_customer.dart';
-import 'package:chatbotbnn/model/char/response_potential_customerpie.dart';
-import 'package:chatbotbnn/model/chatbot_info.dart';
-import 'package:chatbotbnn/model/response_total_count.dart';
-import 'package:chatbotbnn/model/response_total_interaction.dart';
-import 'package:chatbotbnn/model/response_total_potential_customers.dart';
-import 'package:chatbotbnn/model/response_total_question.dart';
-import 'package:chatbotbnn/page/char_page/interaction_char_page.dart';
-import 'package:chatbotbnn/page/char_page/interaction_pie_page.dart';
-import 'package:chatbotbnn/page/char_page/potential_customer_char.dart';
-import 'package:chatbotbnn/page/char_page/potential_customer_piechar.dart';
-import 'package:chatbotbnn/provider/chatbotname_provider.dart';
-import 'package:chatbotbnn/service/service_char/interaction_char.dart';
-import 'package:chatbotbnn/service/service_char/interaction_pie_service.dart';
-import 'package:chatbotbnn/service/service_char/piechar_potential_customer_service.dart';
-import 'package:chatbotbnn/service/service_char/potential_customer_service.dart';
-import 'package:chatbotbnn/service/total_count_service.dart';
-import 'package:chatbotbnn/service/total_potential_customers_service.dart';
-import 'package:chatbotbnn/service/total_question_service.dart';
-import 'package:chatbotbnn/service/total_sessions_service.dart';
+import 'package:smart_chat/model/char/response_interaction_char.dart';
+import 'package:smart_chat/model/char/response_interactionpie.dart';
+import 'package:smart_chat/model/char/response_potential_customer.dart';
+import 'package:smart_chat/model/char/response_potential_customerpie.dart';
+import 'package:smart_chat/model/chatbot_info.dart';
+import 'package:smart_chat/model/response_total_count.dart';
+import 'package:smart_chat/model/response_total_interaction.dart';
+import 'package:smart_chat/model/response_total_potential_customers.dart';
+import 'package:smart_chat/model/response_total_question.dart';
+import 'package:smart_chat/page/char_page/interaction_char_page.dart';
+import 'package:smart_chat/page/char_page/interaction_pie_page.dart';
+import 'package:smart_chat/page/char_page/potential_customer_char.dart';
+import 'package:smart_chat/page/char_page/potential_customer_piechar.dart';
+import 'package:smart_chat/provider/chatbotname_provider.dart';
+import 'package:smart_chat/service/service_char/interaction_char.dart';
+import 'package:smart_chat/service/service_char/interaction_pie_service.dart';
+import 'package:smart_chat/service/service_char/piechar_potential_customer_service.dart';
+import 'package:smart_chat/service/service_char/potential_customer_service.dart';
+import 'package:smart_chat/service/total_count_service.dart';
+import 'package:smart_chat/service/total_potential_customers_service.dart';
+import 'package:smart_chat/service/total_question_service.dart';
+import 'package:smart_chat/service/total_sessions_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -519,7 +519,7 @@ class _DasboardPageState extends State<DasboardPage> {
                                       ),
                                       Expanded(
                                         child: Text(
-                                          'Trợ lý',
+                                          'Tổng số trợ lý',
                                           style: styleText,
                                         ),
                                       )

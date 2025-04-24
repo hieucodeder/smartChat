@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-import 'package:chatbotbnn/service/app_config.dart';
-import 'package:chatbotbnn/model/chatbot_config.dart';
+import 'package:smart_chat/service/app_config.dart';
+import 'package:smart_chat/model/chatbot_config.dart';
 
 Future<List<DataConfig>> fetchChatbotConfig(String chatbotCode) async {
   try {
