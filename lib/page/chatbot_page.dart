@@ -26,6 +26,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tabler_icons/tabler_icons.dart';
 
 class ChatbotPage extends StatefulWidget {
   final Function(int) onSelected;
@@ -342,7 +343,15 @@ class _ChatbotPageState extends State<ChatbotPage> {
               )
             : chatbotList.isEmpty
                 ? const Center(
-                    child: Text('No chatbots found.'),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(TablerIcons.database_off,
+                            size: 50, color: Colors.grey),
+                        SizedBox(height: 8),
+                        Text('Trống', style: TextStyle(color: Colors.grey)),
+                      ],
+                    ),
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(8.0),

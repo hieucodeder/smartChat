@@ -559,7 +559,7 @@ class _LoginPageState extends State<LoginPage> {
                                   height: 22,
                                 ),
                                 const SizedBox(
-                                  width: 5,
+                                  width: 10,
                                 ),
                                 Text(
                                   'Đăng nhập với Google',

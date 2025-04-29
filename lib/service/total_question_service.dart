@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<ResponseTotalQuestion> fetchAllTotalQuestion(
     String? chatbotCode, String? startDate, String? endDate) async {
-  final String apiUrl = '${ApiConfig.baseUrlDasboard}/dashboard-total-question';
+  final String apiUrl = '${ApiConfig.baseUrlDasboard}dashboard-total-question';
 
   try {
     // Lấy userId từ SharedPreferences

@@ -341,7 +341,7 @@ class _PackageProductPageState extends State<PackageProductPage> {
                                 title: Text(
                                   plan["title"] == "Tùy biến"
                                       ? "Tính năng theo yêu cầu"
-                                      : "${plan["title"] == "Cơ bản" ? 20 : plan["title"] == "Nâng cao" ? 25 : 11} Tính năng thêm",
+                                      : "${plan["title"] == "Cơ bản" ? 20 : plan["title"] == "Nâng cao" ? 25 : 13} Tính năng thêm",
                                   style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600),

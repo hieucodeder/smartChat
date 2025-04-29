@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:smart_chat/page/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
+import 'package:smart_chat/service/send_email_password.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -12,9 +15,49 @@ class ForgotPasswordPage extends StatefulWidget {
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _isPasswordVisible = false;
+  final TextEditingController _emailController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _onSendPressed() async {
+    final email = _emailController.text.trim();
+    debugPrint('Email vừa nhập: $email');
+
+    setState(() => _isLoading = true);
+
+    // Gọi API
+    final success = await SendEmailPassword.sendMessage(email);
+
+    setState(() => _isLoading = false);
+
+    // Hiện SnackBar kết quả
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Đã gửi liên kết đặt lại mật khẩu vào email của bạn.'
+              : 'Gửi yêu cầu thất bại. Vui lòng thử lại.',
+        ),
+        backgroundColor: success ? Colors.green : Colors.red,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+
+    // Nếu thành công, tự động quay về Login sau 3s
+    if (success) {
+      Timer(const Duration(seconds: 3), () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -122,26 +165,39 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           height: 20,
                         ),
                         TextFormField(
+                          controller: _emailController,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Vui lòng nhập Họ tên';
+                              return 'Vui lòng nhập Email';
                             }
                             return null;
                           },
-                          style: const TextStyle(color: Colors.black),
+                          style: GoogleFonts.inter(color: Colors.black),
+
                           // controller: _usernameController,
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: const Color.fromARGB(237, 250, 248, 248),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
+                              borderSide:
+                                  BorderSide.none, // Loại bỏ viền mặc định
                             ),
-                            hintText: 'Họ tên',
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide:
+                                  BorderSide.none, // Viền khi không focus
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none, // Viền khi focus
+                            ),
+                            hintText: 'Email',
                             hintStyle: GoogleFonts.inter(
                                 fontSize: 16, color: const Color(0xFF064265)),
                             prefixIcon: const Icon(
-                              Icons.account_box_outlined,
-                              size: 24,
+                              Icons.email_outlined,
+                              size: 23,
                               color: Color(0xFF064265),
                             ),
                             contentPadding: const EdgeInsets.symmetric(
@@ -166,7 +222,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           height: 20,
                         ),
                         GestureDetector(
-                          // onTap: _login,
+                          onTap: _isLoading ? null : _onSendPressed,
                           child: Container(
                             decoration: BoxDecoration(
                                 gradient: const LinearGradient(
@@ -205,7 +261,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           },
                           child: Center(
                             child: Text(
-                              ' Quay lại đăng nhập',
+                              ' Quay lại Đăng nhập',
                               style: GoogleFonts.inter(
                                   fontSize: 18,
                                   color: Colors.black,
@@ -223,41 +279,4 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ]),
             )));
   }
-}
-
-void showLoginErrorSnackbar(BuildContext context) {
-  final snackBar = SnackBar(
-    backgroundColor: Colors.white,
-    content: Text(
-      'Sai Họ tên hoặc mật khẩu.',
-      style: GoogleFonts.inter(color: Colors.black),
-    ),
-    duration: const Duration(seconds: 3),
-    action: SnackBarAction(
-      label: 'Đóng',
-      textColor: Colors.black,
-      onPressed: () {},
-    ),
-  );
-
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-}
-
-void showLoginSnackbar(BuildContext context) {
-  var snackBar = SnackBar(
-    backgroundColor: Colors.white,
-    content: Text(
-      'Đăng nhập thành công. Đang chuyển hướng....',
-      style: GoogleFonts.inter(color: Colors.black),
-    ),
-    duration: const Duration(seconds: 1),
-  );
-  ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-  Future.delayed(const Duration(seconds: 1), () {
-    // Navigator.pushReplacement(
-    //   context,
-    //   MaterialPageRoute(builder: (context) => const AppScreen()),
-    // );
-  });
 }

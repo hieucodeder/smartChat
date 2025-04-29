@@ -9,7 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<ResponseTotalPotentialCustomers> fetchAllTotalPotentialCustomer(
     String? chatbotCode, String? startDate, String? endDate) async {
   final String apiUrl =
-      '${ApiConfig.baseUrlDasboard}/dashboard-slots-with-platform';
+      '${ApiConfig.baseUrlDasboard}dashboard-slots-with-platform';
 
   try {
     // Lấy userId từ SharedPreferences

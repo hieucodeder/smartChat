@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<ResponseTotalInteraction> fetchAllTotalInteraction(
     String? chatbotCode, String? startDate, String? endDate) async {
   final String apiUrl =
-      '${ApiConfig.baseUrlDasboard}/dashboard-interaction-count';
+      '${ApiConfig.baseUrlDasboard}dashboard-interaction-count';
 
   try {
     // Lấy userId từ SharedPreferences
