@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "214943613320-2nkusgj9kkib00dqjqhads42tueprdi8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aiacademy.smartchat",
+            "certificate_hash": "a9939b02bd48a33bcd9acacb3f4114c897804872"
+          }
+        },
+        {
+          "client_id": "214943613320-h2i6dcdtfbe3lhh7nh6jv3c2rua6n4rm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aiacademy.smartchat",
+            "certificate_hash": "540bbeeaaecaaca657e96b4016730dacfe3668c5"
+          }
+        },
+        {
           "client_id": "214943613320-hj66j81k78rp0i1fnacr5e92tajbbd9m.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

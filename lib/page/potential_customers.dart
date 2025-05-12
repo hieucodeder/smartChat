@@ -1,15 +1,17 @@
-import 'package:smart_chat/model/reponse_potential_customer.dart';
-import 'package:smart_chat/model/response_bot_config.dart';
-import 'package:smart_chat/provider/chatbot_provider.dart';
-import 'package:smart_chat/provider/provider_color.dart';
-import 'package:smart_chat/service/app_config.dart';
-import 'package:smart_chat/service/bot_config_service.dart';
-import 'package:smart_chat/service/potential_customer_sevice.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smart_chat/model/reponse_potential_customer.dart';
+import 'package:smart_chat/model/utils/customer_utils.dart';
+
+import 'package:smart_chat/service/app_config.dart';
+
+import 'package:smart_chat/service/bot_config_service.dart';
+import 'package:smart_chat/provider/chatbot_provider.dart';
+import 'package:smart_chat/provider/provider_color.dart';
+import 'package:smart_chat/service/potential_customer_sevice.dart';
 import 'package:tabler_icons/tabler_icons.dart';
 
 class PotentialCustomers extends StatefulWidget {
@@ -21,820 +23,704 @@ class PotentialCustomers extends StatefulWidget {
 
 class _PotentialCustomersState extends State<PotentialCustomers> {
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _intentScrollController = ScrollController();
 
-  List<DataPotentialCustomer> customers = [];
-  bool isLoading = false;
-  List<String> dynamicColumns =
-      []; // Lưu danh sách các cột động từ slot_details
-  String? searchContent;
-  String? slotsStatus;
-  String? currentPage = "1";
-  String? pageSize = "10";
-  String? intentQueue = "Khách hàng";
-  final List<int> itemsPerPageOptions = [10, 20, 50, 100];
-  bool hasMoreData = true;
-  List<Map<String, dynamic>> intentSlots = [];
+  // State variables
+  List<DataPotentialCustomer> _customers = [];
+  List<String> _dynamicColumns = [];
+  List<Map<String, dynamic>> _intentSlots = [];
+  bool _isLoading = false;
+  bool _hasMoreData = true;
 
-  bool isImageUrl(String url) {
-    if (url.isEmpty) {
-      return false;
-    }
+  // Filter variables
+  String? _searchContent;
+  String? _slotsStatus;
+  String? _intentQueue = "Khách hàng";
+  int _currentPage = 1;
+  int _perPage = 10;
 
-    final lowerUrl = url.toLowerCase().trim();
-
-    // Kiểm tra các dấu hiệu của URL ảnh
-    final isHttp =
-        lowerUrl.startsWith('http://') || lowerUrl.startsWith('https://');
-    final hasImageExtension =
-        RegExp(r'\.(jpg|jpeg|png|gif|webp|bmp)(\?.*)?$').hasMatch(lowerUrl);
-    final containsImagePath =
-        RegExp(r'(image|img|picture|pic|photo)').hasMatch(lowerUrl);
-
-    final result = isHttp && (hasImageExtension || containsImagePath);
-
-    return result;
-  }
-
-  String? selectedItem;
-  final List<String> items = [
+  // Constants
+  static const _statusOptions = [
     'Tất cả trạng thái',
     'pending',
     'completed',
     'unreachable'
   ];
-  final platformMapping = {
-    'pending': 'Chưa xử lý',
-    'completed': 'Đã xử lý', // Ví dụ thêm
-    'unreachable': 'Chưa liên hệ được',
-  };
+  static const _perPageOptions = [10, 20, 50, 100];
 
   @override
   void initState() {
     super.initState();
+    _loadInitialData();
+  }
 
-    Future.wait([
-      fetchCustomers(
-          searchContent, slotsStatus, currentPage, pageSize, intentQueue),
-      loadChatbotConfig(),
-    ]).then((results) {
-      final chatbotConfig = results[1] as Map<String, dynamic>?;
-      if (chatbotConfig != null) {
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _intentScrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadInitialData() async {
+    try {
+      setState(() => _isLoading = true);
+
+      await Future.wait([
+        _fetchCustomers(),
+        _loadChatbotConfig(),
+      ]);
+
+      _scrollToSelectedIntent();
+    } catch (e) {
+      _showErrorSnackbar('Không tải được dữ liệu: ${e.toString()}');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _fetchCustomers() async {
+    try {
+      final response = await fetchAllPotentialCustomer(
+        context,
+        _searchContent,
+        _slotsStatus,
+        _currentPage.toString(),
+        _intentQueue,
+        _perPage.toString(),
+      );
+
+      final columnsSet = <String>{};
+      for (var customer in response) {
+        columnsSet.addAll(customer.slotDetails.keys);
+      }
+
+      if (mounted) {
         setState(() {
-          intentSlots =
-              List<Map<String, dynamic>>.from(chatbotConfig['intentSlots']);
+          _customers = response;
+          _dynamicColumns = columnsSet.toList();
+          _hasMoreData = response.length >= _perPage;
         });
       }
-    });
+    } catch (e) {
+      _showErrorSnackbar('Lỗi khi tải khách hàng: ${e.toString()}');
+      rethrow;
+    }
   }
 
-  Future<Map<String, dynamic>?> loadChatbotConfig() async {
-    final chatbotCode =
-        Provider.of<ChatbotProvider>(context, listen: false).currentChatbotCode;
-
+  Future<void> _loadChatbotConfig() async {
     try {
-      List<Data> chatbotConfig =
-          await fetchChatbotConfigPotential(chatbotCode!, "123");
+      final chatbotCode = Provider.of<ChatbotProvider>(context, listen: false)
+          .currentChatbotCode;
+      final config = await fetchChatbotConfigPotential(chatbotCode!, "123");
 
-      if (chatbotConfig.isEmpty) {
-        throw Exception('❌ Không tìm thấy cấu hình chatbot.');
+      if (config.isNotEmpty && mounted) {
+        setState(() {
+          _intentSlots = config.first.getIntentSlotsWithCount();
+        });
       }
-
-      final config = chatbotConfig.first;
-
-      // Lấy cả intent slot và count
-      final intentSlotsWithCount = config.getIntentSlotsWithCount();
-      print('Intent slots with count: $intentSlotsWithCount');
-
-      return {
-        'config': config,
-        'intentSlots': intentSlotsWithCount,
-      };
-    } catch (error) {
-      debugPrint("❌ Lỗi khi tải cấu hình chatbot: $error");
-      return null;
+    } catch (e) {
+      _showErrorSnackbar('Lỗi khi tải cấu hình: ${e.toString()}');
+      rethrow;
     }
   }
 
-  Future<Map<String, String?>> getChatbotInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    return {
-      'name': prefs.getString('chatbot_name'),
-      'picture': prefs.getString('chatbot_picture'),
-    };
-  }
+  void _scrollToSelectedIntent() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_intentScrollController.hasClients && _intentQueue != null) {
+        final index = _intentSlots.indexWhere(
+          (slot) => slot['intentSlot'] == _intentQueue,
+        );
 
-  Future<void> fetchCustomers(
-    String? selectedValue,
-    String? searchValue,
-    String? pageIndex,
-    String? pageSize1,
-    String? intentQueue1, // Tham số này đã có
-  ) async {
-    setState(() {
-      isLoading = true;
-      slotsStatus = selectedValue;
-      searchContent = searchValue;
-      currentPage = pageIndex;
-      pageSize = pageSize1;
-      intentQueue = intentQueue1; // Lưu vào biến state
-    });
-
-    List<DataPotentialCustomer> data = await fetchAllPotentialCustomer(
-      context,
-      searchContent,
-      slotsStatus,
-      currentPage,
-      intentQueue,
-      pageSize, // Vị trí thứ 6
-    );
-
-    Set<String> columnsSet = {};
-    for (var customer in data) {
-      columnsSet.addAll(customer.slotDetails.keys);
-    }
-
-    setState(() {
-      customers = data;
-      dynamicColumns = columnsSet.toList();
-      isLoading = false;
+        if (index != -1) {
+          _intentScrollController.animateTo(
+            (index + 1) * 120.0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
     });
   }
 
-  void clearSearchContent() {
-    setState(() {
-      _searchController.clear(); // Xóa nội dung trong TextField
-      searchContent = ""; // Reset searchContent về rỗng
-      // Gọi lại hàm fetchCustomers với searchContent rỗng
-      fetchCustomers(
-        slotsStatus,
-        "", // searchValue rỗng
-        currentPage,
-        pageSize,
-        intentQueue,
+  void _clearSearch() {
+    _searchController.clear();
+    _searchContent = null;
+    _currentPage = 1;
+    _fetchCustomers();
+  }
+
+  void _showErrorSnackbar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
       );
-    });
+    }
   }
 
-  Widget buildDropdown({
-    required List<String> items,
-    required String? selectedItem,
-    required String hint,
-    required ValueChanged<String?> onChanged, // Chỉ sử dụng onChanged
-    double width = 200,
-  }) {
-    return GestureDetector(
-      onTap: () =>
-          onChanged(null), // Khi nhấn vào dropdown, gọi onChanged(null)
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(width: 1, color: Colors.black38),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        width: width,
-        height: 40,
-        alignment: Alignment.centerLeft,
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value: selectedItem,
-            hint: Text(
-              hint,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.black,
+  Widget _buildHeader() {
+    return FutureBuilder<Map<String, String?>>(
+      future: _getChatbotInfo(),
+      builder: (context, snapshot) {
+        final chatbotName = snapshot.data?['name'] ?? 'No Name';
+        final chatbotPicture = snapshot.data?['picture'];
+
+        return Row(
+          children: [
+            Container(
+              height: 30,
+              width: 30,
+              decoration: BoxDecoration(
+                border: Border.all(width: 1, color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                foregroundImage: chatbotPicture != null &&
+                        chatbotPicture.isNotEmpty
+                    ? NetworkImage("${ApiConfig.baseUrlBasic}$chatbotPicture")
+                    : const AssetImage('resources/Smartchat.png')
+                        as ImageProvider,
+              ),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              chatbotName,
+              style: const TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            isExpanded: true,
-            onChanged: onChanged, // Gọi khi chọn giá trị mới
-            items: items.map((String item) {
-              return DropdownMenuItem<String>(
-                value: item,
-                child: Text(
-                  item == 'Tất cả trạng thái'
-                      ? item
-                      : platformMapping[item] ??
-                          item, // Hiển thị giá trị ánh xạ
-                  style: GoogleFonts.inter(fontSize: 14),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildIntentFilter() {
+    return SizedBox(
+      height: 50,
+      child: _intentSlots.isEmpty
+          ? const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
                 ),
+              ),
+            )
+          : ListView.builder(
+              controller: _intentScrollController,
+              scrollDirection: Axis.horizontal,
+              itemCount: _intentSlots.length + 2,
+              itemBuilder: (context, index) {
+                if (index == 0 || index == _intentSlots.length + 1) {
+                  return SizedBox(
+                    width: (MediaQuery.of(context).size.width -
+                            (_intentSlots.length * 100)) /
+                        3,
+                  );
+                }
+
+                final slot = _intentSlots[index - 1];
+                final slotName = slot['intentSlot'];
+                final count = slot['count'];
+
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _intentQueue = slotName);
+                    _currentPage = 1;
+                    _fetchCustomers();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        width: 1,
+                        color: _intentQueue == slotName
+                            ? const Color(0xfffed5113)
+                            : Colors.grey.shade400,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      "$slotName ($count)",
+                      style: TextStyle(
+                        color: _intentQueue == slotName
+                            ? const Color(0xfffed5113)
+                            : Colors.black,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
+  Widget _buildStatusFilter() {
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade400),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _slotsStatus,
+          isExpanded: true,
+          icon: const Icon(Icons.arrow_drop_down, size: 23),
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            color: Colors.black,
+          ),
+          hint: Text(
+            'Tất cả trạng thái',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          items: _statusOptions.map((String value) {
+            return DropdownMenuItem<String>(
+              value: value == 'Tất cả trạng thái' ? null : value,
+              child: Text(
+                value == 'Tất cả trạng thái'
+                    ? value
+                    : CustomerUtils.statusMapping[value] ?? value,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              _slotsStatus = newValue;
+              _currentPage = 1;
+            });
+            _fetchCustomers();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade400),
+      ),
+      child: TextField(
+        controller: _searchController,
+        style: GoogleFonts.inter(
+          fontSize: 14,
+          color: Colors.black,
+        ),
+        decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          hintText: 'Tìm kiếm tại đây...',
+          hintStyle: GoogleFonts.inter(
+            fontSize: 14,
+            color: Colors.grey.shade600,
+          ),
+          border: InputBorder.none,
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear, size: 23),
+                  onPressed: _clearSearch,
+                )
+              : const Icon(Icons.search, size: 23, color: Colors.grey),
+        ),
+        onChanged: (value) {
+          setState(() {}); // Để cập nhật UI khi text thay đổi
+        },
+        onSubmitted: (value) {
+          _searchContent = value;
+          _currentPage = 1;
+          _fetchCustomers();
+        },
+      ),
+    );
+  }
+
+  Widget _buildDataTable() {
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_dynamicColumns.isEmpty || _customers.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(TablerIcons.database_off, size: 50, color: Colors.grey),
+            const SizedBox(height: 8),
+            Text('Không có dữ liệu',
+                style: GoogleFonts.inter(color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+        border: Border.all(width: 1, color: Colors.grey),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columnSpacing: 20,
+            horizontalMargin: 12,
+            dataRowMinHeight: 30,
+            dataRowMaxHeight: 50,
+            columns: [
+              DataColumn(
+                label: Expanded(
+                  child: Center(
+                    child: Text(
+                      "STT",
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              ..._dynamicColumns.map(
+                (col) => DataColumn(
+                  label: Expanded(
+                    child: Center(
+                      child: Text(
+                        col,
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Center(
+                    child: Text(
+                      "Kênh thông tin",
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Center(
+                    child: Text(
+                      "Thời gian tạo",
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Center(
+                    child: Text(
+                      "Cập nhật lần cuối",
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Expanded(
+                  child: Center(
+                    child: Text(
+                      "Trạng thái",
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            rows: _customers.asMap().entries.map((entry) {
+              final index = entry.key + 1;
+              final customer = entry.value;
+
+              return DataRow(
+                cells: [
+                  DataCell(
+                    Center(
+                      child: Text(
+                        index.toString(),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  ..._dynamicColumns.map((col) {
+                    final value =
+                        customer.slotDetails[col]?.toString().trim() ?? "";
+
+                    if (CustomerUtils.isImageUrl(value)) {
+                      return DataCell(
+                        Center(
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            child: CachedNetworkImage(
+                              imageUrl: value,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              errorWidget: (context, url, error) => const Icon(
+                                Icons.image_not_supported,
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    return DataCell(
+                      Center(
+                        child: Text(
+                          value.isEmpty ? "-" : value,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  DataCell(
+                    Center(
+                      child: Text(
+                        CustomerUtils.platformMapping[customer.platform] ??
+                            customer.platform ??
+                            "-",
+                        style: GoogleFonts.inter(fontSize: 13),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Center(
+                      child: Text(
+                        customer.createdAt ?? "-",
+                        style: GoogleFonts.inter(fontSize: 13),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Center(
+                      child: Text(
+                        customer.updatedAt ?? "-",
+                        style: GoogleFonts.inter(fontSize: 13),
+                      ),
+                    ),
+                  ),
+                  DataCell(
+                    Center(
+                      child: Text(
+                        CustomerUtils.statusMapping[customer.slotStatus] ??
+                            customer.slotStatus ??
+                            "-",
+                        style: GoogleFonts.inter(fontSize: 13),
+                      ),
+                    ),
+                  ),
+                ],
               );
             }).toList(),
-            icon: const Icon(Icons.arrow_drop_down),
           ),
         ),
       ),
     );
   }
 
+  Widget _buildPaginationControls() {
+    final selectedColor = Provider.of<Providercolor>(context).selectedColor;
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // Previous Page Button
+          IconButton(
+            icon: const Icon(
+              Icons.chevron_left,
+              size: 23,
+            ),
+            color: _currentPage > 1 ? theme.primaryColor : Colors.grey,
+            onPressed: _currentPage > 1
+                ? () {
+                    setState(() => _currentPage--);
+                    _fetchCustomers();
+                  }
+                : null,
+            tooltip: 'Trang trước',
+          ),
+
+          // Current Page Indicator
+          Container(
+            padding:
+                const EdgeInsets.symmetric(vertical: 2.0, horizontal: 10.0),
+            decoration: BoxDecoration(
+              border: Border.all(
+                  color: selectedColor == Colors.white
+                      ? const Color(0xfffed5113)
+                      : selectedColor),
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            child: Text(
+              '$_currentPage',
+              style: GoogleFonts.inter(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: selectedColor == Colors.white
+                      ? const Color(0xfffed51123)
+                      : selectedColor),
+            ),
+          ),
+
+          // Next Page Button
+          IconButton(
+            icon: const Icon(
+              Icons.chevron_right,
+              size: 23,
+            ),
+            color: _hasMoreData ? theme.primaryColor : Colors.grey,
+            onPressed: _hasMoreData
+                ? () {
+                    setState(() => _currentPage++);
+                    _fetchCustomers();
+                  }
+                : null,
+            tooltip: 'Trang sau',
+          ),
+
+          // Items Per Page Dropdown
+          Container(
+            height: 36,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(width: 1, color: Colors.black12),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: _perPage,
+                icon: const Icon(Icons.arrow_drop_down, size: 24),
+                style: theme.textTheme.bodyMedium,
+                items: _perPageOptions.map((value) {
+                  return DropdownMenuItem<int>(
+                    value: value,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text('$value/trang',
+                          style: GoogleFonts.inter(fontSize: 14)),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _perPage = value;
+                      _currentPage = 1;
+                    });
+                    _fetchCustomers();
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final selectedColor = Provider.of<Providercolor>(context).selectedColor;
-    String getStatusText(String status) {
-      final statusmMapping = {
-        'pending': 'Chưa xử lý',
-        'completed': 'Đã xử lý',
-        'unreachable': 'Chưa liên hệ được',
-        // Thêm các mapping khác nếu cần
-      };
-
-      return statusmMapping[status.toLowerCase()] ?? status;
-    }
-
-    final platformMapping = {
-      'playground': 'Trải Nghiệm Thử',
-      'zalo': 'Zalo', // Ví dụ thêm
-      'facebook': 'Facebook',
-    };
     return Container(
-        height: MediaQuery.of(context).size.height,
-        padding: const EdgeInsets.all(8),
-        color: Colors.white,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                FutureBuilder<Map<String, String?>>(
-                  future: getChatbotInfo(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    }
-                    if (snapshot.hasError || !snapshot.hasData) {
-                      return Row(
-                        children: [
-                          const CircleAvatar(
-                            backgroundImage:
-                                AssetImage('resources/logo_smart.png'),
-                            radius: 20,
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            'No Name',
-                            style: GoogleFonts.inter(
-                              fontSize: 16,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-
-                    final chatbotName = snapshot.data?['name'] ?? 'No Name';
-                    final chatbotPicture = snapshot.data?['picture'];
-
-                    return Row(
-                      children: [
-                        Container(
-                          height: 30,
-                          width: 30,
-                          padding: const EdgeInsets.only(
-                            left: 0,
-                            right: 0,
-                            top: 0,
-                            bottom: 0,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                                width: 1, color: Colors.grey.shade400),
-                            borderRadius: BorderRadius.circular(
-                                25), // Adding rounded corners here
-                          ),
-                          child: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            foregroundImage: chatbotPicture != null &&
-                                    chatbotPicture.isNotEmpty
-                                ? NetworkImage(
-                                    "${ApiConfig.baseUrlBasic}$chatbotPicture")
-                                : const AssetImage('resources/Smartchat.png')
-                                    as ImageProvider,
-                            radius: 30,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          chatbotName,
-                          style: GoogleFonts.inter(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-            Divider(
-              color: Colors.grey.shade400,
-            ),
-            FutureBuilder<Map<String, dynamic>?>(
-              future: loadChatbotConfig(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError || snapshot.data == null) {
-                  return const Center(
-                      child: Text("❌ Lỗi khi tải cấu hình chatbot."));
-                } else {
-                  final intentSlots = snapshot.data!['intentSlots']
-                      as List<Map<String, dynamic>>;
-
-                  return SizedBox(
-                    height: 50,
-                    child: intentSlots.isEmpty
-                        ? const Center(child: Text("Không có intent slots"))
-                        : Center(
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount:
-                                  intentSlots.length + 2, // Thêm 2 để căn giữa
-                              itemBuilder: (context, index) {
-                                // Thêm khoảng trống ở đầu và cuối để căn giữa
-                                if (index == 0 ||
-                                    index == intentSlots.length + 1) {
-                                  return SizedBox(
-                                    width: (MediaQuery.of(context).size.width -
-                                            (intentSlots.length * 100)) /
-                                        3,
-                                  ); // Ước lượng chiều rộng để căn giữa
-                                }
-
-                                final slot = intentSlots[
-                                    index - 1]; // Bù 1 vì có SizedBox ở đầu
-                                final slotName = slot['intentSlot'];
-                                final count = slot['count'];
-
-                                return GestureDetector(
-                                  onTap: () {
-                                    // Lưu trữ slotName vào biến intentQueue
-                                    setState(() {
-                                      intentQueue = slotName;
-                                      print(slotName);
-                                    });
-                                    // Gọi hàm fetchCustomers với intentQueue mới
-                                    fetchCustomers(
-                                      slotsStatus, // selectedValue
-                                      searchContent, // searchValue
-                                      currentPage, // pageIndex
-                                      pageSize, // pageSize1
-                                      slotName, // intentQueue1 - truyền slotName vào đây
-                                    );
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10),
-                                    margin: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                        width: 1,
-                                        color: intentQueue == slotName
-                                            ? const Color(0xfffed5113)
-                                            : Colors.grey.shade400,
-                                      ),
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      "$slotName ($count)",
-                                      style: GoogleFonts.inter(
-                                        color: intentQueue == slotName
-                                            ? const Color(0xfffed5113)
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                  );
-                }
-              },
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                buildDropdown(
-                  items: items,
-                  selectedItem: selectedItem,
-                  hint: 'Tất cả trạng thái',
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedItem = newValue;
-                    });
-
-                    // Nếu chọn "Tất cả trạng thái", truyền null hoặc chuỗi rỗng
-                    fetchCustomers(
-                        newValue == 'Tất cả trạng thái' ? null : newValue,
-                        searchContent,
-                        currentPage,
-                        pageSize,
-                        intentQueue);
-                  },
-                ),
-                const SizedBox(
-                  width: 10,
-                ),
-                Expanded(
-                  child: Container(
-                    height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(width: 1.2, color: Colors.black26),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12.withOpacity(0.05),
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      style:
-                          GoogleFonts.inter(fontSize: 14, color: Colors.black),
-                      decoration: InputDecoration(
-                        hintText: 'Tìm kiếm tại đây...',
-                        hintStyle: GoogleFonts.inter(
-                            fontSize: 14, color: Colors.black45),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 10),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        suffixIcon: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Nút xóa (hiển thị khi có nội dung)
-                            if (_searchController.text.isNotEmpty)
-                              SizedBox(
-                                height: 40,
-                                width: 40,
-                                child: IconButton(
-                                  icon: Icon(Icons.clear, size: 20),
-                                  onPressed: clearSearchContent,
-                                ),
-                              ),
-                            GestureDetector(
-                              onTap: () {
-                                fetchCustomers(
-                                  slotsStatus,
-                                  _searchController.text,
-                                  currentPage,
-                                  pageSize,
-                                  intentQueue,
-                                );
-                              },
-                              child: Container(
-                                width: 40,
-                                padding: const EdgeInsets.all(8),
-                                margin: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: selectedColor == Colors.white
-                                      ? const Color(0xfffed5113)
-                                      : selectedColor,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.search,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      onSubmitted: (value) {
-                        fetchCustomers(slotsStatus, currentPage, pageSize,
-                            intentQueue, value);
-                      },
-                    ),
-                  ),
-                )
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Expanded(
-              child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: Colors.white,
-                    border: Border.all(width: 2, color: Colors.grey),
-                  ),
-                  child: isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : (dynamicColumns.isNotEmpty && customers.isNotEmpty)
-                          ? SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: DataTable(
-                                  columns: [
-                                    DataColumn(
-                                      label: Text(
-                                        "STT",
-                                        style: GoogleFonts.inter(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                    ...dynamicColumns.map(
-                                      (col) => DataColumn(
-                                        label: Center(
-                                          child: Text(
-                                            col,
-                                            style: GoogleFonts.inter(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    DataColumn(
-                                      label: Text(
-                                        "Kênh thông tin",
-                                        style: GoogleFonts.inter(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                    DataColumn(
-                                      label: Text(
-                                        "Thời gian tạo",
-                                        style: GoogleFonts.inter(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                    DataColumn(
-                                      label: Text(
-                                        "Cập nhật lần cuối",
-                                        style: GoogleFonts.inter(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                    DataColumn(
-                                      label: Text(
-                                        "Trạng thái",
-                                        style: GoogleFonts.inter(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ],
-                                  rows: customers
-                                      .asMap()
-                                      .entries
-                                      .map<DataRow>((entry) {
-                                    int index = entry.key + 1;
-                                    DataPotentialCustomer customer =
-                                        entry.value;
-
-                                    return DataRow(
-                                      cells: [
-                                        DataCell(Center(
-                                            child: Text(
-                                          index.toString(),
-                                          style: GoogleFonts.inter(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold),
-                                        ))),
-                                        ...dynamicColumns.map((col) {
-                                          final value = customer
-                                                  .slotDetails[col]
-                                                  ?.toString()
-                                                  .trim() ??
-                                              "";
-
-                                          if (isImageUrl(value)) {
-                                            return DataCell(
-                                              Center(
-                                                child: Container(
-                                                  width: 60,
-                                                  height: 60,
-                                                  padding:
-                                                      const EdgeInsets.all(2),
-                                                  decoration: BoxDecoration(
-                                                    border: Border.all(
-                                                        color: Colors
-                                                            .grey.shade300),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            4),
-                                                  ),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            4),
-                                                    child: Image.network(
-                                                      value,
-                                                      fit: BoxFit.cover,
-                                                      loadingBuilder: (context,
-                                                          child, progress) {
-                                                        if (progress == null)
-                                                          return child;
-                                                        return Center(
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            value: progress
-                                                                        .expectedTotalBytes !=
-                                                                    null
-                                                                ? progress
-                                                                        .cumulativeBytesLoaded /
-                                                                    progress
-                                                                        .expectedTotalBytes!
-                                                                : null,
-                                                          ),
-                                                        );
-                                                      },
-                                                      errorBuilder: (context,
-                                                          error, stackTrace) {
-                                                        debugPrint(
-                                                            '❗ Lỗi tải ảnh: $error');
-                                                        return const Icon(
-                                                            Icons
-                                                                .image_not_supported,
-                                                            size: 30);
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          } else {
-                                            return DataCell(
-                                              Center(
-                                                  child: Text(
-                                                value.isEmpty ? "-" : value,
-                                                style: GoogleFonts.inter(
-                                                    fontSize: 13,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              )),
-                                            );
-                                          }
-                                        }),
-                                        DataCell(
-                                          Center(
-                                            child: Text(
-                                              platformMapping[
-                                                      customer.platform] ??
-                                                  customer.platform ??
-                                                  "",
-                                              style: GoogleFonts.inter(
-                                                  fontSize: 13),
-                                            ),
-                                          ),
-                                        ),
-                                        DataCell(
-                                          Center(
-                                              child: Text(
-                                            customer.createdAt ?? "",
-                                            style:
-                                                GoogleFonts.inter(fontSize: 13),
-                                          )),
-                                        ),
-                                        DataCell(
-                                          Center(
-                                              child: Text(
-                                            customer.updatedAt ?? "",
-                                            style:
-                                                GoogleFonts.inter(fontSize: 13),
-                                          )),
-                                        ),
-                                        DataCell(
-                                          Center(
-                                              child: Text(
-                                            getStatusText(
-                                                customer.slotStatus ?? ""),
-                                            style:
-                                                GoogleFonts.inter(fontSize: 13),
-                                          )),
-                                        ),
-                                      ],
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            )
-                          : const Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(TablerIcons.database_off,
-                                      size: 50, color: Colors.grey),
-                                  SizedBox(height: 8),
-                                  Text('Trống',
-                                      style: TextStyle(color: Colors.grey)),
-                                ],
-                              ),
-                            )),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 48.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    onPressed:
-                        (currentPage != null && int.parse(currentPage!) > 1)
-                            ? () {
-                                setState(() {
-                                  currentPage = (int.parse(currentPage!) - 1)
-                                      .toString(); // Giảm trang
-                                });
-                                fetchCustomers(searchContent, slotsStatus,
-                                    currentPage, intentQueue, pageSize);
-                              }
-                            : null,
-                    icon: const Icon(
-                      Icons.chevron_left,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 2.0, horizontal: 10.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                          color: selectedColor == Colors.white
-                              ? const Color(0xfffed5113)
-                              : selectedColor),
-                      borderRadius: BorderRadius.circular(4.0),
-                    ),
-                    child: Text(
-                      currentPage ?? "1",
-                      style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: selectedColor == Colors.white
-                              ? const Color(0xfffed51123)
-                              : selectedColor),
-                    ), // Hiển thị trang hiện tại, mặc định "1"
-                  ),
-                  IconButton(
-                    onPressed: hasMoreData
-                        ? () {
-                            setState(() {
-                              currentPage = (int.parse(currentPage ?? "1") + 1)
-                                  .toString(); // Tăng trang
-                            });
-                            fetchCustomers(searchContent, slotsStatus,
-                                currentPage, intentQueue, pageSize);
-                          }
-                        : null,
-                    icon: const Icon(
-                      Icons.chevron_right,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  Container(
-                    height: 30,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(width: 1, color: Colors.black12),
-                    ),
-                    child: DropdownButton<String>(
-                      value:
-                          itemsPerPageOptions.contains(int.tryParse(pageSize!))
-                              ? pageSize
-                              : itemsPerPageOptions.first.toString(),
-                      underline: const SizedBox.shrink(),
-                      items:
-                          itemsPerPageOptions.toSet().toList().map((int value) {
-                        return DropdownMenuItem<String>(
-                          value: value.toString(),
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 2.0),
-                            child: Text('$value/${'trang'}',
-                                style: GoogleFonts.inter(fontSize: 14)),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          setState(() {
-                            pageSize = newValue;
-                            currentPage = "1";
-                          });
-                          fetchCustomers(searchContent, slotsStatus,
-                              currentPage, intentQueue, pageSize);
-                        }
-                      },
-                    ),
-                  )
-                ],
+      height: MediaQuery.of(context).size.height,
+      padding: const EdgeInsets.all(8),
+      color: Colors.white,
+      child: Column(
+        children: [
+          _buildHeader(),
+          const Divider(),
+          _buildIntentFilter(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              SizedBox(width: 180, child: _buildStatusFilter()),
+              const SizedBox(width: 10),
+              Expanded(child: _buildSearchField()),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(width: 2, color: Colors.grey),
               ),
-            )
-          ],
-        ));
+              child: _buildDataTable(),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: _buildPaginationControls(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<Map<String, String?>> _getChatbotInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'name': prefs.getString('chatbot_name'),
+      'picture': prefs.getString('chatbot_picture'),
+    };
   }
 }

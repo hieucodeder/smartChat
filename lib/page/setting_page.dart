@@ -367,10 +367,6 @@ class _SettingPageState extends State<SettingPage> {
                     buildTextField("Email", emailController),
                     buildTextField("Điện thoại", phoneNumberController),
                     buildTextField("Địa chỉ", addressController),
-                    buildTextField(
-                      "Ảnh đại diện (URL)",
-                      pictureController,
-                    ),
                   ],
                 ),
               );
