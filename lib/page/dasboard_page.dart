@@ -432,6 +432,19 @@ class _DasboardPageState extends State<DasboardPage> {
     return SingleChildScrollView(
       child: LayoutBuilder(builder: (context, constraints) {
         double maxWidth = constraints.maxWidth;
+
+        // Lấy kích thước màn hình của thiết bị
+        double screenWidth = MediaQuery.of(context).size.width;
+
+        // Kiểm tra nếu màn hình có chiều rộng lớn hơn 600px (được coi là tablet)
+        bool isTablet = screenWidth > 600;
+
+        // Dựa vào kết quả, thiết lập chiều cao
+        double? height =
+            isTablet ? MediaQuery.of(context).size.width * 0.30 : null;
+        double? heighttotal = isTablet
+            ? MediaQuery.of(context).size.width * 0.20
+            : MediaQuery.of(context).size.width * 0.16;
         return Container(
             width: maxWidth,
             padding: const EdgeInsets.all(6),
@@ -468,7 +481,7 @@ class _DasboardPageState extends State<DasboardPage> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 5, vertical: 5),
                               width: maxWidth * 0.47,
-                              height: maxWidth * 0.16,
+                              height: heighttotal,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   color: Colors.white,
@@ -512,7 +525,7 @@ class _DasboardPageState extends State<DasboardPage> {
                             ),
                             Container(
                               width: maxWidth * 0.47,
-                              height: maxWidth * 0.16,
+                              height: heighttotal,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 5, vertical: 5),
                               decoration: BoxDecoration(
@@ -569,7 +582,7 @@ class _DasboardPageState extends State<DasboardPage> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 5, vertical: 5),
                               width: maxWidth * 0.47,
-                              height: maxWidth * 0.16,
+                              height: heighttotal,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(10),
                                   border:
@@ -611,7 +624,7 @@ class _DasboardPageState extends State<DasboardPage> {
                             ),
                             Container(
                               width: maxWidth * 0.47,
-                              height: maxWidth * 0.16,
+                              height: heighttotal,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 5, vertical: 5),
                               decoration: BoxDecoration(
@@ -693,6 +706,7 @@ class _DasboardPageState extends State<DasboardPage> {
                         padding:
                             const EdgeInsets.only(right: 30, top: 8, left: 10),
                         width: double.infinity,
+                        height: height,
                         child: chartData.isNotEmpty
                             ? InteractionCharPage(data: chartData)
                             : const Center(child: CircularProgressIndicator()),
@@ -738,6 +752,7 @@ class _DasboardPageState extends State<DasboardPage> {
                         padding:
                             const EdgeInsets.only(right: 30, top: 8, left: 10),
                         width: double.infinity,
+                        height: height,
                         child: charDataPotential.isNotEmpty
                             ? PotentialCustomerChar(data: charDataPotential)
                             : const Center(child: CircularProgressIndicator()),

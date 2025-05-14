@@ -3,9 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>214943613320-hakmpn9opabe69cgudll2qc6puv8le8t.apps.googleusercontent.com</string>
+	<string>214943613320-fvq04dvroi5942667p3bd5lkpi6npop8.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.214943613320-hakmpn9opabe69cgudll2qc6puv8le8t</string>
+	<string>com.googleusercontent.apps.214943613320-fvq04dvroi5942667p3bd5lkpi6npop8</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>214943613320-2nkusgj9kkib00dqjqhads42tueprdi8.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyCVNU_FsrZ3-_xDY0iwgTUx0SMdcb-DPWg</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.smartChat</string>
+	<string>com.aiacademy.smartchat-iOS</string>
 	<key>PROJECT_ID</key>
 	<string>hallowed-chain-457509-g7</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:214943613320:ios:26072d52ba99d5fdfafa3d</string>
+	<string>1:214943613320:ios:90ee1f813a329adffafa3d</string>
 </dict>
 </plist>

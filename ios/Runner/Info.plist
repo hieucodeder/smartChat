@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSFaceIDUsageDescription</key>
-    <string>We need Face ID to secure your data</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -29,7 +27,7 @@
 		<dict>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.YOUR_REVERSED_CLIENT_ID</string>
+				<string>com.googleusercontent.apps.214943613320-fvq04dvroi5942667p3bd5lkpi6npop8</string>
 			</array>
 		</dict>
 	</array>
@@ -41,6 +39,8 @@
 	<array>
 		<string>_dartobservatory._tcp</string>
 	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>We need Face ID to secure your data</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>This app needs local network permission to enable Flutter debugging</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
