@@ -1,4 +1,7 @@
 import 'package:smart_chat/model/body_forget_password.dart';
+import 'package:smart_chat/model/delete_acount/request_customer_create.dart';
+import 'package:smart_chat/model/delete_acount/request_seach.dart';
+import 'package:smart_chat/model/delete_acount/response_search.dart' show Data;
 import 'package:smart_chat/model/respone_forgetpassword.dart';
 import 'package:smart_chat/page/login_page.dart';
 import 'package:smart_chat/provider/navigation_provider.dart';
@@ -11,6 +14,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_chat/service/get_by_id_service.dart';
+import 'package:smart_chat/service/service_char/delete_acount_service/customer_create_service.dart';
+import 'package:smart_chat/service/service_char/delete_acount_service/search_acount.dart';
 
 class SettingPage extends StatefulWidget {
   const SettingPage({super.key});
@@ -27,11 +32,57 @@ class _SettingPageState extends State<SettingPage> {
     {'locale': const Locale('en'), 'name': 'English', 'flag': '🇺🇸'},
   ];
   Locale? selectedLocale;
+  List<Data> userList = [];
+  bool isLoading = true;
+  Data? currentUser;
 
   @override
   void initState() {
     super.initState();
+    fetchUsers();
     selectedLocale = languages.first['locale']; // Đặt mặc định
+  }
+
+  Future<void> fetchUsers() async {
+    final searchRequest = RequestSeach(
+      pageIndex: 1,
+      pageSize: 50,
+      searchContent: '',
+    );
+
+    final user = await fetchCurrentUserFromSearch(searchRequest);
+
+    if (user != null) {
+      setState(() {
+        currentUser = user;
+        userList = [user];
+        isLoading = false;
+      });
+
+      print(
+          "UserId: ${user.userId}, packageProductId: ${user.packageProductId}");
+      print("start_date: ${user.startDate}, status: ${user.status}");
+      print(
+          "is_gift: ${user.isGift}, packageProductName: ${user.packageProductName}");
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+      print("Không tìm thấy dữ liệu hoặc lỗi.");
+    }
+  }
+
+  RequestCustomerCreate convertToCustomerCreate(Data user) {
+    return RequestCustomerCreate(
+      userId: user.userId,
+      packageProductId: user.packageProductId,
+      startDate: user.startDate,
+      status: user.status,
+      isGift: 0,
+      title: "Admin",
+      packageProductName: user.packageProductName,
+      luUser: user.userId,
+    );
   }
 
   Widget _buildColorSelector(BuildContext context) {
@@ -264,6 +315,147 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
+  void showDeleteAccountDialog(BuildContext context) {
+    final selectedColors =
+        Provider.of<Providercolor>(context, listen: false).selectedColor;
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          title: Text(
+            'Xác nhận xóa tài khoản',
+            style: GoogleFonts.inter(
+                fontSize: 24, color: Colors.black, fontWeight: FontWeight.w600),
+          ),
+          content: Text(
+            'Bạn có chắc chắn muốn xóa tài khoản này không? Hành động này không thể hoàn tác.',
+            style: GoogleFonts.inter(
+                fontSize: 14, color: Colors.black, fontWeight: FontWeight.w400),
+          ),
+          actions: [
+            Container(
+              height: 40,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.transparent,
+                  border: Border.all(width: 1, color: selectedColors)),
+              child: TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Hủy',
+                    style: GoogleFonts.inter(
+                        color: selectedColors == Colors.white
+                            ? const Color(0xfffef6622)
+                            : selectedColors),
+                  )),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: selectedColors == Colors.white
+                    ? const Color(0xfffef6622)
+                    : selectedColors,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide.none,
+                ),
+              ),
+              onPressed: () async {
+                if (currentUser != null) {
+                  final request = convertToCustomerCreate(currentUser!);
+                  final result = await customerCreate(request);
+
+                  if (result != null && result.success == true) {
+                    await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Thành công'),
+                        content: const Text('✅ Xoá tài khoản thành công!'),
+                        actions: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: selectedColors == Colors.white
+                                  ? const Color(0xfffef6622)
+                                  : selectedColors,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: BorderSide.none,
+                              ),
+                            ),
+                            onPressed: () async {
+                              try {
+                                final prefs =
+                                    await SharedPreferences.getInstance();
+                                await prefs.remove('token');
+                                await FirebaseAuth.instance.signOut();
+                                await GoogleSignIn().signOut();
+
+                                Provider.of<NavigationProvider>(context,
+                                        listen: false)
+                                    .setCurrentIndex(1);
+
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const LoginPage()),
+                                  (route) => false,
+                                );
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Đăng xuất thành công'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              } catch (e) {
+                                print('Lỗi khi đăng xuất: $e');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Có lỗi xảy ra khi đăng xuất'),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Text(
+                              'Ok',
+                              style: GoogleFonts.inter(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text('❌ Xoá không thành công. Vui lòng thử lại.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('❌ Không tìm thấy người dùng để xoá.'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Xác nhận',
+                style: GoogleFonts.inter(fontSize: 16, color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void handleForgetPassword(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     String? userId = prefs.getString('userid');
@@ -303,7 +495,7 @@ class _SettingPageState extends State<SettingPage> {
     // Nếu response null, thông báo lỗi
     if (response == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể tải thông tin người dùng')),
+        const SnackBar(content: Text('Không thể tải thông tin người dùng')),
       );
       return;
     }
@@ -509,6 +701,31 @@ class _SettingPageState extends State<SettingPage> {
             ),
             const SizedBox(height: 8),
             const Divider(color: Colors.black),
+            Row(
+              children: [
+                Icon(
+                  Icons.delete,
+                  size: 23,
+                  color: selectedColor == Colors.white
+                      ? const Color(0xfffef6622)
+                      : selectedColor,
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () {
+                    showDeleteAccountDialog(context);
+                  },
+                  child: Text('Xoá tài khoản',
+                      style: GoogleFonts.inter(
+                          fontSize: 16,
+                          color: selectedColor == Colors.white
+                              ? const Color(0xfffef6622)
+                              : selectedColor,
+                          fontWeight: FontWeight.w500)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Icon(

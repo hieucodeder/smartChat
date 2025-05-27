@@ -205,9 +205,7 @@ class _RegisterPageState extends State<RegisterPage> {
               Row(
                 children: [
                   // Username
-                  SizedBox(
-                    height: 46,
-                    width: MediaQuery.of(context).size.width * 0.45,
+                  Expanded(
                     child: TextFormField(
                       controller: _userNameController,
                       decoration: inputDecoration.copyWith(
@@ -251,9 +249,7 @@ class _RegisterPageState extends State<RegisterPage> {
               const SizedBox(height: 20),
               Row(
                 children: [
-                  SizedBox(
-                    height: 46,
-                    width: MediaQuery.of(context).size.width * 0.45,
+                  Expanded(
                     child: TextFormField(
                       controller: _emailController,
                       decoration: inputDecoration.copyWith(
@@ -296,9 +292,7 @@ class _RegisterPageState extends State<RegisterPage> {
               Row(
                 children: [
                   // Mật khẩu
-                  SizedBox(
-                    height: 46,
-                    width: MediaQuery.of(context).size.width * 0.45,
+                  Expanded(
                     child: TextFormField(
                       controller: _passwordController,
                       obscureText: !_isPasswordVisible,
@@ -309,7 +303,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             color: const Color(0xFF064265),
                             fontWeight: FontWeight.w300),
                         prefixIcon: const Icon(
-                          Icons.password_outlined,
+                          Icons.lock_outline,
                           size: 23,
                           color: Color(0xFF064265),
                         ),
@@ -319,6 +313,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ? Icons.visibility
                                 : Icons.visibility_off,
                             color: const Color(0xFF064265),
+                            size: 21,
                           ),
                           onPressed: () => setState(() {
                             _isPasswordVisible = !_isPasswordVisible;
@@ -326,7 +321,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ),
                       validator: (v) =>
-                          v!.isEmpty ? 'Vui lòng nhập Mật khẩu' : null,
+                          v!.isEmpty ? 'Vui lòng nhập mật khẩu' : null,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -343,7 +338,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             color: const Color(0xFF064265),
                             fontWeight: FontWeight.w300),
                         prefixIcon: const Icon(
-                          Icons.password_outlined,
+                          Icons.lock_outline,
                           size: 23,
                           color: Color(0xFF064265),
                         ),
@@ -353,6 +348,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 ? Icons.visibility
                                 : Icons.visibility_off,
                             color: const Color(0xFF064265),
+                            size: 21,
                           ),
                           onPressed: () => setState(() {
                             _isConfirmPasswordVisible =

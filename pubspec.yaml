@@ -129,6 +129,6 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/app-ai.png"  # Đường dẫn đến icon mới
+  image_path: "assets/Smartchat.jpg"  # Đường dẫn đến icon mới
   adaptive_icon_background: "#ffffff"  # Màu nền cho adaptive icon (Android)
   # adaptive_icon_foreground: "assets/icon_foreground.png"  # Icon phía trước (Android)

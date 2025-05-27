@@ -72,16 +72,19 @@ class _DrawerCustomState extends State<DrawerCustom> {
     if (!_isMounted) return;
 
     if (response != null && response.status == 'active') {
-      setState(() {
-        final name = response.packageProductName ?? 'Gói không xác định';
-        // Chỉ thêm "(Còn hạn)" nếu đúng gói "Trải nghiệm"
-        if (name == 'Trải nghiệm') {
-          packageProductName = '$name (Còn hạn)';
-        } else {
-          packageProductName = name;
-        }
-        packageIcon = getIconForPackage(response.packageProductName!);
-      });
+      if (mounted) {
+        setState(() {
+          final name = response.packageProductName ?? 'Gói không xác định';
+          // Chỉ thêm "(Còn hạn)" nếu đúng gói "Trải nghiệm"
+          if (name == 'Trải nghiệm') {
+            packageProductName = '$name (Còn hạn)';
+          } else {
+            packageProductName = name;
+          }
+          packageIcon = getIconForPackage(response.packageProductName!);
+        });
+      }
+
       return;
     }
 

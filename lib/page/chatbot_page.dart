@@ -68,10 +68,11 @@ class _ChatbotPageState extends State<ChatbotPage> {
     }).toList();
 
     final results = await Future.wait(futures);
-
-    setState(() {
-      chatbotListData = results.whereType<ResponseGetCode>().toList();
-    });
+    if (mounted) {
+      setState(() {
+        chatbotListData = results.whereType<ResponseGetCode>().toList();
+      });
+    }
   }
 
   Future<void> _updateChatbotStatusForItem(ResponseGetCode chatbotData) async {
@@ -163,10 +164,12 @@ class _ChatbotPageState extends State<ChatbotPage> {
     RoleModel? roleModel = await fetchRoles(bodyRole);
 
     if (roleModel != null && roleModel.data != null) {
-      setState(() {
-        chatbotList = roleModel.data!;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          chatbotList = roleModel.data!;
+          isLoading = false;
+        });
+      }
 
       // Load chatbot names
       loadChatbotNames();

@@ -212,78 +212,84 @@ class _PackageProductPageState extends State<PackageProductPage> {
                             borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.all(3),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             /// Tiêu đề gói
-                            ListTile(
-                              leading: getIconForPlan(plan["title"] ??
-                                  ""), // Gọi hàm để lấy icon tương ứng
-                              title: Text(
-                                plan["title"] ?? "",
-                                style: GoogleFonts.inter(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: selectedColor == Colors.white
-                                      ? const Color(0xFFED5113)
-                                      : selectedColor,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                getIconForPlan(plan["title"] ?? ""),
+                                const SizedBox(
+                                    width: 8), // khoảng cách giữa icon và text
+                                Text(
+                                  plan["title"] ?? "",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: selectedColor == Colors.white
+                                        ? const Color(0xFFED5113)
+                                        : selectedColor,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
+                            // Các p
 
                             /// Giá gói
-                            Center(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 15, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      plan["title"] == "Tùy biến"
-                                          ? "Liên hệ"
-                                          : (plan["title"] == "Trải nghiệm"
-                                              ? (plan["price"] ??
-                                                  "Miễn phí") // Nếu là "Trải nghiệm", giữ nguyên giá hoặc "Miễn phí"
-                                              : (selectedPriceMap[
-                                                          plan["title"]] !=
-                                                      null
-                                                  ? "${formatNumber(selectedPriceMap[plan["title"]])} VND / Tháng"
-                                                  : "Miễn phí")), // Nếu không phải "Trải nghiệm", hiển thị giá hoặc "Miễn phí"
-                                      style: GoogleFonts.inter(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: isActive
-                                            ? Colors.black
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (plan["title"] != "Trải nghiệm" &&
-                                plan["title"] != "Tùy biến")
-                              Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      _buildRadioButton(
-                                          plan["title"],
-                                          12,
-                                          "12 tháng",
-                                          plan["list_months"] ?? []),
-                                      _buildRadioButton(plan["title"], 6,
-                                          "6 tháng", plan["list_months"] ?? []),
-                                      _buildRadioButton(plan["title"], 3,
-                                          "3 tháng", plan["list_months"] ?? []),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                            // Center(
+                            //   child: Container(
+                            //     padding: const EdgeInsets.symmetric(
+                            //         horizontal: 15, vertical: 8),
+                            //     decoration: BoxDecoration(
+                            //       color: Colors.orange.withOpacity(0.1),
+                            //       borderRadius: BorderRadius.circular(10),
+                            //     ),
+                            //     child: Column(
+                            //       children: [
+                            //         Text(
+                            //           plan["title"] == "Tùy biến"
+                            //               ? "Liên hệ"
+                            //               : (plan["title"] == "Trải nghiệm"
+                            //                   ? (plan["price"] ??
+                            //                       "Miễn phí") // Nếu là "Trải nghiệm", giữ nguyên giá hoặc "Miễn phí"
+                            //                   : (selectedPriceMap[
+                            //                               plan["title"]] !=
+                            //                           null
+                            //                       ? "${formatNumber(selectedPriceMap[plan["title"]])} VND / Tháng"
+                            //                       : "Miễn phí")), // Nếu không phải "Trải nghiệm", hiển thị giá hoặc "Miễn phí"
+                            //           style: GoogleFonts.inter(
+                            //             fontSize: 20,
+                            //             fontWeight: FontWeight.bold,
+                            //             color: isActive
+                            //                 ? Colors.black
+                            //                 : Colors.black,
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     ),
+                            //   ),
+                            // ),
+                            // if (plan["title"] != "Trải nghiệm" &&
+                            //     plan["title"] != "Tùy biến")
+                            //   Column(
+                            //     children: [
+                            //       Row(
+                            //         mainAxisAlignment: MainAxisAlignment.center,
+                            //         children: [
+                            //           _buildRadioButton(
+                            //               plan["title"],
+                            //               12,
+                            //               "12 tháng",
+                            //               plan["list_months"] ?? []),
+                            //           _buildRadioButton(plan["title"], 6,
+                            //               "6 tháng", plan["list_months"] ?? []),
+                            //           _buildRadioButton(plan["title"], 3,
+                            //               "3 tháng", plan["list_months"] ?? []),
+                            //         ],
+                            //       ),
+                            //     ],
+                            //   ),
                             const Divider(
                               color: Colors.grey,
                             ),
@@ -347,30 +353,30 @@ class _PackageProductPageState extends State<PackageProductPage> {
                                       fontWeight: FontWeight.w600),
                                 ),
 
-                                trailing: GestureDetector(
-                                  onTap: () async {
-                                    const youtubeUrl =
-                                        'https://smartchat.com.vn/vi/pricing'; // Thay link tại đây
-                                    if (await canLaunchUrl(
-                                        Uri.parse(youtubeUrl))) {
-                                      await launchUrl(Uri.parse(youtubeUrl));
-                                    } else {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                            content:
-                                                Text('Không thể mở YouTube')),
-                                      );
-                                    }
-                                    // _showFeatureDialog(
-                                    //     context, plan["features"]!.split(", "));
-                                  },
-                                  child: const Icon(
-                                    Icons.info_outline,
-                                    color: Colors.black,
-                                    size: 20,
-                                  ),
-                                ),
+                                // trailing: GestureDetector(
+                                //   onTap: () async {
+                                //     const youtubeUrl =
+                                //         'https://smartchat.com.vn/vi/pricing'; // Thay link tại đây
+                                //     if (await canLaunchUrl(
+                                //         Uri.parse(youtubeUrl))) {
+                                //       await launchUrl(Uri.parse(youtubeUrl));
+                                //     } else {
+                                //       ScaffoldMessenger.of(context)
+                                //           .showSnackBar(
+                                //         const SnackBar(
+                                //             content:
+                                //                 Text('Không thể mở YouTube')),
+                                //       );
+                                //     }
+                                //     // _showFeatureDialog(
+                                //     //     context, plan["features"]!.split(", "));
+                                //   },
+                                //   child: const Icon(
+                                //     Icons.info_outline,
+                                //     color: Colors.black,
+                                //     size: 20,
+                                //   ),
+                                // ),
                                 horizontalTitleGap:
                                     8, // Giảm khoảng cách ngang giữa icon và text
 

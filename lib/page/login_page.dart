@@ -3,6 +3,7 @@ import 'package:smart_chat/model/body_login.dart';
 import 'package:smart_chat/page/app_screen.dart';
 import 'package:smart_chat/page/forgot_password_page.dart';
 import 'package:smart_chat/page/register_page.dart';
+import 'package:smart_chat/service/get_package_product_service.dart';
 import 'package:smart_chat/service/login_service.dart';
 import 'package:smart_chat/service/user_singin_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -66,7 +67,6 @@ class _LoginPageState extends State<LoginPage> {
   //     print('Error connecting to Firebase Auth: $e');
   //   }
   // }
-
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
       final String username = _usernameController.text.trim();
       final String password = _passwordController.text.trim();
 
-      // Create BodyLogin object from username and password
+      // Tạo đối tượng BodyLogin từ username và password
       final BodyLogin loginData =
           BodyLogin(username: username, password: password);
 
@@ -84,21 +84,69 @@ class _LoginPageState extends State<LoginPage> {
         Map<String, dynamic>? response = await _loginService.login(loginData);
 
         if (response != null) {
-          // Successful login
-          showLoginSnackbar(context);
+          // Sau khi đăng nhập thành công, gọi fetchPackageProduct để kiểm tra trạng thái gói
+          final packageResponse = await fetchGetPackageProduct();
+
+          if (packageResponse != null) {
+            if (packageResponse.status == 'active') {
+              // Nếu gói active, cho phép đăng nhập
+              showLoginSnackbar(context);
+            } else if (packageResponse.status == 'expired') {
+              // Nếu gói hết hạn, hiện thông báo lỗi
+              showLoginErrorSnackbar(context);
+            } else {
+              // Trạng thái không xác định
+              showLoginErrorSnackbar(context);
+            }
+          } else {
+            showLoginErrorSnackbar(context);
+          }
         } else {
           setState(() {});
-          showLoginErrorSnackbar(context); // Show error if login fails
+          showLoginErrorSnackbar(context); // Đăng nhập thất bại
         }
       } catch (error) {
         setState(() {});
-        showLoginErrorSnackbar(context); // Show error if there's an exception
+        showLoginErrorSnackbar(context); // Lỗi khi gọi API
       }
     } else {
-      // If form validation fails
+      // Nếu form không hợp lệ
       showValidationErrorSnackbar(context, 'Vui lòng điền đầy đủ thông tin.');
     }
   }
+
+  // Future<void> _login() async {
+  //   if (_formKey.currentState!.validate()) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text('Đang xử lý dữ liệu...')),
+  //     );
+
+  //     final String username = _usernameController.text.trim();
+  //     final String password = _passwordController.text.trim();
+
+  //     // Create BodyLogin object from username and password
+  //     final BodyLogin loginData =
+  //         BodyLogin(username: username, password: password);
+
+  //     try {
+  //       Map<String, dynamic>? response = await _loginService.login(loginData);
+
+  //       if (response != null) {
+  //         // Successful login
+  //         showLoginSnackbar(context);
+  //       } else {
+  //         setState(() {});
+  //         showLoginErrorSnackbar(context); // Show error if login fails
+  //       }
+  //     } catch (error) {
+  //       setState(() {});
+  //       showLoginErrorSnackbar(context); // Show error if there's an exception
+  //     }
+  //   } else {
+  //     // If form validation fails
+  //     showValidationErrorSnackbar(context, 'Vui lòng điền đầy đủ thông tin.');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -581,14 +629,32 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
+void showLoginStatusSnackbar(BuildContext context) {
+  final snackBar = SnackBar(
+    backgroundColor: Colors.white,
+    content: Text(
+      'Tài khoản không tồn tại hoặc đã hết hạn.',
+      style: GoogleFonts.inter(color: Colors.black, fontSize: 13),
+    ),
+    duration: const Duration(seconds: 2),
+    action: SnackBarAction(
+      label: 'Đóng',
+      textColor: Colors.black,
+      onPressed: () {},
+    ),
+  );
+
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
 void showLoginErrorSnackbar(BuildContext context) {
   final snackBar = SnackBar(
     backgroundColor: Colors.white,
     content: Text(
-      'Sai tài khoản hoặc mật khẩu.',
-      style: GoogleFonts.inter(color: Colors.black),
+      'Tài khoản hoặc mật khẩu không hợp lệ!',
+      style: GoogleFonts.inter(color: Colors.black, fontSize: 13),
     ),
-    duration: const Duration(seconds: 3),
+    duration: const Duration(seconds: 2),
     action: SnackBarAction(
       label: 'Đóng',
       textColor: Colors.black,
@@ -604,7 +670,7 @@ void showLoginSnackbar(BuildContext context) {
     backgroundColor: Colors.white,
     content: Text(
       'Đăng nhập thành công. Đang chuyển hướng....',
-      style: GoogleFonts.inter(color: Colors.black),
+      style: GoogleFonts.inter(color: Colors.black, fontSize: 13),
     ),
     duration: const Duration(seconds: 1),
   );
@@ -624,9 +690,9 @@ void showValidationErrorSnackbar(BuildContext context, String message) {
     backgroundColor: Colors.white,
     content: Text(
       message,
-      style: GoogleFonts.inter(color: Colors.black),
+      style: GoogleFonts.inter(color: Colors.black, fontSize: 13),
     ),
-    duration: const Duration(seconds: 3),
+    duration: const Duration(seconds: 2),
     action: SnackBarAction(
       label: 'Đóng',
       textColor: Colors.black,
