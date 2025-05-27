@@ -6,7 +6,7 @@ import 'package:smart_chat/service/app_config.dart';
 
 Future<ResponseSearch?> customerCreate(
     RequestCustomerCreate requestCustomerCreate) async {
-  const String apiUrl = 'https://data.smartchat.com.vn/api/customers/create';
+  const String apiUrl = 'https://admin.smartchat.com.vn/api/customers/create';
 
   try {
     final String body = jsonEncode(requestCustomerCreate.toJson());

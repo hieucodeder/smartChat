@@ -6,7 +6,7 @@ import 'package:smart_chat/model/delete_acount/response_search.dart';
 import 'package:smart_chat/service/app_config.dart';
 
 Future<Data?> fetchCurrentUserFromSearch(RequestSeach requestSearch) async {
-  const String apiUrl = 'https://data.smartchat.com.vn/api/customers/search';
+  const String apiUrl = 'https://admin.smartchat.com.vn/api/customers/search';
 
   try {
     // Lấy userId đã lưu sau khi đăng nhập

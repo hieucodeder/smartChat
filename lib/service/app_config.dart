@@ -2,7 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_chat/service/helper/secure_storage_helper.dart';
 
 class ApiConfig {
-  static const String domain = 'https://demo.smartchat.com.vn';
+  static const String domain = 'https://app.smartchat.com.vn';
 
   static String get baseUrlBasic {
     return '$domain/api/';

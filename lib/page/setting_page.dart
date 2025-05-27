@@ -77,7 +77,7 @@ class _SettingPageState extends State<SettingPage> {
       userId: user.userId,
       packageProductId: user.packageProductId,
       startDate: user.startDate,
-      status: user.status,
+      status: "expired",
       isGift: 0,
       title: "Admin",
       packageProductName: user.packageProductName,
